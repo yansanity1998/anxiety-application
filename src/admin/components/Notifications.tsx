@@ -28,6 +28,8 @@ export default function Notifications({ darkMode }: NotificationsProps) {
   });
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const lastLoginTimes = useRef<Map<string, string>>(new Map());
+  const lastSignInValues = useRef<Map<string, string>>(new Map());
 
   // Save notifications to localStorage whenever they change
   useEffect(() => {
@@ -39,6 +41,8 @@ export default function Notifications({ darkMode }: NotificationsProps) {
 
     const setupSubscription = async () => {
       try {
+        console.log('🔔 Setting up notification subscriptions...');
+        
         profilesSubscription = supabase
           .channel('profiles_changes')
           .on(
@@ -48,41 +52,105 @@ export default function Notifications({ darkMode }: NotificationsProps) {
               schema: 'public',
               table: 'profiles'
             },
-            async (payload) => {
+            async (payload: any) => {
+              // Type guard to ensure payload has the expected structure
+              if (!payload.new || typeof payload.new !== 'object') {
+                console.log('⚠️ Invalid payload structure:', payload);
+                return;
+              }
+
+              console.log('📡 Profiles change detected:', {
+                eventType: payload.eventType,
+                userId: payload.new.user_id,
+                email: payload.new.email,
+                role: payload.new.role,
+                lastSignIn: payload.new.last_sign_in,
+                oldLastSignIn: payload.old?.last_sign_in
+              });
+
               if (payload.eventType === 'INSERT') {
-                // New registration
-                const newNotification: Notification = {
-                  id: payload.new.id,
-                  type: 'registration',
-                  user: {
+                // New registration - only notify for non-admin users
+                if (payload.new.role !== 'admin') {
+                  console.log('✅ New registration detected:', payload.new.email);
+                  const newNotification: Notification = {
+                    id: `reg_${payload.new.id}_${Date.now()}`,
+                    type: 'registration',
+                    user: {
+                      email: payload.new.email,
+                      full_name: payload.new.full_name || 'New Student'
+                    },
+                    timestamp: new Date().toISOString(),
+                    read: false
+                  };
+                  setNotifications(prev => [newNotification, ...prev]);
+                  showNotificationToast('New Registration', `${newNotification.user.full_name} has registered!`);
+                }
+              } else if (payload.eventType === 'UPDATE') {
+                // Check if this is a login event (last_sign_in changed)
+                const userId = payload.new.user_id;
+                const newLastSignIn = payload.new.last_sign_in;
+                const oldLastSignIn = payload.old?.last_sign_in;
+                
+                // Only process if last_sign_in actually changed and user is not admin
+                if (newLastSignIn && 
+                    newLastSignIn !== oldLastSignIn && 
+                    payload.new.role !== 'admin') {
+                  
+                  console.log('🔐 Potential login detected:', {
+                    userId,
                     email: payload.new.email,
-                    full_name: payload.new.full_name
-                  },
-                  timestamp: new Date().toISOString(),
-                  read: false
-                };
-                setNotifications(prev => [newNotification, ...prev]);
-                showNotificationToast('New Registration', `${payload.new.full_name} has registered!`);
-              } else if (payload.eventType === 'UPDATE' && payload.new.last_sign_in !== payload.old.last_sign_in) {
-                // User login
-                const newNotification: Notification = {
-                  id: payload.new.id,
-                  type: 'login',
-                  user: {
-                    email: payload.new.email,
-                    full_name: payload.new.full_name
-                  },
-                  timestamp: new Date().toISOString(),
-                  read: false
-                };
-                setNotifications(prev => [newNotification, ...prev]);
-                showNotificationToast('User Login', `${payload.new.full_name} has logged in!`);
+                    newLastSignIn,
+                    oldLastSignIn
+                  });
+
+                  const currentTime = new Date().toISOString();
+                  const lastLoginTime = lastLoginTimes.current.get(userId);
+                  const lastSignInValue = lastSignInValues.current.get(userId);
+                  
+                  // Check if this is a real login (not just a dashboard visit)
+                  // Real login: last_sign_in value is significantly different (more than 1 minute)
+                  // Dashboard visit: last_sign_in value is very close to previous value
+                  const isRealLogin = !lastSignInValue || 
+                    Math.abs(new Date(newLastSignIn).getTime() - new Date(lastSignInValue).getTime()) > 60000; // 1 minute
+                  
+                  // Also check if it's been more than 2 minutes since last notification
+                  const timeSinceLastNotification = lastLoginTime ? 
+                    new Date(currentTime).getTime() - new Date(lastLoginTime).getTime() : 
+                    Infinity;
+                  
+                  const shouldNotify = isRealLogin && timeSinceLastNotification > 120000; // 2 minutes
+                  
+                  if (shouldNotify) {
+                    console.log('✅ Real login confirmed, sending notification');
+                    lastLoginTimes.current.set(userId, currentTime);
+                    lastSignInValues.current.set(userId, newLastSignIn);
+                    
+                    const newNotification: Notification = {
+                      id: `login_${userId}_${Date.now()}`,
+                      type: 'login',
+                      user: {
+                        email: payload.new.email,
+                        full_name: payload.new.full_name || 'Student'
+                      },
+                      timestamp: currentTime,
+                      read: false
+                    };
+                    setNotifications(prev => [newNotification, ...prev]);
+                    showNotificationToast('Student Login', `${newNotification.user.full_name} has logged in!`);
+                  } else {
+                    console.log('⏭️ Skipping notification - likely dashboard visit or too recent');
+                  }
+                }
               }
             }
           )
-          .subscribe();
+          .subscribe((status: any) => {
+            console.log('🔔 Subscription status:', status);
+          });
+
+        console.log('✅ Notification subscriptions set up successfully');
       } catch (error) {
-        console.error('Error setting up Supabase subscription:', error);
+        console.error('❌ Error setting up notification subscriptions:', error);
       }
     };
 
@@ -98,6 +166,7 @@ export default function Notifications({ darkMode }: NotificationsProps) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       if (profilesSubscription) {
+        console.log('🔔 Cleaning up notification subscriptions');
         profilesSubscription.unsubscribe();
       }
       document.removeEventListener('mousedown', handleClickOutside);
@@ -105,6 +174,7 @@ export default function Notifications({ darkMode }: NotificationsProps) {
   }, []);
 
   const showNotificationToast = (title: string, text: string) => {
+    console.log('🔔 Showing notification toast:', { title, text });
     Swal.mixin({
       toast: true,
       position: 'top-end',
@@ -195,7 +265,7 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                     </div>
                     <div className="flex-1">
                       <p className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                        {notification.type === 'registration' ? 'New Registration' : 'User Login'}
+                        {notification.type === 'registration' ? 'New Registration' : 'Student Login'}
                       </p>
                       <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         {notification.user.full_name} ({notification.user.email})

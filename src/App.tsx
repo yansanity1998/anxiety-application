@@ -8,6 +8,7 @@ import AdminDashboard from './admin/AdminDashboard';
 import UserDashboard from './user/Dashboard';
 import ProfilePage from './user/ProfilePage';
 import { supabase } from './lib/supabase';
+import './App.css';
 
 // Create a theme context
 export const ThemeContext = createContext({

@@ -15,7 +15,7 @@ The `profiles` table in your Supabase database is missing the `id_number` column
 ### Step 1: Run the Database Fix
 1. Go to your Supabase Dashboard
 2. Navigate to the SQL Editor
-3. Copy and paste the contents of `fix_id_number_column.sql` into the editor
+3. Copy and paste the contents of `sql/fix_id_number_column.sql` into the editor
 4. Click "Run" to execute the script
 
 This script will:
@@ -30,7 +30,7 @@ After running the SQL script, you can verify it worked by:
 
 1. **Check the table structure** - The script includes a query to show all columns in the profiles table
 2. **Test registration** - Try registering a new account
-3. **Run the test script** - Use `test_registration_fix.js` to verify the database schema
+3. **Run the test script** - Use `scripts/test_registration_fix.js` to verify the database schema
 
 ### Step 3: Code Changes (Already Applied)
 The registration code has been updated to:
@@ -67,7 +67,7 @@ The registration code has been updated to:
 3. Verify the user data appears in the Supabase profiles table
 
 ### Option 2: Automated Test
-1. Update the `test_registration_fix.js` file with your Supabase credentials
+1. Update the `scripts/test_registration_fix.js` file with your Supabase credentials
 2. Run the test script to verify the database schema
 3. The script will test inserting and deleting a test profile
 
@@ -92,13 +92,13 @@ After applying the fix:
 3. **Verify permissions** - Make sure the service role has proper permissions
 
 ## Files Modified
-- `fix_id_number_column.sql` - Database fix script
+- `sql/fix_id_number_column.sql` - Database fix script
 - `src/auth/Register.tsx` - Updated registration logic
-- `test_registration_fix.js` - Test script for verification
+- `scripts/test_registration_fix.js` - Test script for verification
 - `REGISTRATION_FIX_INSTRUCTIONS.md` - This documentation
 
 ## Next Steps
 1. Run the database fix script
 2. Test registration with a new account
 3. Verify all user data is saved correctly
-4. If everything works, you can delete the test files (`fix_id_number_column.sql`, `test_registration_fix.js`, `REGISTRATION_FIX_INSTRUCTIONS.md`) 
+4. If everything works, you can delete the test files (`sql/fix_id_number_column.sql`, `scripts/test_registration_fix.js`, `REGISTRATION_FIX_INSTRUCTIONS.md`) 

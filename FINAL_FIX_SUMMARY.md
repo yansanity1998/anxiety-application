@@ -18,7 +18,7 @@
 ## Steps to Fix Everything
 
 ### Step 1: Run Database Fix
-Run the `fix_assessment_structure.sql` in your Supabase SQL Editor to ensure the anxiety_assessments table has the correct structure.
+Run the `sql/fix_assessment_structure.sql` in your Supabase SQL Editor to ensure the anxiety_assessments table has the correct structure.
 
 ### Step 2: Verify Admin Role
 Check if your admin user has the correct role in the database:

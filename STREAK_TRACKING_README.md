@@ -14,7 +14,7 @@ The streak tracking system consists of:
 
 ### 1. Database Migration
 
-Run the `add_streak_tracking_migration.sql` file in your Supabase SQL Editor to:
+Run the `sql/add_streak_tracking_migration.sql` file in your Supabase SQL Editor to:
 
 - Add the `streak` and `last_activity_date` columns to the profiles table
 - Create a function to reset inactive streaks

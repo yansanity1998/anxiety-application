@@ -12,7 +12,7 @@ Your authentication system has several issues preventing both student and admin 
 ### Step 1: Run the Database Fix
 1. Go to your Supabase Dashboard
 2. Navigate to the SQL Editor
-3. Copy and paste the entire contents of `fix_login_authentication.sql`
+3. Copy and paste the entire contents of `sql/fix_login_authentication.sql`
 4. Run the SQL script
 5. This will:
    - Drop and recreate all tables with proper structure
@@ -27,7 +27,7 @@ After running the SQL script, you should see a query result showing your profile
 ### Step 3: Test Authentication
 1. Open your application in the browser
 2. Open the browser console (F12)
-3. Copy and paste the contents of `test_authentication.js` into the console
+3. Copy and paste the contents of `scripts/test_authentication.js` into the console
 4. Run `testAuthentication()` to verify everything is working
 
 ### Step 4: Test Login

@@ -1,4 +1,4 @@
-#root {
+/* #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
@@ -39,4 +39,52 @@
 
 .read-the-docs {
   color: #888;
+} */
+
+.animate-bounce-slow {
+  animation: bounce 2s infinite;
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.animate-wiggle {
+  animation: wiggle 1.2s infinite;
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(8deg); }
+}
+
+.animate-float {
+  animation: float 2.5s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-18px); }
+}
+
+.animate-rotate {
+  animation: rotate 3s linear infinite;
+}
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-pulse-fast {
+  animation: pulse 1s infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+
+.animate-shine {
+  animation: shine 2.5s infinite;
+}
+@keyframes shine {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.7) drop-shadow(0 0 8px gold); }
 }

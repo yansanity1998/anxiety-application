@@ -14,7 +14,8 @@ import {
   FaArrowLeft, 
   FaChevronDown, 
   FaSpinner,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaFire
 } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 
@@ -29,6 +30,16 @@ const yearLevelMap: { [key: string]: number } = {
 // Get the year level label from the value
 const getYearLevelLabel = (value: number): string => {
   return Object.keys(yearLevelMap).find(key => yearLevelMap[key] === value) || '';
+};
+
+const getFireColor = (streak: number) => {
+  if (streak >= 100) return 'text-yellow-400 drop-shadow-lg animate-pulse'; // Gold
+  if (streak >= 60) return 'text-cyan-400 drop-shadow-lg animate-pulse'; // Cyan
+  if (streak >= 50) return 'text-pink-500 drop-shadow-lg animate-pulse'; // Pink
+  if (streak >= 30) return 'text-purple-500';
+  if (streak >= 20) return 'text-blue-500';
+  if (streak >= 10) return 'text-green-500';
+  return 'text-orange-500';
 };
 
 const ProfilePage: React.FC = () => {
@@ -370,8 +381,17 @@ const ProfilePage: React.FC = () => {
           {userData && (
             <div className="flex justify-center mb-6">
               <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3">
-                <span className="font-bold text-lg">🔥 Streak:</span>
-                <span className="text-2xl font-extrabold">{userData.streak || 0} days</span>
+                <FaFire className={`${getFireColor(userData.streak || 0)} text-2xl`} title={
+                  userData.streak >= 100 ? '🔥 100+ Day Streak! Legendary!' :
+                  userData.streak >= 60 ? '🔥 60+ Day Streak! Incredible!' :
+                  userData.streak >= 50 ? '🔥 50+ Day Streak! Amazing!' :
+                  userData.streak >= 30 ? '🔥 30+ Day Streak! Awesome!' :
+                  userData.streak >= 20 ? '🔥 20+ Day Streak! Great job!' :
+                  userData.streak >= 10 ? '🔥 10+ Day Streak! Keep going!' :
+                  '🔥 Keep your streak alive!'
+                } />
+                <span className="font-bold text-lg">Streak:</span>
+                <span className={`text-2xl font-extrabold ${getFireColor(userData.streak || 0)}`}>{userData.streak || 0} days</span>
               </div>
             </div>
           )}

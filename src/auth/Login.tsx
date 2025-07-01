@@ -158,11 +158,51 @@ export default function Login({ onSwitch }: LoginProps) {
           console.error('Last sign in update error:', updateError);
         }
         
-        // Update streak on login (handle errors gracefully)
+        // Update streak on login using the database function for better reliability
         try {
-          await streakService.updateUserStreak(authData.user.id);
+          console.log('Updating streak on login for user:', authData.user.id);
+          
+          // First, get the current streak before update
+          const { data: currentStreakData } = await supabase
+            .from('profiles')
+            .select('streak, last_activity_date')
+            .eq('user_id', authData.user.id)
+            .single();
+          
+          console.log('Current streak before login:', currentStreakData?.streak);
+          console.log('Last activity date before login:', currentStreakData?.last_activity_date);
+          
+          // Call the database function to update streak
+          const { data: streakResult, error: streakError } = await supabase.rpc('update_user_streak_manual', {
+            user_id_param: authData.user.id
+          });
+          
+          if (streakError) {
+            console.error('Database streak update error:', streakError);
+            // Fallback to frontend streak service
+            await streakService.updateUserStreak(authData.user.id);
+          } else {
+            console.log('Database streak update successful. New streak:', streakResult);
+          }
+          
+          // Verify the streak was updated
+          const { data: verifyStreakData } = await supabase
+            .from('profiles')
+            .select('streak, last_activity_date')
+            .eq('user_id', authData.user.id)
+            .single();
+          
+          console.log('Verified streak after login:', verifyStreakData?.streak);
+          console.log('Verified last activity date after login:', verifyStreakData?.last_activity_date);
+          
         } catch (streakError) {
           console.error('Streak update error:', streakError);
+          // Fallback to frontend streak service
+          try {
+            await streakService.updateUserStreak(authData.user.id);
+          } catch (fallbackError) {
+            console.error('Fallback streak update also failed:', fallbackError);
+          }
         }
 
         // Check if the user is trying to log in as admin

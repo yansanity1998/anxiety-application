@@ -138,7 +138,7 @@ async function debugAdminDashboard() {
     if (!adminData) {
       console.log('\n❌ Admin query failed - this is the main issue');
       console.log('   This usually means RLS policies are not configured correctly');
-      console.log('   Please run the fix_admin_dashboard_users.sql script');
+      console.log('   Please run the sql/fix_admin_dashboard_users.sql script');
       return;
     }
     

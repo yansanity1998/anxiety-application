@@ -34,6 +34,7 @@ import type { Variants } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { streakService } from '../lib/streakService';
 import { useNavigate } from 'react-router-dom';
+import { StreakPet } from './StreakPet';
 
 // Mock user data - in a real app, this would come from your backend
 const mockUserData = {
@@ -203,6 +204,26 @@ const ScrollReveal = ({ children, delay = 0, direction = "up" }: ScrollRevealPro
   );
 };
 
+const getFireColor = (streak: number) => {
+  if (streak >= 100) return 'text-yellow-400 drop-shadow-lg animate-pulse'; // Gold
+  if (streak >= 60) return 'text-cyan-400 drop-shadow-lg animate-pulse'; // Cyan
+  if (streak >= 50) return 'text-pink-500 drop-shadow-lg animate-pulse'; // Pink
+  if (streak >= 30) return 'text-purple-500';
+  if (streak >= 20) return 'text-blue-500';
+  if (streak >= 10) return 'text-green-500';
+  return 'text-orange-500';
+};
+
+const getFireBorderColor = (streak: number) => {
+  if (streak >= 100) return 'border-yellow-400';
+  if (streak >= 60) return 'border-cyan-400';
+  if (streak >= 50) return 'border-pink-500';
+  if (streak >= 30) return 'border-purple-500';
+  if (streak >= 20) return 'border-blue-500';
+  if (streak >= 10) return 'border-green-500';
+  return 'border-orange-500';
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -296,26 +317,15 @@ const Dashboard = () => {
   const fetchAndUpdateStreak = async (userId: string) => {
     setLoadingStreak(true);
     try {
-      // Update the streak (this will increment it if it's a new day)
-      const streak = await streakService.updateUserStreak(userId);
-      if (streak > prevStreakRef.current) {
-        setStreakIncrease(true);
-        setTimeout(() => setStreakIncrease(false), 1200);
-      }
+      // Just get the current streak without updating it
+      // The login process already handles streak updates
+      const streak = await streakService.getUserStreak(userId);
       setUserStreak(streak);
       prevStreakRef.current = streak;
     } catch (err) {
-      console.error('Error updating streak:', err);
-      // Fallback to just getting the current streak
-      try {
-        const streak = await streakService.getUserStreak(userId);
-        setUserStreak(streak);
-        prevStreakRef.current = streak;
-      } catch (fallbackErr) {
-        console.error('Error getting streak (fallback):', fallbackErr);
-        setUserStreak(0);
-        prevStreakRef.current = 0;
-      }
+      console.error('Error fetching streak:', err);
+      setUserStreak(0);
+      prevStreakRef.current = 0;
     } finally {
       setLoadingStreak(false);
     }
@@ -571,7 +581,7 @@ const Dashboard = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <motion.div 
-            className="bg-white rounded-2xl p-4 shadow-lg border-2 border-green-200"
+            className={`bg-white rounded-2xl p-4 shadow-lg border-2 ${getFireBorderColor(userStreak)}`}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
@@ -582,13 +592,21 @@ const Dashboard = () => {
                 animate={{ rotate: [0, 10, 0, -10, 0] }}
                 transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
               >
-                <FaFire className="text-orange-500 text-xl" />
+                <FaFire className={`${getFireColor(userStreak)} text-xl`} title={
+                  userStreak >= 100 ? '🔥 100+ Day Streak! Legendary!' :
+                  userStreak >= 60 ? '🔥 60+ Day Streak! Incredible!' :
+                  userStreak >= 50 ? '🔥 50+ Day Streak! Amazing!' :
+                  userStreak >= 30 ? '🔥 30+ Day Streak! Awesome!' :
+                  userStreak >= 20 ? '🔥 20+ Day Streak! Great job!' :
+                  userStreak >= 10 ? '🔥 10+ Day Streak! Keep going!' :
+                  '🔥 Keep your streak alive!'
+                } />
               </motion.div>
               {loadingStreak ? (
                 <div className="w-6 h-6 rounded-full border-2 border-gray-300 border-t-orange-500 animate-spin"></div>
               ) : (
                 <motion.span 
-                  className="text-2xl font-bold text-gray-800 relative"
+                  className={`text-2xl font-bold relative ${getFireColor(userStreak)}`}
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.2 }}
@@ -608,10 +626,13 @@ const Dashboard = () => {
                 </motion.span>
               )}
             </div>
-            <p className="text-sm text-gray-600">Day Streak</p>
-            <div className="mt-2 flex items-center gap-1">
-              <FaArrowUp className="text-green-500 text-xs" />
-              <span className="text-xs text-green-600 font-medium">
+            <p className={`text-sm font-bold mb-1 ${getFireColor(userStreak)}`}>Day Streak</p>
+            <div className="flex flex-col items-center mt-2 mb-2">
+              <StreakPet streak={userStreak} className="animate-bounce-slow" showLabel={false} />
+            </div>
+            <div className="mt-2 flex items-center gap-1 justify-center">
+              <FaArrowUp className={`text-xs ${getFireColor(userStreak)}`} />
+              <span className={`text-xs font-medium ${getFireColor(userStreak)}`}>
                 {userStreak > 0 ? `${userStreak} days and counting!` : 'Start your streak today!'}
               </span>
             </div>
