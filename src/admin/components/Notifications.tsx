@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
-import { FaUserPlus, FaSignInAlt, FaTimes, FaBell, FaBellSlash } from 'react-icons/fa';
+import { FaUserPlus, FaSignInAlt, FaTimes, FaBell, FaBellSlash, FaArchive } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 
 type Notification = {
   id: string;
-  type: 'registration' | 'login';
+  type: 'registration' | 'login' | 'archive';
   user: {
     email: string;
     full_name: string;
@@ -86,6 +86,26 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                   showNotificationToast('New Registration', `${newNotification.user.full_name} has registered!`);
                 }
               } else if (payload.eventType === 'UPDATE') {
+                // First, check if this is an archive event (role changed to archived)
+                const newRole = (payload.new.role || '').toLowerCase();
+                const oldRole = (payload.old?.role || '').toLowerCase();
+                if (newRole === 'archived' && oldRole !== 'archived') {
+                  const currentTime = new Date().toISOString();
+                  const archiveNotification: Notification = {
+                    id: `archive_${payload.new.user_id}_${Date.now()}`,
+                    type: 'archive',
+                    user: {
+                      email: payload.new.email,
+                      full_name: payload.new.full_name || 'Student'
+                    },
+                    timestamp: currentTime,
+                    read: false
+                  };
+                  setNotifications(prev => [archiveNotification, ...prev]);
+                  showNotificationToast('Student Archived', 'This student is archive');
+                  return;
+                }
+
                 // Check if this is a login event (last_sign_in changed)
                 const userId = payload.new.user_id;
                 const newLastSignIn = payload.new.last_sign_in;
@@ -254,18 +274,22 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                   <div className="flex items-start">
                     <div className={`p-2 rounded-full mr-3 ${
                       notification.type === 'registration' 
-                        ? darkMode ? 'bg-green-900' : 'bg-green-100'
-                        : darkMode ? 'bg-blue-900' : 'bg-blue-100'
+                        ? (darkMode ? 'bg-green-900' : 'bg-green-100')
+                        : notification.type === 'login'
+                          ? (darkMode ? 'bg-blue-900' : 'bg-blue-100')
+                          : (darkMode ? 'bg-red-900' : 'bg-red-100')
                     }`}>
                       {notification.type === 'registration' ? (
                         <FaUserPlus className={darkMode ? 'text-green-300' : 'text-green-600'} />
-                      ) : (
+                      ) : notification.type === 'login' ? (
                         <FaSignInAlt className={darkMode ? 'text-blue-300' : 'text-blue-600'} />
+                      ) : (
+                        <FaArchive className={darkMode ? 'text-red-300' : 'text-red-600'} />
                       )}
                     </div>
                     <div className="flex-1">
                       <p className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                        {notification.type === 'registration' ? 'New Registration' : 'Student Login'}
+                        {notification.type === 'registration' ? 'New Registration' : notification.type === 'login' ? 'Student Login' : 'Student Archived'}
                       </p>
                       <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         {notification.user.full_name} ({notification.user.email})

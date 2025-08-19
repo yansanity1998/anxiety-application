@@ -31,7 +31,7 @@ export default function Login({ onSwitch }: LoginProps) {
       popup: 'shadow-none border border-gray-200',
       title: 'text-sm font-medium',
       htmlContainer: 'text-xs',
-      timerProgressBar: 'bg-gradient-to-r from-blue-400 to-purple-500'
+      timerProgressBar: 'bg-[#800000]'
     },
     didOpen: (toast) => {
       toast.addEventListener('mouseenter', Swal.stopTimer);
@@ -148,6 +148,22 @@ export default function Login({ onSwitch }: LoginProps) {
       if (userProfile) {
         console.log('Profile found/created:', userProfile);
 
+        // Block archived users from logging in (except admin by email)
+        const userRole = (userProfile as any)?.role?.toLowerCase?.() || '';
+        const isAdminByEmail = email.toLowerCase() === 'admin@gmail.com';
+        if (userRole === 'archived' && !isAdminByEmail) {
+          await Toast.fire({
+            icon: 'error',
+            iconColor: '#ef4444',
+            title: 'Account Archived',
+            text: 'Your account has been archived. Please contact the administrator.',
+            timer: 2000
+          });
+          await supabase.auth.signOut();
+          setIsLoading(false);
+          return;
+        }
+
         // Update last_sign_in
         const { error: updateError } = await supabase
           .from('profiles')
@@ -246,24 +262,24 @@ export default function Login({ onSwitch }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 relative overflow-hidden text-sm sm:text-base">
+    <div className="min-h-screen flex items-center justify-center bg-[#800000]/5 p-4 relative overflow-hidden text-sm sm:text-base">
       {/* Floating background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-10 left-10 w-20 h-20 bg-blue-200 rounded-full opacity-20 animate-pulse"></div>
-        <div className="absolute top-32 right-20 w-16 h-16 bg-purple-200 rounded-full opacity-20 animate-pulse delay-1000"></div>
-        <div className="absolute bottom-20 left-32 w-24 h-24 bg-indigo-200 rounded-full opacity-20 animate-pulse delay-2000"></div>
-        <div className="absolute bottom-32 right-10 w-12 h-12 bg-teal-200 rounded-full opacity-20 animate-pulse delay-500"></div>
+        <div className="absolute top-10 left-10 w-20 h-20 bg-[#800000]/20 rounded-full opacity-20 animate-pulse"></div>
+        <div className="absolute top-32 right-20 w-16 h-16 bg-[#800000]/20 rounded-full opacity-20 animate-pulse delay-1000"></div>
+        <div className="absolute bottom-20 left-32 w-24 h-24 bg-[#800000]/20 rounded-full opacity-20 animate-pulse delay-2000"></div>
+        <div className="absolute bottom-32 right-10 w-12 h-12 bg-[#800000]/20 rounded-full opacity-20 animate-pulse delay-500"></div>
       </div>
 
       <div className="w-full max-w-md relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-3 rounded-full shadow-lg">
+            <div className="bg-[#800000] p-3 rounded-full shadow-lg">
               <FaHeart className="text-white text-2xl" />
             </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#800000] mb-2">
             Welcome Back
           </h1>
           <p className="text-gray-600 text-xs sm:text-sm flex items-center justify-center gap-2">
@@ -283,7 +299,7 @@ export default function Login({ onSwitch }: LoginProps) {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="block w-full pl-4 pr-4 py-3 border border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
+              className="block w-full pl-4 pr-4 py-3 border border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
               placeholder="your@email.com"
               required
               autoComplete="email"
@@ -301,7 +317,7 @@ export default function Login({ onSwitch }: LoginProps) {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full pl-4 pr-12 py-3 border border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
+                className="block w-full pl-4 pr-12 py-3 border border-gray-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
                 placeholder="••••••••"
                 required
                 autoComplete="current-password"
@@ -329,13 +345,13 @@ export default function Login({ onSwitch }: LoginProps) {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-[#800000] focus:ring-[#800000] border-gray-300 rounded"
               />
               <label htmlFor="remember-me" className="ml-2 block text-gray-600">
                 Remember me
               </label>
             </div>
-            <a href="#" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+            <a href="#" className="font-medium text-[#800000] hover:text-[#660000] transition-colors">
               Forgot password?
             </a>
           </div>
@@ -345,7 +361,7 @@ export default function Login({ onSwitch }: LoginProps) {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-2xl shadow-lg text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 ${
+              className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-2xl shadow-lg text-sm font-medium text-white bg-[#800000] hover:bg-[#660000] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#800000] transition-all duration-200 ${
                 isLoading ? 'opacity-70 cursor-not-allowed' : 'transform hover:scale-[1.02]'
               }`}
             >
@@ -387,7 +403,7 @@ export default function Login({ onSwitch }: LoginProps) {
             <button
               type="button"
               onClick={onSwitch}
-              className="font-medium text-blue-600 hover:text-blue-500 transition-colors cursor-pointer"
+              className="font-medium text-[#800000] hover:text-[#660000] transition-colors cursor-pointer"
             >
               Create Account
             </button>
@@ -395,7 +411,7 @@ export default function Login({ onSwitch }: LoginProps) {
         </div>
 
         {/* Motivational Message */}
-        <div className="mt-6 text-center p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-blue-100">
+        <div className="mt-6 text-center p-4 bg-[#800000]/5 rounded-2xl border border-[#800000]/30">
           <p className="text-xs text-gray-600 leading-relaxed">
             "Every step forward is a victory. You're stronger than you think." 💙
           </p>

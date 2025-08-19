@@ -211,6 +211,31 @@ export default function AnxietyAssessment({ onComplete }: AssessmentProps) {
   const [showResults, setShowResults] = useState(false);
   const navigate = useNavigate();
 
+  // Guard: prevent archived users from accessing assessment
+  useEffect(() => {
+    const guardArchived = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .single();
+      if ((profile as any)?.role?.toLowerCase?.() === 'archived') {
+        try { await supabase.auth.signOut(); } catch {}
+        await Swal.fire({
+          icon: 'error',
+          title: 'Account Archived',
+          text: 'Your account is archived. Please contact the administrator.',
+          confirmButtonColor: '#800000',
+          width: 320
+        });
+        navigate('/');
+      }
+    };
+    guardArchived();
+  }, []);
+
   const progress = ((currentQuestion + 1) / questions.length) * 100;
   const totalScore = answers.reduce((sum, answer) => sum + (answer >= 0 ? answer : 0), 0);
   const maxScore = questions.length * 3; // 3 is the highest score per question in GAD-7
@@ -365,13 +390,13 @@ export default function AnxietyAssessment({ onComplete }: AssessmentProps) {
 
   if (isComplete) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-2 sm:p-4 relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center bg-[#800000]/5 p-2 sm:p-4 relative overflow-hidden">
         {/* Floating background elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-6 left-4 w-14 h-14 sm:w-20 sm:h-20 bg-blue-200 rounded-full opacity-20 animate-pulse"></div>
-          <div className="absolute top-24 right-8 w-10 h-10 sm:w-16 sm:h-16 bg-purple-200 rounded-full opacity-20 animate-pulse delay-1000"></div>
-          <div className="absolute bottom-16 left-16 w-16 h-16 sm:w-24 sm:h-24 bg-indigo-200 rounded-full opacity-20 animate-pulse delay-2000"></div>
-          <div className="absolute bottom-24 right-4 w-8 h-8 sm:w-12 sm:h-12 bg-teal-200 rounded-full opacity-20 animate-pulse delay-500"></div>
+          <div className="absolute top-6 left-4 w-14 h-14 sm:w-20 sm:h-20 bg-[#800000]/20 rounded-full opacity-20 animate-pulse"></div>
+          <div className="absolute top-24 right-8 w-10 h-10 sm:w-16 sm:h-16 bg-[#800000]/20 rounded-full opacity-20 animate-pulse delay-1000"></div>
+          <div className="absolute bottom-16 left-16 w-16 h-16 sm:w-24 sm:h-24 bg-[#800000]/20 rounded-full opacity-20 animate-pulse delay-2000"></div>
+          <div className="absolute bottom-24 right-4 w-8 h-8 sm:w-12 sm:h-12 bg-[#800000]/20 rounded-full opacity-20 animate-pulse delay-500"></div>
         </div>
 
         <div className="w-full max-w-lg sm:max-w-lg max-w-full relative z-10">
@@ -398,7 +423,7 @@ export default function AnxietyAssessment({ onComplete }: AssessmentProps) {
                 </motion.div>
 
                 {/* Results Header */}
-                <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-1 sm:mb-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-[#800000] mb-1 sm:mb-2">
                   Assessment Complete
                 </h2>
                 <p className="text-gray-600 text-xs sm:text-sm mb-4 sm:mb-8">
@@ -470,15 +495,15 @@ export default function AnxietyAssessment({ onComplete }: AssessmentProps) {
                 <div className="space-y-2 sm:space-y-3">
                   <button
                     onClick={handleRestart}
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-2 sm:py-3 px-4 sm:px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                    className="w-full bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 sm:py-3 px-4 sm:px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
                     Take Assessment Again
                   </button>
                   <button
                     onClick={handleDashboard}
-                    className="w-full flex items-center justify-center gap-2 bg-white border border-blue-200 text-blue-700 font-medium py-2 sm:py-3 px-4 sm:px-6 rounded-xl transition-all duration-200 shadow hover:bg-blue-50"
+                    className="w-full flex items-center justify-center gap-2 bg-white border border-[#800000]/40 text-[#800000] font-medium py-2 sm:py-3 px-4 sm:px-6 rounded-xl transition-all duration-200 shadow hover:bg-[#800000]/5"
                   >
-                    <FaHome className="text-blue-500" />
+                    <FaHome className="text-[#800000]" />
                     View Dashboard
                   </button>
                   <div className="text-xs text-gray-500 leading-relaxed text-center">
@@ -502,24 +527,24 @@ export default function AnxietyAssessment({ onComplete }: AssessmentProps) {
         onDecline={handleModalDecline}
       />
 
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center bg-[#800000]/5 p-4 relative overflow-hidden">
         {/* Floating background elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-10 left-10 w-20 h-20 bg-blue-200 rounded-full opacity-20 animate-pulse"></div>
-          <div className="absolute top-32 right-20 w-16 h-16 bg-purple-200 rounded-full opacity-20 animate-pulse delay-1000"></div>
-          <div className="absolute bottom-20 left-32 w-24 h-24 bg-indigo-200 rounded-full opacity-20 animate-pulse delay-2000"></div>
-          <div className="absolute bottom-32 right-10 w-12 h-12 bg-teal-200 rounded-full opacity-20 animate-pulse delay-500"></div>
+          <div className="absolute top-10 left-10 w-20 h-20 bg-[#800000]/20 rounded-full opacity-20 animate-pulse"></div>
+          <div className="absolute top-32 right-20 w-16 h-16 bg-[#800000]/20 rounded-full opacity-20 animate-pulse delay-1000"></div>
+          <div className="absolute bottom-20 left-32 w-24 h-24 bg-[#800000]/20 rounded-full opacity-20 animate-pulse delay-2000"></div>
+          <div className="absolute bottom-32 right-10 w-12 h-12 bg-[#800000]/20 rounded-full opacity-20 animate-pulse delay-500"></div>
         </div>
 
         <div className="w-full max-w-lg relative z-10">
           {/* Header */}
           <div className="text-center mb-6">
             <div className="flex items-center justify-center mb-3">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-3 rounded-full shadow-lg">
+              <div className="bg-[#800000] p-3 rounded-full shadow-lg">
                 <FaBrain className="text-white text-2xl" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            <h1 className="text-2xl font-bold text-[#800000] mb-2">
               GAD-7 Anxiety Assessment
             </h1>
             <p className="text-gray-600 text-sm flex items-center justify-center gap-2">
@@ -534,13 +559,13 @@ export default function AnxietyAssessment({ onComplete }: AssessmentProps) {
               <span className="text-sm font-medium text-gray-700">
                 Question {currentQuestion + 1} of {questions.length}
               </span>
-              <span className="text-sm font-medium text-blue-600">
+              <span className="text-sm font-medium text-[#800000]">
                 {Math.round(progress)}%
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300 ease-out"
+                className="bg-[#800000] h-2 rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
@@ -549,7 +574,7 @@ export default function AnxietyAssessment({ onComplete }: AssessmentProps) {
           {/* Question Card */}
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 p-6 mb-6">
             <div className="mb-4">
-              <div className="text-xs font-medium text-blue-600 mb-2">
+              <div className="text-xs font-medium text-[#800000] mb-2">
                 {questions[currentQuestion].category}
               </div>
               <h2 className="text-lg font-semibold text-gray-800 leading-relaxed">
@@ -565,19 +590,19 @@ export default function AnxietyAssessment({ onComplete }: AssessmentProps) {
                   onClick={() => handleAnswerSelect(option.value)}
                   className={`w-full p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                     answers[currentQuestion] === option.value
-                      ? 'border-blue-500 bg-blue-50 shadow-md scale-[1.02]'
-                      : 'border-gray-200 bg-gray-50/50 hover:border-blue-300 hover:bg-blue-50/50 hover:scale-[1.01]'
+                      ? 'border-[#800000] bg-[#800000]/5 shadow-md scale-[1.02]'
+                      : 'border-gray-200 bg-gray-50/50 hover:border-[#800000]/50 hover:bg-[#800000]/5 hover:scale-[1.01]'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className={`font-medium ${
-                      answers[currentQuestion] === option.value ? 'text-blue-700' : 'text-gray-700'
+                      answers[currentQuestion] === option.value ? 'text-[#800000]' : 'text-gray-700'
                     }`}>
                       {option.label}
                     </span>
                     <div className={`w-4 h-4 rounded-full border-2 ${
                       answers[currentQuestion] === option.value
-                        ? 'border-blue-500 bg-blue-500'
+                        ? 'border-[#800000] bg-[#800000]'
                         : 'border-gray-300'
                     }`}>
                       {answers[currentQuestion] === option.value && (
@@ -611,7 +636,7 @@ export default function AnxietyAssessment({ onComplete }: AssessmentProps) {
               className={`flex-1 flex items-center justify-center px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
                 answers[currentQuestion] === -1
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl'
+                  : 'bg-[#800000] hover:bg-[#660000] text-white shadow-lg hover:shadow-xl'
               }`}
             >
               {currentQuestion === questions.length - 1 ? 'Complete Assessment' : 'Next Question'}
@@ -620,7 +645,7 @@ export default function AnxietyAssessment({ onComplete }: AssessmentProps) {
           </div>
 
           {/* Motivational Message */}
-          <div className="mt-6 text-center p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+          <div className="mt-6 text-center p-4 bg-[#800000]/5 rounded-xl border border-[#800000]/30">
             <p className="text-xs text-gray-600 leading-relaxed">
               "Take your time and answer honestly. Your mental health matters." 💙
             </p>

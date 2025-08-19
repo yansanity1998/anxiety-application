@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FaBars, FaTimes, FaTachometerAlt, FaUsers } from 'react-icons/fa';
+import { FaArchive } from 'react-icons/fa';
 
 interface AdminNavbarProps {
   activeView: string;
@@ -13,6 +14,7 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode }: AdminNavbarProps) 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <FaTachometerAlt />, color: darkMode ? 'text-blue-400' : 'text-blue-500', hoverColor: darkMode ? 'group-hover:text-blue-400' : 'group-hover:text-blue-500' },
     { id: 'users', label: 'User Management', icon: <FaUsers />, color: darkMode ? 'text-purple-400' : 'text-purple-500', hoverColor: darkMode ? 'group-hover:text-purple-400' : 'group-hover:text-purple-500' },
+    { id: 'archived', label: 'Archived Users', icon: <FaArchive />, color: darkMode ? 'text-gray-300' : 'text-gray-500', hoverColor: darkMode ? 'group-hover:text-gray-300' : 'group-hover:text-gray-700' },
   ];
 
   const navLinkClasses = (view: string) => 

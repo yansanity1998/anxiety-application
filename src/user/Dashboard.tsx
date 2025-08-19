@@ -236,7 +236,7 @@ const Dashboard = () => {
   const [previousAssessment, setPreviousAssessment] = useState<any>(null);
   const [userStreak, setUserStreak] = useState<number>(0);
   const [loadingStreak, setLoadingStreak] = useState(true);
-  const [streakIncrease, setStreakIncrease] = useState(false);
+  const [streakIncrease] = useState(false);
   const prevStreakRef = useRef<number>(0);
 
   // Add these refs for scroll effects
@@ -268,7 +268,7 @@ const Dashboard = () => {
         const userId = session.user.id;
         
         // Force a fresh fetch by bypassing cache
-        const timestamp = new Date().getTime();
+        // (Supabase JS uses HTTP under the hood; we rely on server freshness here)
         
         // Add no-cache headers to force a fresh fetch
         const { data: profile, error } = await supabase
@@ -282,6 +282,16 @@ const Dashboard = () => {
           setUserData(null);
         } else {
           console.log('Fetched fresh profile data:', profile);
+          // Block archived users from accessing the app
+          if ((profile as any)?.role?.toLowerCase?.() === 'archived') {
+            try {
+              await supabase.auth.signOut();
+            } catch (e) {
+              console.error('Error signing out archived user:', e);
+            }
+            navigate('/');
+            return;
+          }
           setUserData(profile);
           // After fetching profile, fetch the student's assessments
           fetchStudentAssessments(profile.id);
@@ -441,7 +451,7 @@ const Dashboard = () => {
 
     return (
       <motion.div 
-        className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 text-center"
+        className="bg-[#800000]/5 rounded-2xl p-6 text-center"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -453,7 +463,7 @@ const Dashboard = () => {
             <motion.button
               key="start-button"
               onClick={() => setBreathingActive(true)}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-200"
+              className="bg-[#800000] hover:bg-[#660000] text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-200"
               whileHover={{ scale: 1.05, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0 }}
@@ -529,7 +539,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-[#800000]/5">
       {/* Header with scroll effect */}
       <motion.div 
         ref={headerRef}
@@ -545,18 +555,18 @@ const Dashboard = () => {
         <div className="px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold text-[#800000]">
                 {getGreeting()}, {loadingUser ? '...' : userData?.full_name || userData?.name || mockUserData.name}! 👋
               </h1>
               <p className="text-sm text-gray-600">{getMotivationalQuote()}</p>
             </div>
             <div className="flex items-center gap-3">
               <motion.button 
-                className="relative p-2 bg-blue-50 rounded-full"
+                className="relative p-2 bg-[#800000]/10 rounded-full"
                 whileTap={{ scale: 0.9 }}
-                whileHover={{ scale: 1.1, backgroundColor: "#dbeafe" }}
+                whileHover={{ scale: 1.1, backgroundColor: "#f1dcdc" }}
               >
-                <FaBell className="text-blue-600" />
+                <FaBell className="text-[#800000]" />
                 <motion.div 
                   className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"
                   animate={{ scale: [1, 1.2, 1] }}
@@ -564,7 +574,7 @@ const Dashboard = () => {
                 ></motion.div>
               </motion.button>
               <motion.div 
-                className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer"
+                className="w-10 h-10 bg-[#800000] rounded-full flex items-center justify-center cursor-pointer"
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={goToProfile}
@@ -639,7 +649,7 @@ const Dashboard = () => {
           </motion.div>
 
           <motion.div 
-            className="bg-white rounded-2xl p-4 shadow-lg border-2 border-purple-200"
+            className="bg-white rounded-2xl p-4 shadow-lg border-2 border-[#800000]/30"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
@@ -650,7 +660,7 @@ const Dashboard = () => {
                 animate={{ y: [0, -5, 0] }}
                 transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
               >
-                <FaGem className="text-purple-500 text-xl" />
+                <FaGem className="text-[#800000] text-xl" />
               </motion.div>
               <motion.span 
                 className="text-2xl font-bold text-gray-800"
@@ -665,7 +675,7 @@ const Dashboard = () => {
             <div className="mt-2">
               <div className="w-full bg-gray-200 rounded-full h-1.5">
                 <motion.div 
-                  className="bg-gradient-to-r from-purple-400 to-purple-600 h-1.5 rounded-full"
+                  className="bg-[#800000] h-1.5 rounded-full"
                   style={{ width: `${(mockUserData.totalPoints / mockUserData.nextLevelPoints) * 100}%` }}
                   initial={{ width: 0 }}
                   animate={{ width: `${(mockUserData.totalPoints / mockUserData.nextLevelPoints) * 100}%` }}
@@ -680,11 +690,11 @@ const Dashboard = () => {
         <ScrollReveal>
           <motion.div 
             className={`bg-white rounded-2xl p-4 shadow-lg border-2 mb-6 ${
-              loadingAssessment ? 'border-blue-200' :
-              !recentAssessment ? 'border-blue-200' :
+              loadingAssessment ? 'border-gray-300' :
+              !recentAssessment ? 'border-gray-300' :
               recentAssessment.percentage < 25 ? 'border-green-300' :
-              recentAssessment.percentage < 50 ? 'border-blue-300' :
-              recentAssessment.percentage < 75 ? 'border-yellow-300' :
+              recentAssessment.percentage < 50 ? 'border-yellow-300' :
+              recentAssessment.percentage < 75 ? 'border-orange-300' :
               'border-red-300'
             }`}
             initial={{ opacity: 0, y: 20 }}
@@ -695,11 +705,11 @@ const Dashboard = () => {
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                 <FaChartLine className={`${
-                  loadingAssessment ? 'text-blue-500' :
-                  !recentAssessment ? 'text-blue-500' :
+                  loadingAssessment ? 'text-[#800000]' :
+                  !recentAssessment ? 'text-[#800000]' :
                   recentAssessment.percentage < 25 ? 'text-green-500' :
-                  recentAssessment.percentage < 50 ? 'text-blue-500' :
-                  recentAssessment.percentage < 75 ? 'text-yellow-500' :
+                  recentAssessment.percentage < 50 ? 'text-yellow-500' :
+                  recentAssessment.percentage < 75 ? 'text-orange-500' :
                   'text-red-500'
                 }`} />
                 Recent Assessment
@@ -710,7 +720,7 @@ const Dashboard = () => {
                 <span className="text-xs text-gray-500 flex items-center gap-1">
                   <FaCalendarAlt className={`${
                     recentAssessment.percentage < 25 ? 'text-green-400' :
-                    recentAssessment.percentage < 50 ? 'text-blue-400' :
+                    recentAssessment.percentage < 50 ? 'text-yellow-400' :
                     recentAssessment.percentage < 75 ? 'text-yellow-400' :
                     'text-red-400'
                   }`} />
@@ -723,7 +733,7 @@ const Dashboard = () => {
             
             {loadingAssessment ? (
               <div className="flex flex-col items-center justify-center py-6">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-2"></div>
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#800000] mb-2"></div>
                 <p className="text-sm text-gray-500">Loading your assessment data...</p>
               </div>
             ) : recentAssessment ? (
@@ -733,7 +743,7 @@ const Dashboard = () => {
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`font-semibold ${
                       recentAssessment.percentage < 25 ? 'text-green-600' : 
-                      recentAssessment.percentage < 50 ? 'text-blue-600' :
+                      recentAssessment.percentage < 50 ? 'text-yellow-600' :
                       recentAssessment.percentage < 75 ? 'text-yellow-600' : 
                       'text-red-600'
                     }`}>
@@ -752,13 +762,13 @@ const Dashboard = () => {
                   </div>
                   <p className="text-sm text-gray-600 flex items-center gap-2">
                     {calculateImprovement() === null ? (
-                      <><FaCheck className="text-blue-500" /> First assessment completed. Keep tracking your progress! 📊</>
+                      <><FaCheck className="text-[#800000]" /> First assessment completed. Keep tracking your progress! 📊</>
                     ) : recentAssessment.percentage < 25 ? (
                       <><FaSmile className="text-green-500" /> {calculateImprovement()!.isPositive ? 
                         "Excellent! Your low anxiety levels are improving further! 🌟" : 
                         "Low anxiety detected. Continue your wellness practices! 💚"}</>
                     ) : recentAssessment.percentage < 50 ? (
-                      <><FaLeaf className="text-blue-500" /> {calculateImprovement()!.isPositive ? 
+                      <><FaLeaf className="text-[#800000]" /> {calculateImprovement()!.isPositive ? 
                         "Your mild anxiety is improving. Great progress! 🌊" : 
                         "Mild anxiety detected. Try daily mindfulness! 🧠"}</>
                     ) : recentAssessment.percentage < 75 ? (
@@ -775,14 +785,14 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="text-center py-6">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <FaBrain className="text-blue-500 text-xl" />
+                <div className="w-16 h-16 bg-[#800000]/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <FaBrain className="text-[#800000] text-xl" />
                 </div>
                 <p className="text-gray-700 font-medium mb-2">No assessments taken yet</p>
                 <p className="text-gray-500 text-sm mb-4">Complete an assessment to track your anxiety levels</p>
                 <button 
                   onClick={goToAssessment}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+                  className="bg-[#800000] hover:bg-[#660000] text-white text-sm px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
                 >
                   <FaChartLine className="text-white" />
                   Take Assessment Now
@@ -798,7 +808,7 @@ const Dashboard = () => {
             <motion.h3 
               className="font-semibold text-gray-800 mb-4 flex items-center gap-2"
             >
-              <FaBrain className="text-blue-500" />
+              <FaBrain className="text-[#800000]" />
               Your Wellness Toolkit
             </motion.h3>
             
@@ -807,14 +817,14 @@ const Dashboard = () => {
                 icon={<FaBookOpen />}
                 title="CBT Modules"
                 subtitle="Learn coping strategies"
-                color="blue"
+                color="red"
                 onClick={() => alert('CBT Modules - Coming Soon!')}
               />
               <QuickAction
                 icon={<FaPlay />}
                 title="Anxiety Videos"
                 subtitle="Guided support content"
-                color="purple"
+                color="red"
                 onClick={() => alert('Anxiety Videos - Coming Soon!')}
               />
             </div>
@@ -883,8 +893,8 @@ const Dashboard = () => {
                 whileHover={{ x: 5, backgroundColor: "#f9fafb" }}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <FaPlay className="text-blue-600 text-sm" />
+                  <div className="w-8 h-8 bg-[#800000]/10 rounded-full flex items-center justify-center">
+                    <FaPlay className="text-[#800000] text-sm" />
                   </div>
                   <div>
                     <p className="font-medium text-gray-800 text-sm">Anxiety Video</p>
@@ -902,8 +912,8 @@ const Dashboard = () => {
                 whileHover={{ x: 5, backgroundColor: "#f9fafb" }}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    <FaBrain className="text-purple-600 text-sm" />
+                  <div className="w-8 h-8 bg-[#800000]/10 rounded-full flex items-center justify-center">
+                    <FaBrain className="text-[#800000] text-sm" />
                   </div>
                   <div>
                     <p className="font-medium text-gray-800 text-sm">CBT Exercise</p>
@@ -951,10 +961,10 @@ const Dashboard = () => {
           </div>
         </ScrollReveal>
 
-        {/* Mood Tracker with scroll reveal and parallax effect */}
+        {/* Mood Tracker */}
         <ScrollReveal delay={0.5} direction="right">
           <motion.div 
-            className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-4 border-2 border-pink-200"
+            className="bg-[#800000]/5 rounded-2xl p-4 border-2 border-[#800000]/30"
             whileInView={{ 
               boxShadow: ["0px 0px 0px rgba(0,0,0,0)", "0px 10px 20px rgba(0,0,0,0.1)", "0px 0px 0px rgba(0,0,0,0)"]
             }}
@@ -984,9 +994,9 @@ const Dashboard = () => {
           </motion.div>
         </ScrollReveal>
 
-        {/* Scroll-up indicator that appears when scrolling */}
+        {/* Scroll-up button */}
         <motion.div
-          className="fixed bottom-20 right-4 bg-blue-500 text-white p-3 rounded-full shadow-lg cursor-pointer z-10"
+          className="fixed bottom-20 right-4 bg-[#800000] text-white p-3 rounded-full shadow-lg cursor-pointer z-10"
           onClick={scrollToTop}
           style={{
             opacity: scrollButtonOpacity,
@@ -999,7 +1009,7 @@ const Dashboard = () => {
         </motion.div>
       </div>
 
-      {/* Bottom Navigation with scroll effect */}
+      {/* Bottom Navigation */}
       <motion.div 
         className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t border-gray-200"
         initial={{ y: 50 }}
@@ -1012,15 +1022,15 @@ const Dashboard = () => {
         <div className="flex justify-around py-2">
           {[
             { id: 'home', icon: FaHeart, label: 'Home', color: 'text-pink-500', action: () => setSelectedTab('home') },
-            { id: 'brain', icon: FaBrain, label: 'Assessment', color: 'text-blue-500', action: goToAssessment },
+            { id: 'brain', icon: FaBrain, label: 'Assessment', color: 'text-[#800000]', action: goToAssessment },
             { id: 'leaf', icon: FaLeaf, label: 'Relax', color: 'text-green-500', action: () => setSelectedTab('leaf') },
-            { id: 'chart', icon: FaChartLine, label: 'Progress', color: 'text-purple-500', action: () => setSelectedTab('chart') },
+            { id: 'chart', icon: FaChartLine, label: 'Progress', color: 'text-[#800000]', action: () => setSelectedTab('chart') },
             { id: 'user', icon: FaUser, label: 'Profile', color: 'text-gray-500', action: goToProfile }
           ].map((tab) => (
             <motion.button
               key={tab.id}
               className={`flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-200 ${
-                selectedTab === tab.id ? 'bg-blue-50 transform scale-105' : ''
+                selectedTab === tab.id ? 'bg-[#800000]/10 transform scale-105' : ''
               }`}
               onClick={tab.action}
               whileHover={{ y: -3 }}
@@ -1032,7 +1042,7 @@ const Dashboard = () => {
               </span>
               {selectedTab === tab.id && (
                 <motion.div
-                  className="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-blue-500"
+                  className="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-[#800000]"
                   layoutId="activeTabIndicator"
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 />

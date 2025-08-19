@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { supabase } from '../lib/supabase';
-import { FaSearch, FaUser, FaEnvelope, FaCalendarAlt, FaSignOutAlt, FaChartLine, FaClipboardList, FaChevronRight, FaTrash, FaMoon, FaSun, FaSync } from 'react-icons/fa';
+import { FaSearch, FaUser, FaEnvelope, FaCalendarAlt, FaSignOutAlt, FaChartLine, FaClipboardList, FaChevronRight, FaMoon, FaSun, FaSync } from 'react-icons/fa';
+import { FaArchive, FaBoxOpen } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import AdminCharts from './components/AdminCharts';
@@ -9,6 +10,7 @@ import Notifications from './components/Notifications';
 import LoadingSpinner from './components/LoadingSpinner';
 import { ThemeContext } from '../App';
 import AdminNavbar from './components/AdminNavbar';
+import { archiveUser, unarchiveUser, isArchived } from './services/archiveService';
 
 type UserProfile = {
   id: string;
@@ -95,7 +97,7 @@ const getAnxietyLevelColor = (level: string) => {
         border: 'border-yellow-200',
         button: 'bg-yellow-50 hover:bg-yellow-100 text-yellow-700',
         darkModeButton: 'bg-yellow-900 hover:bg-yellow-800 text-yellow-300'
-      };
+      };  
     case 'severe':
       return {
         text: 'text-red-600',
@@ -115,6 +117,16 @@ const getAnxietyLevelColor = (level: string) => {
   }
 };
 
+// Mark users as NEW if registered within the last N days
+const NEW_USER_DAYS = 7;
+const isNewlyRegistered = (createdAt?: string) => {
+  if (!createdAt) return false;
+  const created = new Date(createdAt).getTime();
+  const now = Date.now();
+  const diffDays = (now - created) / (1000 * 60 * 60 * 24);
+  return diffDays <= NEW_USER_DAYS;
+};
+
 export default function AdminDashboard() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -122,6 +134,7 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [yearFilter, setYearFilter] = useState('all');
   const [activeView, setActiveViewState] = useState(() => {
     return localStorage.getItem('adminActiveView') || 'dashboard';
   });
@@ -153,7 +166,7 @@ export default function AdminDashboard() {
       popup: `shadow-none border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`,
       title: 'text-sm font-medium',
       htmlContainer: 'text-xs',
-      timerProgressBar: 'bg-gradient-to-r from-blue-400 to-purple-500'
+      timerProgressBar: 'bg-[#800000]'
     },
     didOpen: (toast) => {
       toast.addEventListener('mouseenter', Swal.stopTimer)
@@ -169,9 +182,9 @@ export default function AdminDashboard() {
     customClass: {
       container: 'text-sm',
       popup: `rounded-2xl shadow-xl border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`,
-      title: 'text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent',
+      title: 'text-lg font-bold text-[#800000]',
       htmlContainer: `text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} max-h-96 overflow-y-auto`,
-      confirmButton: 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl',
+      confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl',
       cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border font-medium py-2 px-4 rounded-xl transition-all duration-200 shadow`
     },
     allowOutsideClick: false,
@@ -297,7 +310,7 @@ export default function AdminDashboard() {
       
       // Try a simple query first to test basic access
       console.log('🔍 Testing basic profile access...');
-      const { data: testData, error: testError } = await supabase
+      const { error: testError } = await supabase
         .from('profiles')
         .select('id, user_id, email, role')
         .limit(1);
@@ -481,96 +494,49 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleDeleteUser = async (userId: string, profileId: number) => {
+  const handleArchiveUser = async (user: UserProfile) => {
     try {
       const result = await Modal.fire({
-        title: 'Delete User',
+        title: 'Archive Student',
         html: `
           <div class="text-left space-y-3">
-            <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} backdrop-blur-sm rounded-xl p-4 border ${darkMode ? 'border-gray-600' : 'border-red-200'}">
-              <p class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">Are you sure you want to delete this user? This action cannot be undone.</p>
-              <p class="${darkMode ? 'text-gray-400' : 'text-gray-500'} text-xs mt-2">This will delete the user's profile and all their assessment data.</p>
+            <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} backdrop-blur-sm rounded-xl p-4 border ${darkMode ? 'border-gray-600' : 'border-[#800000]/30'}">
+              <p class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">Are you sure you want to archive this student?</p>
+              <div class="mt-2 p-2 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg border ${darkMode ? 'border-gray-500' : 'border-gray-200'}">
+                <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}"><strong>Name:</strong> ${user.full_name || 'No name'}</p>
+                <p class="text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'}"><strong>Email:</strong> ${user.email}</p>
+              </div>
+              <p class="${darkMode ? 'text-gray-400' : 'text-gray-500'} text-xs mt-2">Archiving will prevent access while keeping data intact.</p>
             </div>
           </div>
         `,
         showCancelButton: true,
-        confirmButtonText: 'Delete',
-        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'Archive',
+        confirmButtonColor: '#800000',
         cancelButtonText: 'Cancel',
         focusCancel: true
       });
 
       if (result.isConfirmed) {
-        console.log('🗑️ Starting user deletion for:', userId);
-        
-        // First, try to delete assessments
-        console.log('   Deleting assessments...');
-        const { error: assessmentError } = await supabase
-          .from('anxiety_assessments')
-          .delete()
-          .eq('profile_id', profileId);
-        
-        if (assessmentError) {
-          console.error('Error deleting assessments:', assessmentError);
-          // Don't throw here, continue with profile deletion
-          console.log('   Warning: Could not delete assessments, continuing...');
-        } else {
-          console.log('   ✅ Assessments deleted successfully');
-        }
+        console.log('📦 Archiving user:', user.id, 'profile:', user.profile_id);
+        await archiveUser(user.profile_id);
 
-        // Delete profile
-        console.log('   Deleting profile...');
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .delete()
-          .eq('id', profileId);
-        
-        if (profileError) {
-          console.error('Error deleting profile:', profileError);
-          throw new Error(`Failed to delete profile: ${profileError.message}`);
-        }
-        
-        console.log('   ✅ Profile deleted successfully');
-
-        // Try to delete auth user (this might fail due to permissions)
-        console.log('   Attempting to delete auth user...');
-        try {
-          const { error: authError } = await supabase.rpc('delete_user', {
-            user_id: userId
-          });
-          
-          if (authError) {
-            console.warn('Warning: Could not delete auth user:', authError.message);
-            console.log('   Note: Auth user remains in auth.users table (this is normal)');
-          } else {
-            console.log('   ✅ Auth user deleted successfully');
-          }
-        } catch (authError) {
-          console.warn('Warning: Auth user deletion failed:', authError);
-          console.log('   Note: Auth user remains in auth.users table (this is normal)');
-        }
-
-        // Update local state
-        setUsers(users.filter(user => user.id !== userId));
-        const newAssessments = { ...assessments };
-        delete newAssessments[profileId];
-        setAssessments(newAssessments);
-
-        console.log('   ✅ Local state updated');
+        // Update local state (mutate role to archived)
+        setUsers(prev => prev.map(u => u.profile_id === user.profile_id ? { ...u, role: 'archived' } : u));
 
         await Toast.fire({
           icon: 'success',
           iconColor: '#22c55e',
-          title: 'Success',
-          text: 'User deleted successfully',
+          title: 'Archived',
+          text: 'Student archived successfully',
         });
         
-        console.log('🎉 User deletion completed successfully');
+        console.log('🎉 User archived successfully');
       }
     } catch (error) {
-      console.error('❌ Error deleting user:', error);
+      console.error('❌ Error archiving user:', error);
       
-      let errorMessage = 'Failed to delete user';
+      let errorMessage = 'Failed to archive user';
       if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -586,20 +552,24 @@ export default function AdminDashboard() {
 
 
   const filteredUsers = users.filter(user =>
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase()))
+    (user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase()))) &&
+    (yearFilter === 'all' ? true : Number(user.year_level) === Number(yearFilter))
   );
+
+  const activeUsers = filteredUsers.filter(u => !isArchived(u.role));
+  const archivedUsers = filteredUsers.filter(u => isArchived(u.role));
 
   // Sort users: non-admins by latest sign-in (most recent first), admins always at the bottom
   const sortedUsers = [
-    ...filteredUsers
+    ...activeUsers
       .filter(user => user.role !== 'admin')
       .sort((a, b) => {
         const aSignIn = a.last_sign_in ? new Date(a.last_sign_in).getTime() : 0;
         const bSignIn = b.last_sign_in ? new Date(b.last_sign_in).getTime() : 0;
         return bSignIn - aSignIn;
       }),
-    ...filteredUsers.filter(user => user.role === 'admin')
+    ...activeUsers.filter(user => user.role === 'admin')
   ];
 
   return (
@@ -646,10 +616,10 @@ export default function AdminDashboard() {
             {activeView === 'users' && (
               <>
                 {/* Student count summary card - restored to original size, keep icon */}
-                <div className={`mb-4 flex items-center ${darkMode ? 'bg-gray-700' : 'bg-blue-50'} rounded-lg px-4 py-3 border ${darkMode ? 'border-gray-600' : 'border-blue-200'} w-fit`}> 
-                  <FaUser className={`mr-2 text-xl ${darkMode ? 'text-blue-200' : 'text-blue-700'}`} />
-                  <span className={`font-semibold text-base ${darkMode ? 'text-blue-200' : 'text-blue-700'}`}>Total Registered Students:</span>
-                  <span className={`ml-2 text-lg font-bold ${darkMode ? 'text-white' : 'text-blue-900'}`}>{users.filter(u => u.role !== 'admin').length}</span>
+                <div className={`mb-4 flex items-center ${darkMode ? 'bg-gray-700' : 'bg-[#800000]/5'} rounded-lg px-4 py-3 border ${darkMode ? 'border-gray-600' : 'border-[#800000]/30'} w-fit`}> 
+                  <FaUser className={`mr-2 text-xl ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`} />
+                  <span className={`font-semibold text-base ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`}>Active Students:</span>
+                  <span className={`ml-2 text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{activeUsers.filter(u => u.role !== 'admin').length}</span>
                 </div>
                 <div className="mb-3">
                   <div className="flex gap-2">
@@ -659,17 +629,29 @@ export default function AdminDashboard() {
                         placeholder="Search users by email or name..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className={`w-full pl-8 pr-2 py-1.5 border ${darkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500' : 'border-gray-200 focus:ring-2 focus:ring-blue-500'} rounded-md focus:outline-none text-xs`}
+                        className={`w-full pl-8 pr-2 py-1.5 border ${darkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:ring-[#800000] focus:border-[#800000]' : 'border-gray-200 focus:ring-2 focus:ring-[#800000]'} rounded-md focus:outline-none text-xs`}
                       />
                       <FaSearch className={`absolute left-2 top-2.5 ${darkMode ? 'text-gray-400' : 'text-gray-400'} text-xs`} />
                     </div>
+                    <select
+                      value={yearFilter}
+                      onChange={(e) => setYearFilter(e.target.value)}
+                      aria-label="Filter by year level"
+                      className={`px-2 py-1.5 border rounded-md text-xs focus:outline-none ${darkMode ? 'bg-gray-800 border-gray-700 text-white focus:ring-[#800000] focus:border-[#800000]' : 'bg-white border-gray-200 text-gray-700 focus:ring-2 focus:ring-[#800000]'}`}
+                    >
+                      <option value="all">All Years</option>
+                      <option value="1">1st Year</option>
+                      <option value="2">2nd Year</option>
+                      <option value="3">3rd Year</option>
+                      <option value="4">4th Year</option>
+                    </select>
                     <button
                       onClick={fetchUsers}
                       disabled={isLoading}
                       className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
                         isLoading
                           ? `${darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
-                          : `${darkMode ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`
+                          : `${darkMode ? 'bg-[#800000] hover:bg-[#660000] text-white' : 'bg-[#800000] hover:bg-[#660000] text-white'}`
                       }`}
                     >
                       <FaSync className={`text-xs ${isLoading ? 'animate-spin' : ''}`} />
@@ -737,8 +719,23 @@ export default function AdminDashboard() {
                                     </div>
                                   </div>
                                   <div className="ml-3">
-                                    <div className={`text-xs font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                                      {user.full_name || 'No name'}
+                                    <div className="flex items-center gap-2">
+                                      <div className={`text-xs font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                        {user.full_name || 'No name'}
+                                      </div>
+                                      {isNewlyRegistered(user.created_at) && !isArchived(user.role) && (
+                                        <span
+                                          className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border inline-flex items-center gap-1 ${
+                                            darkMode
+                                              ? 'bg-green-900/40 border-green-700 text-green-300'
+                                              : 'bg-green-50 border-green-200 text-green-700'
+                                          }`}
+                                          title="Just registered"
+                                        >
+                                          <span className={`w-1.5 h-1.5 rounded-full ${darkMode ? 'bg-green-400' : 'bg-green-500'} animate-pulse`}></span>
+                                          NEW
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
@@ -770,8 +767,8 @@ export default function AdminDashboard() {
                                             <div class="text-left space-y-2">
                                               <div class="${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
                                                 <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center">
-                                                  <div class="${darkMode ? 'bg-gray-600' : 'bg-blue-50'} p-1 rounded-lg mr-2">
-                                                    <svg class="w-4 h-4 ${darkMode ? 'text-blue-300' : 'text-blue-500'}" fill="currentColor" viewBox="0 0 20 20">
+                                                  <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
+                                                    <svg class="w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
                                                       <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
                                                     </svg>
                                                   </div>
@@ -818,8 +815,8 @@ export default function AdminDashboard() {
                                               </div>
                                               <div class="${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
                                                 <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center">
-                                                  <div class="${darkMode ? 'bg-gray-600' : 'bg-purple-50'} p-1 rounded-lg mr-2">
-                                                    <svg class="w-4 h-4 ${darkMode ? 'text-purple-300' : 'text-purple-500'}" fill="currentColor" viewBox="0 0 20 20">
+                                                  <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
+                                                    <svg class="w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
                                                       <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                                                       <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
                                                     </svg>
@@ -855,8 +852,8 @@ export default function AdminDashboard() {
                                               </div>
                                               <div class="${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
                                                 <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center">
-                                                  <div class="${darkMode ? 'bg-gray-600' : 'bg-green-50'} p-1 rounded-lg mr-2">
-                                                    <svg class="w-4 h-4 ${darkMode ? 'text-green-300' : 'text-green-500'}" fill="currentColor" viewBox="0 0 20 20">
+                                                  <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
+                                                    <svg class="w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
                                                       <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
                                                     </svg>
                                                   </div>
@@ -883,14 +880,14 @@ export default function AdminDashboard() {
                                           customClass: {
                                             popup: 'rounded-lg shadow-lg border border-gray-200',
                                             title: 'text-base font-bold text-gray-900',
-                                            confirmButton: 'bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors'
+                                            confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-4 rounded-lg transition-colors'
                                           },
                                           showConfirmButton: true,
                                           confirmButtonText: 'Close',
                                           showCancelButton: false,
                                         });
                                       }}
-                                      className={`${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} text-xs font-medium flex items-center`}
+                                      className={`${darkMode ? 'text-[#f3f4f6] hover:text-white' : 'text-[#800000] hover:text-[#660000]'} text-xs font-medium flex items-center`}
                                     >
                                       View Registration Details
                                       <FaChevronRight className="ml-1 text-xs" />
@@ -1043,11 +1040,156 @@ export default function AdminDashboard() {
                               <td className="px-4 py-3 whitespace-nowrap">
                                 <div className="flex items-center justify-center">
                                   <button
-                                    onClick={() => handleDeleteUser(user.id, user.profile_id)}
-                                    className={`p-2 rounded-full ${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-red-400' : 'bg-red-50 hover:bg-red-100 text-red-600'}`}
-                                    aria-label="Delete user"
+                                    onClick={() => handleArchiveUser(user)}
+                                    disabled={isArchived(user.role)}
+                                    className={`p-2 rounded-full transition-colors ${
+                                      isArchived(user.role)
+                                        ? (darkMode ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed')
+                                        : (darkMode ? 'bg-gray-700 hover:bg-gray-600 text-[#f3f4f6]' : 'bg-gray-100 hover:bg-gray-200 text-gray-700')
+                                    }`}
+                                    aria-label="Archive student"
+                                    title={isArchived(user.role) ? 'Already archived' : `Archive ${user.full_name || ''}`.trim()}
                                   >
-                                    <FaTrash />
+                                    <FaArchive className={darkMode ? 'text-white' : 'text-[#800000]'} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
+            {activeView === 'archived' && (
+              <>
+                <div className={`mb-4 flex items-center ${darkMode ? 'bg-gray-700' : 'bg-[#800000]/5'} rounded-lg px-4 py-3 border ${darkMode ? 'border-gray-600' : 'border-[#800000]/30'} w-fit`}> 
+                  <FaArchive className={`mr-2 text-xl ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`} />
+                  <span className={`font-semibold text-base ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`}>Archived Students:</span>
+                  <span className={`ml-2 text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{archivedUsers.length}</span>
+                </div>
+                <div className="mb-3">
+                  <div className="flex gap-2">
+                    <select
+                      value={yearFilter}
+                      onChange={(e) => setYearFilter(e.target.value)}
+                      aria-label="Filter by year level"
+                      className={`px-2 py-1.5 border rounded-md text-xs focus:outline-none ${darkMode ? 'bg-gray-800 border-gray-700 text-white focus:ring-[#800000] focus:border-[#800000]' : 'bg-white border-gray-200 text-gray-700 focus:ring-2 focus:ring-[#800000]'}`}
+                    >
+                      <option value="all">All Years</option>
+                      <option value="1">1st Year</option>
+                      <option value="2">2nd Year</option>
+                      <option value="3">3rd Year</option>
+                      <option value="4">4th Year</option>
+                    </select>
+                    <button
+                      onClick={fetchUsers}
+                      disabled={isLoading}
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
+                        isLoading
+                          ? `${darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
+                          : `${darkMode ? 'bg-[#800000] hover:bg-[#660000] text-white' : 'bg-[#800000] hover:bg-[#660000] text-white'}`
+                      }`}
+                    >
+                      <FaSync className={`text-xs ${isLoading ? 'animate-spin' : ''}`} />
+                      Refresh
+                    </button>
+                  </div>
+                </div>
+                <div className={`rounded-md shadow overflow-x-auto ${darkMode ? 'bg-gray-800' : 'bg-white'} w-full`}>
+                  <div className="overflow-x-auto w-full">
+                    <table className="min-w-full divide-y divide-gray-200 w-full text-xs">
+                      <thead className={darkMode ? 'bg-gray-700' : 'bg-gray-100'}>
+                        <tr>
+                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Users</th>
+                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Email</th>
+                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Role</th>
+                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Joined</th>
+                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Last Sign In</th>
+                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className={`divide-y ${darkMode ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
+                        {archivedUsers.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className={`px-4 py-3 text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                              No archived users
+                            </td>
+                          </tr>
+                        ) : (
+                          archivedUsers.map((user) => (
+                            <tr key={user.id} className={darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-8 w-8">
+                                    <div className={`h-8 w-8 rounded-full flex items-center justify-center bg-gray-200`}>
+                                      <FaUser className={`text-gray-500`} />
+                                    </div>
+                                  </div>
+                                  <div className="ml-3">
+                                    <div className="flex items-center gap-2">
+                                      <div className={`text-xs font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                        {user.full_name || 'No name'}
+                                      </div>
+                                      {isNewlyRegistered(user.created_at) && (
+                                        <span
+                                          className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border inline-flex items-center gap-1 ${
+                                            darkMode
+                                              ? 'bg-green-900/40 border-green-700 text-green-300'
+                                              : 'bg-green-50 border-green-200 text-green-700'
+                                          }`}
+                                          title="Just registered"
+                                        >
+                                          <span className={`w-1.5 h-1.5 rounded-full ${darkMode ? 'bg-green-400' : 'bg-green-500'} animate-pulse`}></span>
+                                          NEW
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className={`flex items-center text-xs ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                                  <FaEnvelope className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                                  {user.email}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-700">Archived</span>
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className={`flex items-center text-xs ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                                  <FaCalendarAlt className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                                  {new Date(user.created_at).toLocaleDateString()}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className={`flex items-center text-xs ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                                  <FaCalendarAlt className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                                  {user.last_sign_in 
+                                    ? new Date(user.last_sign_in).toLocaleDateString()
+                                    : 'Never'}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className="flex items-center justify-center">
+                                  <button
+                                    onClick={async () => {
+                                      try {
+                                        await unarchiveUser(user.profile_id);
+                                        setUsers(prev => prev.map(u => u.profile_id === user.profile_id ? { ...u, role: 'student' } : u));
+                                        await Toast.fire({ icon: 'success', iconColor: '#22c55e', title: 'Unarchived', text: 'Student unarchived successfully' });
+                                      } catch (e) {
+                                        await Toast.fire({ icon: 'error', iconColor: '#ef4444', title: 'Error', text: e instanceof Error ? e.message : 'Failed to unarchive' });
+                                      }
+                                    }}
+                                    className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-[#f3f4f6]' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                                    aria-label="Unarchive student"
+                                    title={`Unarchive ${user.full_name || ''}`.trim()}
+                                  >
+                                    <FaBoxOpen className="text-[#800000]" />
                                   </button>
                                 </div>
                               </td>

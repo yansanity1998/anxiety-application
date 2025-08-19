@@ -80,7 +80,7 @@ const ProfilePage: React.FC = () => {
       popup: 'shadow-none border border-gray-200',
       title: 'text-sm font-medium',
       htmlContainer: 'text-xs',
-      timerProgressBar: 'bg-gradient-to-r from-blue-400 to-purple-500'
+      timerProgressBar: 'bg-[#800000]'
     },
     didOpen: (toast) => {
       toast.addEventListener('mouseenter', Swal.stopTimer)
@@ -321,9 +321,9 @@ const ProfilePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#800000]/5">
         <div className="flex flex-col items-center">
-          <FaSpinner className="animate-spin text-3xl text-blue-500 mb-4" />
+          <FaSpinner className="animate-spin text-3xl text-[#800000] mb-4" />
           <p className="text-gray-600">Loading profile...</p>
         </div>
       </div>
@@ -331,7 +331,7 @@ const ProfilePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 pb-20">
+    <div className="min-h-screen bg-[#800000]/5 pb-20">
       {/* Header */}
       <motion.div 
         className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10"
@@ -348,7 +348,7 @@ const ProfilePage: React.FC = () => {
               >
                 <FaArrowLeft className="text-gray-600" />
               </button>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold text-[#800000]">
                 Your Profile
               </h1>
             </div>
@@ -373,7 +373,7 @@ const ProfilePage: React.FC = () => {
           transition={{ duration: 0.5 }}
         >
           <div className="flex justify-center mb-6">
-            <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-4xl">
+            <div className="w-24 h-24 bg-[#800000] rounded-full flex items-center justify-center text-white text-4xl">
               {fullName ? fullName.charAt(0).toUpperCase() : <FaUser />}
             </div>
           </div>
@@ -407,7 +407,7 @@ const ProfilePage: React.FC = () => {
                 {/* Full Name */}
                 <div>
                   <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaUser className="inline mr-2 text-blue-500" />
+                    <FaUser className="inline mr-2 text-[#800000]" />
                     Full Name
                   </label>
                   <input
@@ -415,7 +415,7 @@ const ProfilePage: React.FC = () => {
                     id="fullName"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
+                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
                     placeholder="Your full name"
                     required
                   />
@@ -424,7 +424,7 @@ const ProfilePage: React.FC = () => {
                 {/* Email (read-only) */}
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaEnvelope className="inline mr-2 text-blue-500" />
+                    <FaEnvelope className="inline mr-2 text-[#800000]" />
                     Email
                   </label>
                   <input
@@ -447,7 +447,7 @@ const ProfilePage: React.FC = () => {
                     id="age"
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
+                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
                     placeholder="Your age"
                     min="1"
                   />
@@ -459,7 +459,7 @@ const ProfilePage: React.FC = () => {
                     Gender
                   </label>
                   <div
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm cursor-pointer flex justify-between items-center"
+                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm cursor-pointer flex justify-between items-center"
                     onClick={() => setShowGenderDropdown(!showGenderDropdown)}
                   >
                     {gender || 'Select gender'}
@@ -495,7 +495,7 @@ const ProfilePage: React.FC = () => {
                 {/* School */}
                 <div>
                   <label htmlFor="school" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaSchool className="inline mr-2 text-blue-500" />
+                    <FaSchool className="inline mr-2 text-[#800000]" />
                     School
                   </label>
                   <input
@@ -503,7 +503,7 @@ const ProfilePage: React.FC = () => {
                     id="school"
                     value={school}
                     onChange={(e) => setSchool(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
+                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
                     placeholder="Your school/university"
                   />
                 </div>
@@ -511,7 +511,7 @@ const ProfilePage: React.FC = () => {
                 {/* Course */}
                 <div>
                   <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaGraduationCap className="inline mr-2 text-blue-500" />
+                    <FaGraduationCap className="inline mr-2 text-[#800000]" />
                     Course
                   </label>
                   <input
@@ -519,7 +519,7 @@ const ProfilePage: React.FC = () => {
                     id="course"
                     value={course}
                     onChange={(e) => setCourse(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
+                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
                     placeholder="Your course"
                   />
                 </div>
@@ -530,7 +530,7 @@ const ProfilePage: React.FC = () => {
                     Year Level
                   </label>
                   <div
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm cursor-pointer flex justify-between items-center"
+                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm cursor-pointer flex justify-between items-center"
                     onClick={() => setShowYearLevelDropdown(!showYearLevelDropdown)}
                   >
                     {yearLevel || 'Select year level'}
@@ -566,7 +566,7 @@ const ProfilePage: React.FC = () => {
                 {/* Phone Number */}
                 <div>
                   <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaPhone className="inline mr-2 text-blue-500" />
+                    <FaPhone className="inline mr-2 text-[#800000]" />
                     Phone Number
                   </label>
                   <input
@@ -574,7 +574,7 @@ const ProfilePage: React.FC = () => {
                     id="phoneNumber"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
+                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
                     placeholder="Your phone number"
                   />
                 </div>
@@ -582,7 +582,7 @@ const ProfilePage: React.FC = () => {
                 {/* Address */}
                 <div>
                   <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaHome className="inline mr-2 text-blue-500" />
+                    <FaHome className="inline mr-2 text-[#800000]" />
                     Address
                   </label>
                   <input
@@ -590,7 +590,7 @@ const ProfilePage: React.FC = () => {
                     id="address"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
+                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
                     placeholder="Your address"
                   />
                 </div>
@@ -607,7 +607,7 @@ const ProfilePage: React.FC = () => {
                 {/* Guardian Name */}
                 <div>
                   <label htmlFor="guardianName" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaUserFriends className="inline mr-2 text-blue-500" />
+                    <FaUserFriends className="inline mr-2 text-[#800000]" />
                     Guardian Name
                   </label>
                   <input
@@ -615,7 +615,7 @@ const ProfilePage: React.FC = () => {
                     id="guardianName"
                     value={guardianName}
                     onChange={(e) => setGuardianName(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
+                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
                     placeholder="Guardian's name"
                   />
                 </div>
@@ -623,7 +623,7 @@ const ProfilePage: React.FC = () => {
                 {/* Guardian Phone Number */}
                 <div>
                   <label htmlFor="guardianPhoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaPhone className="inline mr-2 text-blue-500" />
+                    <FaPhone className="inline mr-2 text-[#800000]" />
                     Guardian Phone
                   </label>
                   <input
@@ -631,7 +631,7 @@ const ProfilePage: React.FC = () => {
                     id="guardianPhoneNumber"
                     value={guardianPhoneNumber}
                     onChange={(e) => setGuardianPhoneNumber(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
+                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
                     placeholder="Guardian's phone number"
                   />
                 </div>
@@ -643,7 +643,7 @@ const ProfilePage: React.FC = () => {
               <motion.button
                 type="submit"
                 disabled={isSaving}
-                className="flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-70"
+                className="flex items-center justify-center px-6 py-3 bg-[#800000] text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-70 hover:bg-[#660000]"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >

@@ -52,7 +52,7 @@ export default function Register({ onSwitch }: RegisterProps) {
       popup: 'shadow-none border border-gray-200',
       title: 'text-sm font-medium',
       htmlContainer: 'text-xs',
-      timerProgressBar: 'bg-gradient-to-r from-blue-400 to-purple-500'
+      timerProgressBar: 'bg-[#800000]'
     },
     didOpen: (toast) => {
       toast.addEventListener('mouseenter', Swal.stopTimer)
@@ -240,24 +240,24 @@ export default function Register({ onSwitch }: RegisterProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 relative overflow-hidden text-xs sm:text-sm">
+    <div className="min-h-screen flex items-center justify-center bg-[#800000]/5 p-4 relative overflow-hidden text-xs sm:text-sm">
       {/* Background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-10 left-10 w-20 h-20 bg-blue-200 rounded-full opacity-20 animate-pulse"></div>
-        <div className="absolute top-32 right-20 w-16 h-16 bg-purple-200 rounded-full opacity-20 animate-pulse delay-1000"></div>
-        <div className="absolute bottom-20 left-32 w-24 h-24 bg-indigo-200 rounded-full opacity-20 animate-pulse delay-2000"></div>
-        <div className="absolute bottom-32 right-10 w-12 h-12 bg-teal-200 rounded-full opacity-20 animate-pulse delay-500"></div>
+        <div className="absolute top-10 left-10 w-20 h-20 bg-[#800000]/20 rounded-full opacity-20 animate-pulse"></div>
+        <div className="absolute top-32 right-20 w-16 h-16 bg-[#800000]/20 rounded-full opacity-20 animate-pulse delay-1000"></div>
+        <div className="absolute bottom-20 left-32 w-24 h-24 bg-[#800000]/20 rounded-full opacity-20 animate-pulse delay-2000"></div>
+        <div className="absolute bottom-32 right-10 w-12 h-12 bg-[#800000]/20 rounded-full opacity-20 animate-pulse delay-500"></div>
       </div>
 
       <div className="w-full max-w-md relative z-10">
         {/* Header */}
         <div className="text-center mb-6">
           <div className="flex items-center justify-center mb-3">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-full shadow-lg">
+            <div className="bg-[#800000] p-2 rounded-full shadow-lg">
               <FaUser className="text-white text-xl" />
             </div>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#800000] mb-1">
             Create Your Account
           </h1>
           <p className="text-gray-600 text-xs flex items-center justify-center gap-1">
@@ -279,7 +279,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
+                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
                 placeholder="Full Name"
                 required
                 autoComplete="name"
@@ -296,7 +296,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 id="idNumber"
                 value={idNumber}
                 onChange={(e) => setIdNumber(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
+                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
                 placeholder="2021-01066"
                 required
                 autoComplete="off"
@@ -313,7 +313,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 id="age"
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
+                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
                 placeholder="18"
                 min="1"
                 required
@@ -326,7 +326,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 Gender
               </label>
               <div
-                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs cursor-pointer flex justify-between items-center"
+                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs cursor-pointer flex justify-between items-center"
                 onClick={() => setShowGenderDropdown(!showGenderDropdown)}
               >
                 {gender || 'Select gender'}
@@ -363,7 +363,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 id="school"
                 value={school}
                 onChange={(e) => setSchool(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
+                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
                 placeholder="University Name"
                 required
                 autoComplete="organization"
@@ -380,8 +380,8 @@ export default function Register({ onSwitch }: RegisterProps) {
                 id="course"
                 value={course}
                 onChange={(e) => setCourse(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
-                placeholder="BS Information Technology"
+                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
+                placeholder="BS Criminology"
                 required
                 autoComplete="off"
               />
@@ -393,7 +393,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 Year Level
               </label>
               <div
-                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs cursor-pointer flex justify-between items-center"
+                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs cursor-pointer flex justify-between items-center"
                 onClick={() => setShowYearLevelDropdown(!showYearLevelDropdown)}
               >
                 {yearLevel || 'Select year level'}
@@ -430,7 +430,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 id="phoneNumber"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
+                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
                 placeholder="+63 912 345 6789"
                 required
                 autoComplete="tel"
@@ -447,7 +447,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 id="address"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
+                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
                 placeholder="City, Province"
                 required
                 autoComplete="street-address"
@@ -467,7 +467,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 id="guardianName"
                 value={guardianName}
                 onChange={(e) => setGuardianName(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
+                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
                 placeholder="Parent/Guardian Name"
                 required
                 autoComplete="name"
@@ -484,7 +484,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 id="guardianPhoneNumber"
                 value={guardianPhoneNumber}
                 onChange={(e) => setGuardianPhoneNumber(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
+                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
                 placeholder="+63 912 345 6789"
                 required
                 autoComplete="tel"
@@ -503,7 +503,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
+                className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
                 placeholder="your@email.com"
                 required
                 autoComplete="email"
@@ -522,7 +522,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full px-3 py-2 pr-8 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
+                className="block w-full px-3 py-2 pr-8 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
                 placeholder="••••••••"
                 required
                 autoComplete="new-password"
@@ -551,7 +551,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 id="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="block w-full px-3 py-2 pr-8 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
+                className="block w-full px-3 py-2 pr-8 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs"
                 placeholder="••••••••"
                 required
                 autoComplete="new-password"
@@ -580,13 +580,13 @@ export default function Register({ onSwitch }: RegisterProps) {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-3 w-3 text-[#800000] focus:ring-[#800000] border-gray-300 rounded"
               />
               <label htmlFor="remember-me" className="ml-2 block text-gray-600">
                 Remember me
               </label>
             </div>
-            <a href="#" className="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+            <a href="#" className="font-medium text-[#800000] hover:text-[#660000] transition-colors">
               Terms & Privacy
             </a>
           </div>
@@ -596,7 +596,7 @@ export default function Register({ onSwitch }: RegisterProps) {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-xl shadow-lg text-xs font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-blue-500 transition-all duration-200 ${
+              className={`w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-xl shadow-lg text-xs font-medium text-white bg-[#800000] hover:bg-[#660000] focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-[#800000] transition-all duration-200 ${
                 isLoading ? 'opacity-70 cursor-not-allowed' : ''
               }`}
             >
@@ -638,7 +638,7 @@ export default function Register({ onSwitch }: RegisterProps) {
             <button
               type="button"
               onClick={onSwitch}
-              className="font-medium text-blue-600 hover:text-blue-500 transition-colors cursor-pointer"
+              className="font-medium text-[#800000] hover:text-[#660000] transition-colors cursor-pointer"
             >
               Sign In
             </button>
@@ -646,7 +646,7 @@ export default function Register({ onSwitch }: RegisterProps) {
         </div>
 
         {/* Motivational Message */}
-        <div className="mt-4 text-center p-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+        <div className="mt-4 text-center p-2 bg-[#800000]/5 rounded-xl border border-[#800000]/30">
           <p className="text-2xs text-gray-600 leading-relaxed">
             "Your new beginning starts now. Stay strong and keep growing." 💙
           </p>

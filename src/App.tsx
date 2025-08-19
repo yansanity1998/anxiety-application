@@ -24,7 +24,32 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
     const checkAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        setIsAuthenticated(!!session);
+        if (!session) {
+          setIsAuthenticated(false);
+          return;
+        }
+
+        // Allow admin by email explicitly
+        const isAdminByEmail = session.user.email?.toLowerCase() === 'admin@gmail.com';
+        if (isAdminByEmail) {
+          setIsAuthenticated(true);
+          return;
+        }
+
+        // Deny archived users
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .single();
+
+        if ((profile?.role || '').toLowerCase() === 'archived') {
+          try { await supabase.auth.signOut(); } catch {}
+          setIsAuthenticated(false);
+          return;
+        }
+
+        setIsAuthenticated(true);
       } catch (error) {
         console.error('Error checking authentication status:', error);
         setIsAuthenticated(false);
