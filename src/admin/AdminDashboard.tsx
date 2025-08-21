@@ -604,7 +604,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           
-          <AdminNavbar activeView={activeView} setActiveView={setActiveView} darkMode={darkMode} />
+          <AdminNavbar activeView={activeView} setActiveView={setActiveView} darkMode={darkMode} archivedUsersCount={archivedUsers.length} />
 
           <div className="max-w-10xl mx-auto px-6 sm:px-12 lg:px-16 py-8">
             {activeView === 'dashboard' && (

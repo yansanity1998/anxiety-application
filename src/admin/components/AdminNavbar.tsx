@@ -1,20 +1,27 @@
 import { useState } from 'react';
 import { FaBars, FaTimes, FaTachometerAlt, FaUsers } from 'react-icons/fa';
-import { FaArchive } from 'react-icons/fa';
+import { FaArchive, FaBrain, FaVideo, FaSpa, FaHandshake, FaCalendarAlt, FaGamepad } from 'react-icons/fa';
 
 interface AdminNavbarProps {
   activeView: string;
   setActiveView: (view: string) => void;
   darkMode: boolean;
+  archivedUsersCount?: number;
 }
 
-const AdminNavbar = ({ activeView, setActiveView, darkMode }: AdminNavbarProps) => {
+const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount = 0 }: AdminNavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <FaTachometerAlt />, color: darkMode ? 'text-blue-400' : 'text-blue-500', hoverColor: darkMode ? 'group-hover:text-blue-400' : 'group-hover:text-blue-500' },
     { id: 'users', label: 'User Management', icon: <FaUsers />, color: darkMode ? 'text-purple-400' : 'text-purple-500', hoverColor: darkMode ? 'group-hover:text-purple-400' : 'group-hover:text-purple-500' },
-    { id: 'archived', label: 'Archived Users', icon: <FaArchive />, color: darkMode ? 'text-gray-300' : 'text-gray-500', hoverColor: darkMode ? 'group-hover:text-gray-300' : 'group-hover:text-gray-700' },
+    { id: 'archived', label: 'Archived Users', icon: <FaArchive />, color: darkMode ? 'text-red-900' : 'text-red-800', hoverColor: darkMode ? 'group-hover:text-red-900' : 'group-hover:text-red-800' },
+    { id: 'cbt-modules', label: 'CBT Modules', icon: <FaBrain />, color: darkMode ? 'text-green-400' : 'text-green-500', hoverColor: darkMode ? 'group-hover:text-green-400' : 'group-hover:text-green-500' },
+    { id: 'anxiety-videos', label: 'Anxiety Videos', icon: <FaVideo />, color: darkMode ? 'text-red-400' : 'text-red-500', hoverColor: darkMode ? 'group-hover:text-red-400' : 'group-hover:text-red-500' },
+    { id: 'relaxation-tools', label: 'Relaxation Tools', icon: <FaSpa />, color: darkMode ? 'text-cyan-400' : 'text-cyan-500', hoverColor: darkMode ? 'group-hover:text-cyan-400' : 'group-hover:text-cyan-500' },
+    { id: 'referral', label: 'Referral', icon: <FaHandshake />, color: darkMode ? 'text-yellow-400' : 'text-yellow-500', hoverColor: darkMode ? 'group-hover:text-yellow-400' : 'group-hover:text-yellow-500' },
+    { id: 'schedule', label: 'Schedule', icon: <FaCalendarAlt />, color: darkMode ? 'text-indigo-400' : 'text-indigo-500', hoverColor: darkMode ? 'group-hover:text-indigo-400' : 'group-hover:text-indigo-500' },
+    { id: 'gamification', label: 'Gamification', icon: <FaGamepad />, color: darkMode ? 'text-pink-400' : 'text-pink-500', hoverColor: darkMode ? 'group-hover:text-pink-400' : 'group-hover:text-pink-500' },
   ];
 
   const navLinkClasses = (view: string) => 
@@ -46,6 +53,13 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode }: AdminNavbarProps) 
                   >
                     <span className={`mr-1 transition-colors ${item.color} ${item.hoverColor}`}>{item.icon}</span>
                     {item.label}
+                    {item.id === 'archived' && archivedUsersCount > 0 && (
+                      <span className={`ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full ${
+                        darkMode ? 'bg-red-600 text-white' : 'bg-red-500 text-white'
+                      }`}>
+                        {archivedUsersCount}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -80,6 +94,13 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode }: AdminNavbarProps) 
               >
                 <span className={`mr-1 transition-colors ${item.color} ${item.hoverColor}`}>{item.icon}</span>
                 {item.label}
+                {item.id === 'archived' && archivedUsersCount > 0 && (
+                  <span className={`ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full ${
+                    darkMode ? 'bg-red-600 text-white' : 'bg-red-500 text-white'
+                  }`}>
+                    {archivedUsersCount}
+                  </span>
+                )}
               </button>
             ))}
           </div>
