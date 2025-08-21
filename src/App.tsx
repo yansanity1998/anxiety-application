@@ -5,6 +5,7 @@ import LoginForm from './auth/Login';
 import RegisterForm from './auth/Register';
 import Assessment from './user/assessment/Assessment';  
 import AdminDashboard from './admin/AdminDashboard';
+import GuidanceDashboard from './guidance/GuidanceDashboard';
 import UserDashboard from './user/Dashboard';
 import ProfilePage from './user/ProfilePage';
 import { supabase } from './lib/supabase';
@@ -29,9 +30,10 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        // Allow admin by email explicitly
+        // Allow admin and guidance by email explicitly
         const isAdminByEmail = session.user.email?.toLowerCase() === 'admin@gmail.com';
-        if (isAdminByEmail) {
+        const isGuidanceByEmail = session.user.email?.toLowerCase() === 'guidance@gmail.com';
+        if (isAdminByEmail || isGuidanceByEmail) {
           setIsAuthenticated(true);
           return;
         }
@@ -66,49 +68,50 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   return isAuthenticated ? <>{children}</> : <Navigate to="/" />;
 };
 
-// Protected Route component
+// Protected Route component for admin and guidance
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const checkAdmin = async () => {
+    const checkAuthorization = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          setIsAdmin(false);
+          setIsAuthorized(false);
           return;
         }
 
-        // Check if user is admin by email first
+        // Check if user is admin or guidance by email first
         const isAdminByEmail = session.user.email?.toLowerCase() === 'admin@gmail.com';
+        const isGuidanceByEmail = session.user.email?.toLowerCase() === 'guidance@gmail.com';
         
-        if (isAdminByEmail) {
-          setIsAdmin(true);
+        if (isAdminByEmail || isGuidanceByEmail) {
+          setIsAuthorized(true);
           return;
         }
 
-        // If not admin by email, check profile role
+        // If not admin/guidance by email, check profile role
         const { data: profile } = await supabase
           .from('profiles')
           .select('role')
           .eq('user_id', session.user.id)
           .single();
 
-        setIsAdmin(profile?.role === 'admin');
+        setIsAuthorized(profile?.role === 'admin' || profile?.role === 'guidance');
       } catch (error) {
-        console.error('Error checking admin status:', error);
-        setIsAdmin(false);
+        console.error('Error checking authorization status:', error);
+        setIsAuthorized(false);
       }
     };
 
-    checkAdmin();
+    checkAuthorization();
   }, []);
 
-  if (isAdmin === null) {
+  if (isAuthorized === null) {
     return <div>Loading...</div>;
   }
 
-  return isAdmin ? <>{children}</> : <Navigate to="/" />;
+  return isAuthorized ? <>{children}</> : <Navigate to="/" />;
 };
 
 function App() {
@@ -178,6 +181,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AdminDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/guidance" 
+            element={
+              <ProtectedRoute>
+                <GuidanceDashboard />
               </ProtectedRoute>
             } 
           />

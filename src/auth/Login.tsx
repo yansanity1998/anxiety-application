@@ -110,7 +110,8 @@ export default function Login({ onSwitch }: LoginProps) {
               guardian_name: authData.user.user_metadata?.guardian_name || null,
               guardian_phone_number: authData.user.user_metadata?.guardian_phone_number || null,
               address: authData.user.user_metadata?.address || null,
-              role: email.toLowerCase() === 'admin@gmail.com' ? 'admin' : 'student',
+              role: email.toLowerCase() === 'admin@gmail.com' ? 'admin' : 
+                    email.toLowerCase() === 'guidance@gmail.com' ? 'guidance' : 'student',
               streak: 1,
               last_activity_date: new Date().toISOString().split('T')[0],
               created_at: new Date().toISOString(),
@@ -221,10 +222,11 @@ export default function Login({ onSwitch }: LoginProps) {
           }
         }
 
-        // Check if the user is trying to log in as admin
+        // Check if the user is trying to log in as admin or guidance
         const isAdminAttempt = email.toLowerCase() === 'admin@gmail.com';
+        const isGuidanceAttempt = email.toLowerCase() === 'guidance@gmail.com';
         
-        // Allow admin login if email is admin@gmail.com OR if profile role is admin
+        // Allow admin/guidance login if email matches OR if profile role matches
         if (isAdminAttempt || userProfile.role === 'admin') {
           await Toast.fire({
             icon: 'success',
@@ -234,6 +236,15 @@ export default function Login({ onSwitch }: LoginProps) {
             timer: 1000
           });
           navigate('/admin');
+        } else if (isGuidanceAttempt || userProfile.role === 'guidance') {
+          await Toast.fire({
+            icon: 'success',
+            iconColor: '#10b981',
+            title: 'Welcome Guidance Counselor!',
+            text: 'Accessing guidance dashboard',
+            timer: 1000
+          });
+          navigate('/guidance');
         } else {
           await Toast.fire({
             icon: 'success',
