@@ -270,7 +270,7 @@ export default function AdminCharts(props: AdminChartsProps) {
   return (
     <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 w-full px-0 md:px-0`}>
       {/* Gender Distribution Chart */}
-      <div className={`${darkMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'} p-3 rounded-md shadow min-w-0 w-full`}>
+      <div className={`${darkMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'} p-3 rounded-md shadow min-w-0 w-full relative`}>
         <h2 className={`text-sm font-semibold mb-1 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Gender Distribution</h2>
         <div className={`h-60 w-full min-w-0`}>
           <Pie data={genderDistributionData} options={{
@@ -291,10 +291,31 @@ export default function AdminCharts(props: AdminChartsProps) {
             cutout: '0%'
           }} />
         </div>
+        {/* Statistics summary */}
+        <div className={`absolute top-1/2 left-2 transform -translate-y-1/2 p-2 rounded-md ${darkMode ? 'bg-gray-700/90' : 'bg-white/90'} backdrop-blur-sm border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-lg`}>
+          <div className="space-y-1 text-xs">
+            {genderDistributionData.labels.map((label, index) => (
+              <div key={label} className={`flex items-center justify-between gap-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                <span className="font-medium">{label}:</span>
+                <span className={`font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  {genderDistributionData.datasets[0].data[index]}
+                </span>
+              </div>
+            ))}
+            <div className={`pt-1 border-t ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+              <div className={`flex items-center justify-between gap-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                <span className="font-medium">Total:</span>
+                <span className={`font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  {genderDistributionData.datasets[0].data.reduce((a, b) => a + b, 0)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Anxiety Level Distribution Chart */}
-      <div className={`${darkMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'} p-3 rounded-md shadow min-w-0 w-full`}>
+      <div className={`${darkMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'} p-3 rounded-md shadow min-w-0 w-full relative`}>
         <h2 className={`text-sm font-semibold mb-1 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Anxiety Level Distribution</h2>
         <div className={`h-60 w-full min-w-0`}>
           <Pie data={anxietyLevelDistributionData} options={{
@@ -314,6 +335,27 @@ export default function AdminCharts(props: AdminChartsProps) {
             },
             cutout: '0%'
           }} />
+        </div>
+        {/* Statistics summary */}
+        <div className={`absolute top-1/2 left-2 transform -translate-y-1/2 p-2 rounded-md ${darkMode ? 'bg-gray-700/90' : 'bg-white/90'} backdrop-blur-sm border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-lg`}>
+          <div className="space-y-1 text-xs">
+            {anxietyLevelDistributionData.labels.map((label, index) => (
+              <div key={label} className={`flex items-center justify-between gap-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                <span className="font-medium">{label}:</span>
+                <span className={`font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  {anxietyLevelDistributionData.datasets[0].data[index]}
+                </span>
+              </div>
+            ))}
+            <div className={`pt-1 border-t ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+              <div className={`flex items-center justify-between gap-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                <span className="font-medium">Total:</span>
+                <span className={`font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  {anxietyLevelDistributionData.datasets[0].data.reduce((a, b) => a + b, 0)}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

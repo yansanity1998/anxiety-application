@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { supabase } from '../lib/supabase';
-import { FaSearch, FaUser, FaEnvelope, FaCalendarAlt, FaSignOutAlt, FaChartLine, FaClipboardList, FaChevronRight, FaMoon, FaSun, FaSync } from 'react-icons/fa';
+import { FaSearch, FaUser, FaEnvelope, FaCalendarAlt, FaSignOutAlt, FaChartLine, FaClipboardList, FaChevronRight, FaMoon, FaSun, FaSync, FaEdit } from 'react-icons/fa';
 import { FaArchive, FaBoxOpen } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -118,7 +118,7 @@ const getAnxietyLevelColor = (level: string) => {
 };
 
 // Mark users as NEW if registered within the last N days
-const NEW_USER_DAYS = 7;
+const NEW_USER_DAYS = 1;
 const isNewlyRegistered = (createdAt?: string) => {
   if (!createdAt) return false;
   const created = new Date(createdAt).getTime();
@@ -135,6 +135,7 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [yearFilter, setYearFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
   const [activeView, setActiveViewState] = useState(() => {
     return localStorage.getItem('adminActiveView') || 'dashboard';
   });
@@ -215,6 +216,8 @@ export default function AdminDashboard() {
 
     initializeDashboard();
   }, []);
+
+
 
   const checkAdminAccess = async () => {
     try {
@@ -494,6 +497,167 @@ export default function AdminDashboard() {
     }
   };
 
+  // Set up global edit functions
+  useEffect(() => {
+    (window as any).editPersonalInfo = (profileId: string) => {
+      const user = users.find(u => u.profile_id.toString() === profileId);
+      if (user) {
+        handleEditUser(user, 'personal');
+      }
+    };
+
+    (window as any).editAcademicInfo = (profileId: string) => {
+      const user = users.find(u => u.profile_id.toString() === profileId);
+      if (user) {
+        handleEditUser(user, 'academic');
+      }
+    };
+
+    (window as any).editGuardianInfo = (profileId: string) => {
+      const user = users.find(u => u.profile_id.toString() === profileId);
+      if (user) {
+        handleEditUser(user, 'guardian');
+      }
+    };
+  }, [users]);
+
+  const handleEditUser = async (user: UserProfile, section: 'personal' | 'academic' | 'guardian') => {
+    try {
+      let title = '';
+      let fields: { name: string; label: string; type: string; value: any }[] = [];
+      
+      if (section === 'personal') {
+        title = 'Edit Personal Information';
+        fields = [
+          { name: 'full_name', label: 'Full Name', type: 'text', value: user.full_name || '' },
+          { name: 'age', label: 'Age', type: 'number', value: user.age || '' },
+          { name: 'gender', label: 'Gender', type: 'select', value: user.gender || '' },
+          { name: 'phone_number', label: 'Phone Number', type: 'tel', value: user.phone_number || '' },
+          { name: 'address', label: 'Address', type: 'textarea', value: user.address || '' }
+        ];
+      } else if (section === 'academic') {
+        title = 'Edit Academic Information';
+        fields = [
+          { name: 'school', label: 'School', type: 'text', value: user.school || '' },
+          { name: 'course', label: 'Course', type: 'text', value: user.course || '' },
+          { name: 'year_level', label: 'Year Level', type: 'select', value: user.year_level || '' },
+          { name: 'id_number', label: 'ID Number', type: 'text', value: user.id_number || '' }
+        ];
+      } else if (section === 'guardian') {
+        title = 'Edit Guardian Information';
+        fields = [
+          { name: 'guardian_name', label: 'Guardian Name', type: 'text', value: user.guardian_name || '' },
+          { name: 'guardian_phone_number', label: 'Guardian Phone', type: 'tel', value: user.guardian_phone_number || '' }
+        ];
+      }
+
+      const { value: formValues } = await Swal.fire({
+        title,
+        html: `
+          <div class="space-y-3">
+            <div class="text-center mb-3">
+              <p class="text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'}">Editing: <strong class="${darkMode ? 'text-white' : 'text-gray-800'}">${user.full_name || user.email}</strong></p>
+            </div>
+            ${fields.map(field => `
+              <div class="text-left">
+                <label class="block text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">${field.label}</label>
+                ${field.type === 'select' && field.name === 'gender' ? `
+                  <select id="${field.name}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm">
+                    <option value="">Select Gender</option>
+                    <option value="Male" ${field.value === 'Male' ? 'selected' : ''}>Male</option>
+                    <option value="Female" ${field.value === 'Female' ? 'selected' : ''}>Female</option>
+                    <option value="Other" ${field.value === 'Other' ? 'selected' : ''}>Other</option>
+                  </select>
+                ` : field.type === 'select' && field.name === 'year_level' ? `
+                  <select id="${field.name}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm">
+                    <option value="">Select Year Level</option>
+                    <option value="1" ${field.value === 1 ? 'selected' : ''}>1st Year</option>
+                    <option value="2" ${field.value === 2 ? 'selected' : ''}>2nd Year</option>
+                    <option value="3" ${field.value === 3 ? 'selected' : ''}>3rd Year</option>
+                    <option value="4" ${field.value === 4 ? 'selected' : ''}>4th Year</option>
+                  </select>
+                ` : field.type === 'textarea' ? `
+                  <textarea id="${field.name}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm" rows="2" placeholder="Enter ${field.label.toLowerCase()}">${field.value}</textarea>
+                ` : `
+                  <input type="${field.type}" id="${field.name}" value="${field.value}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm" placeholder="Enter ${field.label.toLowerCase()}">
+                `}
+              </div>
+            `).join('')}
+            <div class="text-center mt-3">
+              <p class="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}">All fields are optional</p>
+            </div>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Save Changes',
+        confirmButtonColor: '#800000',
+        cancelButtonText: 'Cancel',
+        focusConfirm: false,
+        preConfirm: () => {
+          const formData: any = {};
+          fields.forEach(field => {
+            const element = document.getElementById(field.name) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+            if (element) {
+              formData[field.name] = field.type === 'number' ? parseInt(element.value) || null : element.value;
+            }
+          });
+          return formData;
+        },
+        width: '400px',
+        customClass: {
+          popup: `rounded-xl shadow-xl border ${darkMode ? 'border-gray-600 bg-gray-800' : 'border-gray-200 bg-white'}`,
+          title: `text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-3`,
+          htmlContainer: `${darkMode ? 'text-gray-200' : 'text-gray-700'}`,
+          confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-5 rounded-lg transition-colors shadow-lg hover:shadow-xl',
+          cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border font-medium py-2 px-5 rounded-lg transition-colors shadow`
+        }
+      });
+
+      if (formValues) {
+        console.log('📝 Updating user:', user.profile_id, 'section:', section, 'data:', formValues);
+        
+        const { error } = await supabase
+          .from('profiles')
+          .update(formValues)
+          .eq('id', user.profile_id);
+
+        if (error) {
+          throw new Error(`Failed to update user: ${error.message}`);
+        }
+
+        // Update local state
+        setUsers(prev => prev.map(u => 
+          u.profile_id === user.profile_id 
+            ? { ...u, ...formValues }
+            : u
+        ));
+
+        await Toast.fire({
+          icon: 'success',
+          iconColor: '#22c55e',
+          title: 'Updated',
+          text: `${title} updated successfully`,
+        });
+        
+        console.log('🎉 User updated successfully');
+      }
+    } catch (error) {
+      console.error('❌ Error updating user:', error);
+      
+      let errorMessage = 'Failed to update user';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      await Toast.fire({
+        icon: 'error',
+        iconColor: '#ef4444',
+        title: 'Error',
+        text: errorMessage,
+      });
+    }
+  };
+
   const handleArchiveUser = async (user: UserProfile) => {
     try {
       const result = await Modal.fire({
@@ -572,8 +736,42 @@ export default function AdminDashboard() {
     ...activeUsers.filter(user => user.role === 'admin')
   ];
 
+  // Pagination logic
+  const usersPerPage = 10;
+  const totalPages = Math.ceil(sortedUsers.length / usersPerPage);
+  const startIndex = (currentPage - 1) * usersPerPage;
+  const endIndex = startIndex + usersPerPage;
+  const currentUsers = sortedUsers.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, yearFilter]);
+
   return (
     <div className={`min-h-screen ${darkMode ? 'dark bg-gray-900' : 'bg-gray-50'} relative`}>
+      {/* Custom CSS for heart animations */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes heartFillSmall {
+            0% {
+              clip-path: inset(100% 0 0 0);
+              transform: scale(1);
+            }
+            50% {
+              clip-path: inset(0 0 0 0);
+              transform: scale(1.1);
+            }
+            100% {
+              clip-path: inset(100% 0 0 0);
+              transform: scale(1);
+            }
+          }
+          .heart-fill-animation-small {
+            animation: heartFillSmall 3s ease-in-out infinite;
+          }
+        `
+      }} />
       {isInitialLoad ? (
         <LoadingSpinner />
       ) : (
@@ -686,14 +884,14 @@ export default function AdminDashboard() {
                               </div>
                             </td>
                           </tr>
-                        ) : sortedUsers.length === 0 ? (
+                        ) : currentUsers.length === 0 ? (
                           <tr>
                             <td colSpan={8} className={`px-4 py-3 text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                               No users found
                             </td>
                           </tr>
                         ) : (
-                          sortedUsers.map((user) => (
+                          currentUsers.map((user) => (
                             <tr key={user.id} className={darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
                               <td className="px-4 py-3 whitespace-nowrap">
                                 <div className="flex items-center">
@@ -766,13 +964,20 @@ export default function AdminDashboard() {
                                           html: `
                                             <div class="text-left space-y-2">
                                               <div class="${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
-                                                <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center">
-                                                  <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
-                                                    <svg class="w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
-                                                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                                                    </svg>
+                                                <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center justify-between">
+                                                  <div class="flex items-center">
+                                                    <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
+                                                      <svg class="w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                                                      </svg>
+                                                    </div>
+                                                    Personal Information
                                                   </div>
-                                                  Personal Information
+                                                  <button onclick="window.editPersonalInfo && window.editPersonalInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Personal Information">
+                                                    <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
+                                                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                                    </svg>
+                                                  </button>
                                                 </h3>
                                                 <div class="space-y-1">
                                                   <div class="flex items-center group">
@@ -814,14 +1019,21 @@ export default function AdminDashboard() {
                                                 </div>
                                               </div>
                                               <div class="${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
-                                                <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center">
-                                                  <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
-                                                    <svg class="w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
-                                                      <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                                                      <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
-                                                    </svg>
+                                                <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center justify-between">
+                                                  <div class="flex items-center">
+                                                    <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
+                                                      <svg class="w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                                                      </svg>
+                                                    </div>
+                                                    Academic Information
                                                   </div>
-                                                  Academic Information
+                                                  <button onclick="window.editAcademicInfo && window.editAcademicInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Academic Information">
+                                                    <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
+                                                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                                    </svg>
+                                                  </button>
                                                 </h3>
                                                 <div class="space-y-1">
                                                   <div class="flex items-center group">
@@ -851,13 +1063,20 @@ export default function AdminDashboard() {
                                                 </div>
                                               </div>
                                               <div class="${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
-                                                <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center">
-                                                  <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
-                                                    <svg class="w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
-                                                      <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
-                                                    </svg>
+                                                <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center justify-between">
+                                                  <div class="flex items-center">
+                                                    <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
+                                                      <svg class="w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                                                      </svg>
+                                                    </div>
+                                                    Guardian Information
                                                   </div>
-                                                  Guardian Information
+                                                  <button onclick="window.editGuardianInfo && window.editGuardianInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Guardian Information">
+                                                    <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
+                                                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                                    </svg>
+                                                  </button>
                                                 </h3>
                                                 <div class="space-y-1">
                                                   <div class="flex items-center group">
@@ -1061,6 +1280,42 @@ export default function AdminDashboard() {
                     </table>
                   </div>
                 </div>
+                
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className={`mt-4 flex items-center justify-between ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                    <div className="text-xs">
+                      Showing {startIndex + 1} to {Math.min(endIndex, sortedUsers.length)} of {sortedUsers.length} users
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
+                          currentPage === 1
+                            ? `${darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
+                            : `${darkMode ? 'bg-[#800000] hover:bg-[#660000] text-white' : 'bg-[#800000] hover:bg-[#660000] text-white'}`
+                        }`}
+                      >
+                        Previous
+                      </button>
+                      <span className="text-xs px-2">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
+                          currentPage === totalPages
+                            ? `${darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
+                            : `${darkMode ? 'bg-[#800000] hover:bg-[#660000] text-white' : 'bg-[#800000] hover:bg-[#660000] text-white'}`
+                        }`}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
               </>
             )}
             {activeView === 'archived' && (
