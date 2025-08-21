@@ -70,12 +70,40 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
   } = props;
 
   const [timeRange, setTimeRange] = useState('daily');
+  const [currentPage, setCurrentPage] = useState(0);
+
+  // Reset to first page when time range changes
+  const handleTimeRangeChange = (newTimeRange: string) => {
+    setTimeRange(newTimeRange);
+    setCurrentPage(0);
+  };
 
   const getLocalDateKey = (dateInput: string | Date) => {
     const dateObj = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
     return dateObj.getFullYear() + '-' +
       String(dateObj.getMonth() + 1).padStart(2, '0') + '-' +
       String(dateObj.getDate()).padStart(2, '0');
+  };
+
+  const formatDateLabel = (dateKey: string, timeRange: string) => {
+    if (timeRange === 'daily') {
+      const date = new Date(dateKey + 'T00:00:00');
+      const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
+      const month = date.toLocaleDateString('en-US', { month: 'short' });
+      const day = date.getDate();
+      const year = date.getFullYear();
+      return `${dayOfWeek} (${month}, ${day}, ${year})`;
+    } else if (timeRange === 'weekly') {
+      const date = new Date(dateKey + 'T00:00:00');
+      const month = date.toLocaleDateString('en-US', { month: 'short' });
+      const day = date.getDate();
+      const year = date.getFullYear();
+      return `(${month}, ${day}, ${year})`;
+    } else { // monthly
+      const [year, month] = dateKey.split('-');
+      const monthName = new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('en-US', { month: 'long' });
+      return `(${monthName}, ${year})`;
+    }
   };
 
   const genderDistributionData = useMemo(() => {
@@ -180,7 +208,7 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
     };
   }, [assessments]);
 
-  const anxietyHistoryData = useMemo(() => {
+  const { labels: anxietyLabels, datasets: anxietyDatasets, totalPages } = useMemo(() => {
     const latestAssessments = Object.values(assessments)
       .map(userAssessments => {
         if (userAssessments.length > 0) {
@@ -238,15 +266,15 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
     }, {} as Record<string, { minimal: number; mild: number; moderate: number; severe: number }>);
 
     const sortedKeys = Object.keys(counts).sort();
-    const labels = timeRange === 'daily'
-      ? sortedKeys.map(key => {
-          // By appending T00:00:00, we ensure the date is parsed in the local timezone,
-          // preventing potential day shifts when converting from UTC.
-          const date = new Date(key + 'T00:00:00');
-          const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
-          return `${dayOfWeek} (${key})`;
-        })
-      : sortedKeys;
+    
+    // Pagination logic - show only 7 items per page
+    const ITEMS_PER_PAGE = 7;
+    const totalPages = Math.ceil(sortedKeys.length / ITEMS_PER_PAGE);
+    const startIndex = currentPage * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const currentKeys = sortedKeys.slice(startIndex, endIndex);
+    
+    const labels = currentKeys.map(key => formatDateLabel(key, timeRange));
     const anxietyLevels: Array<keyof typeof counts[string]> = ['minimal', 'mild', 'moderate', 'severe'];
 
     const levelColors: Record<keyof typeof counts[string], string> = {
@@ -258,14 +286,14 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
 
     const datasets = anxietyLevels.map(level => ({
       label: level.charAt(0).toUpperCase() + level.slice(1),
-      data: sortedKeys.map(key => counts[key][level]),
+      data: currentKeys.map(key => counts[key][level]),
       borderColor: levelColors[level],
       backgroundColor: levelColors[level].replace('1)', '0.8)'),
       borderWidth: 1,
     }));
 
-    return { labels, datasets };
-  }, [assessments, timeRange]);
+    return { labels, datasets, totalPages };
+  }, [assessments, timeRange, currentPage]);
 
   return (
     <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 w-full px-0 md:px-0`}>
@@ -363,29 +391,64 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
       <div className={`md:col-span-2 ${darkMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'} p-3 rounded-md shadow min-w-0 w-full`}>
         <div className="flex justify-between items-center mb-2">
           <h2 className={`text-sm font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Anxiety Level History</h2>
-          <div>
-            <button
-              onClick={() => setTimeRange('daily')}
-              className={`px-2 py-1 text-xs rounded ${timeRange === 'daily' ? 'bg-blue-500 text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')}`}
-            >
-              Daily
-            </button>
-            <button
-              onClick={() => setTimeRange('weekly')}
-              className={`ml-2 px-2 py-1 text-xs rounded ${timeRange === 'weekly' ? 'bg-blue-500 text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')}`}
-            >
-              Weekly
-            </button>
-            <button
-              onClick={() => setTimeRange('monthly')}
-              className={`ml-2 px-2 py-1 text-xs rounded ${timeRange === 'monthly' ? 'bg-blue-500 text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')}`}
-            >
-              Monthly
-            </button>
+          <div className="flex items-center gap-2">
+            <div className="flex">
+              <button
+                onClick={() => handleTimeRangeChange('daily')}
+                className={`px-2 py-1 text-xs rounded ${timeRange === 'daily' ? 'bg-blue-500 text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')}`}
+              >
+                Daily
+              </button>
+              <button
+                onClick={() => handleTimeRangeChange('weekly')}
+                className={`ml-2 px-2 py-1 text-xs rounded ${timeRange === 'weekly' ? 'bg-blue-500 text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')}`}
+              >
+                Weekly
+              </button>
+              <button
+                onClick={() => handleTimeRangeChange('monthly')}
+                className={`ml-2 px-2 py-1 text-xs rounded ${timeRange === 'monthly' ? 'bg-blue-500 text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')}`}
+              >
+                Monthly
+              </button>
+            </div>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2 ml-4">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))}
+                  disabled={currentPage === 0}
+                  className={`px-2 py-1 text-xs rounded transition-colors ${
+                    currentPage === 0
+                      ? `${darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
+                      : `${darkMode ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-300 hover:bg-gray-400 text-gray-700'}`
+                  }`}
+                  title="Previous page"
+                >
+                  ←
+                </button>
+                <span className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {currentPage + 1} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages - 1))}
+                  disabled={currentPage === totalPages - 1}
+                  className={`px-2 py-1 text-xs rounded transition-colors ${
+                    currentPage === totalPages - 1
+                      ? `${darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
+                      : `${darkMode ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-300 hover:bg-gray-400 text-gray-700'}`
+                  }`}
+                  title="Next page"
+                >
+                  →
+                </button>
+              </div>
+            )}
           </div>
         </div>
         <div className={`h-72 w-full min-w-0`}>
-          <Bar data={anxietyHistoryData} options={{
+          <Bar data={{ labels: anxietyLabels, datasets: anxietyDatasets }} options={{
             responsive: true,
             maintainAspectRatio: false,
             plugins: {

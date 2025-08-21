@@ -112,6 +112,7 @@ export default function Register({ onSwitch }: RegisterProps) {
       const yearLevelNumber = yearLevelMap[yearLevel];
 
       // Step 1: Sign up user
+      console.log('🚀 Starting registration with role:', 'student');
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -130,7 +131,7 @@ export default function Register({ onSwitch }: RegisterProps) {
             guardian_name: guardianName,
             guardian_phone_number: guardianPhoneNumber,
             address: address,
-            role: 'student'
+            role: 'student' // Ensure this is explicitly set to 'student'
           }
         }
       });
@@ -166,7 +167,8 @@ export default function Register({ onSwitch }: RegisterProps) {
 
       // Step 3: Create profile
       if (data.user) {
-        console.log('User created successfully:', data.user.id);
+        console.log('✅ User created successfully:', data.user.id);
+        console.log('📋 User metadata:', data.user.user_metadata);
         
         // The profile should be created automatically by the database trigger
         // Let's verify it was created and initialize streak if needed
@@ -177,7 +179,7 @@ export default function Register({ onSwitch }: RegisterProps) {
           // Check if profile was created by the trigger
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('user_id, streak')
+            .select('user_id, role, streak')
             .eq('user_id', data.user.id)
             .single();
 
@@ -186,7 +188,7 @@ export default function Register({ onSwitch }: RegisterProps) {
             // Profile might not exist, try to initialize streak anyway
             await streakService.initializeUserStreak(data.user.id);
           } else if (profile) {
-            console.log('Profile found, initializing streak');
+            console.log('✅ Profile found with role:', profile.role);
             await streakService.initializeUserStreak(data.user.id);
           }
         } catch (error) {

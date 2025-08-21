@@ -688,6 +688,9 @@ export default function AdminDashboard() {
         // Update local state (mutate role to archived)
         setUsers(prev => prev.map(u => u.profile_id === user.profile_id ? { ...u, role: 'archived' } : u));
 
+        // Refresh from server to ensure consistency
+        await fetchUsers();
+
         await Toast.fire({
           icon: 'success',
           iconColor: '#22c55e',
@@ -725,23 +728,32 @@ export default function AdminDashboard() {
   const archivedUsers = filteredUsers.filter(u => isArchived(u.role));
 
   // Sort users: non-admins by latest sign-in (most recent first), admins always at the bottom
-  const sortedUsers = [
-    ...activeUsers
-      .filter(user => user.role !== 'admin')
-      .sort((a, b) => {
-        const aSignIn = a.last_sign_in ? new Date(a.last_sign_in).getTime() : 0;
-        const bSignIn = b.last_sign_in ? new Date(b.last_sign_in).getTime() : 0;
-        return bSignIn - aSignIn;
-      }),
-    ...activeUsers.filter(user => user.role === 'admin')
-  ];
+  const regularUsers = activeUsers
+    .filter(user => user.role !== 'admin' && user.role !== 'guidance')
+    .sort((a, b) => {
+      const aSignIn = a.last_sign_in ? new Date(a.last_sign_in).getTime() : 0;
+      const bSignIn = b.last_sign_in ? new Date(b.last_sign_in).getTime() : 0;
+      return bSignIn - aSignIn;
+    });
+  const guidanceUsers = activeUsers.filter(user => user.role === 'guidance');
+  const adminUsers = activeUsers.filter(user => user.role === 'admin');
+  const sortedUsers = [...regularUsers, ...guidanceUsers, ...adminUsers];
 
   // Pagination logic
   const usersPerPage = 10;
-  const totalPages = Math.ceil(sortedUsers.length / usersPerPage);
+  const nonArchivedUsers = sortedUsers.filter(u => !isArchived(u.role));
+  const totalPages = Math.ceil(nonArchivedUsers.length / usersPerPage);
   const startIndex = (currentPage - 1) * usersPerPage;
   const endIndex = startIndex + usersPerPage;
-  const currentUsers = sortedUsers.slice(startIndex, endIndex);
+  const currentUsers = nonArchivedUsers.slice(startIndex, endIndex);
+
+  // Clamp current page if data size changes (e.g., after archiving)
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(nonArchivedUsers.length / usersPerPage));
+    if (currentPage > maxPage) {
+      setCurrentPage(maxPage);
+    }
+  }, [nonArchivedUsers.length, usersPerPage]);
 
   // Reset to first page when filters change
   useEffect(() => {
@@ -946,7 +958,7 @@ export default function AdminDashboard() {
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap">
                                 <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  user.role === 'admin' 
+                                  user.role === 'admin' || user.role === 'guidance'
                                     ? 'bg-purple-100 text-purple-800' 
                                     : 'bg-green-100 text-green-800'
                                 }`}>
@@ -1285,7 +1297,7 @@ export default function AdminDashboard() {
                 {totalPages > 1 && (
                   <div className={`mt-4 flex items-center justify-between ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
                     <div className="text-xs">
-                      Showing {startIndex + 1} to {Math.min(endIndex, sortedUsers.length)} of {sortedUsers.length} users
+                      Showing {startIndex + 1} to {Math.min(endIndex, nonArchivedUsers.length)} of {nonArchivedUsers.length} users
                     </div>
                     <div className="flex items-center gap-2">
                       <button
@@ -1412,7 +1424,7 @@ export default function AdminDashboard() {
                                 </div>
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap">
-                                <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-700">Archived</span>
+                                <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#800000]/10 text-[#800000]">Archived</span>
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap">
                                 <div className={`flex items-center text-xs ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>

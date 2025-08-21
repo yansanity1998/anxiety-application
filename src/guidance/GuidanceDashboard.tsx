@@ -238,7 +238,7 @@ export default function GuidanceDashboard() {
       const transformedUsers = usersData?.map(user => ({
         ...user,
         profile_id: user.id, // Ensure profile_id is set
-        role: user.role || 'user' // Default role if not set
+        role: user.role || 'student' // Default role if not set
       })) || [];
 
       setUsers(transformedUsers);
@@ -304,16 +304,41 @@ export default function GuidanceDashboard() {
     }
   };
 
-  // Filter users based on search term and year filter
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.school?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.course?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesYear = yearFilter === 'all' || user.year_level?.toString() === yearFilter;
-    
-    return matchesSearch && matchesYear;
+  // Filter users based on search term and year filter, excluding archived
+  const filteredUsers = users
+    .filter(user => !isArchived(user.role))
+    .filter(user => {
+      const matchesSearch = user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           user.school?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           user.course?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesYear = yearFilter === 'all' || user.year_level?.toString() === yearFilter;
+      
+      return matchesSearch && matchesYear;
+    });
+
+  // Sort: normal users by recent sign-in, then guidance, then admin, then archived
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    const getPriority = (u: UserProfile) => {
+      if (isArchived(u.role)) return 3; // archived last
+      if (u.role === 'admin') return 2; // admin at the very bottom (before archived)
+      if (u.role === 'guidance') return 1; // guidance just before admin
+      return 0; // regular users first
+    };
+
+    const pa = getPriority(a);
+    const pb = getPriority(b);
+    if (pa !== pb) return pa - pb;
+
+    const aSignIn = a.last_sign_in ? new Date(a.last_sign_in).getTime() : 0;
+    const bSignIn = b.last_sign_in ? new Date(b.last_sign_in).getTime() : 0;
+    if (aSignIn !== bSignIn) return bSignIn - aSignIn;
+
+    // fallback to created_at desc
+    const aCreated = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const bCreated = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return bCreated - aCreated;
   });
 
   // Get active users (non-archived)
@@ -323,12 +348,19 @@ export default function GuidanceDashboard() {
   const archivedUsers = users.filter(user => isArchived(user.role));
 
   // Pagination
-  const ITEMS_PER_PAGE = 20;
-  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+  const ITEMS_PER_PAGE = 10;
+  const totalPages = Math.ceil(sortedUsers.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentUsers = filteredUsers.slice(startIndex, endIndex);
+  const currentUsers = sortedUsers.slice(startIndex, endIndex);
 
+  // Clamp current page if data size changes (e.g., after archiving)
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(sortedUsers.length / ITEMS_PER_PAGE));
+    if (currentPage > maxPage) {
+      setCurrentPage(maxPage);
+    }
+  }, [sortedUsers.length, ITEMS_PER_PAGE]);
 
 
   const handleSignOut = async () => {
@@ -370,6 +402,167 @@ export default function GuidanceDashboard() {
     }
   };
 
+  // Set up global edit functions
+  useEffect(() => {
+    (window as any).editPersonalInfo = (profileId: string) => {
+      const user = users.find(u => u.profile_id.toString() === profileId);
+      if (user) {
+        handleEditUser(user, 'personal');
+      }
+    };
+
+    (window as any).editAcademicInfo = (profileId: string) => {
+      const user = users.find(u => u.profile_id.toString() === profileId);
+      if (user) {
+        handleEditUser(user, 'academic');
+      }
+    };
+
+    (window as any).editGuardianInfo = (profileId: string) => {
+      const user = users.find(u => u.profile_id.toString() === profileId);
+      if (user) {
+        handleEditUser(user, 'guardian');
+      }
+    };
+  }, [users]);
+
+  const handleEditUser = async (user: UserProfile, section: 'personal' | 'academic' | 'guardian') => {
+    try {
+      let title = '';
+      let fields: { name: string; label: string; type: string; value: any }[] = [];
+      
+      if (section === 'personal') {
+        title = 'Edit Personal Information';
+        fields = [
+          { name: 'full_name', label: 'Full Name', type: 'text', value: user.full_name || '' },
+          { name: 'age', label: 'Age', type: 'number', value: user.age || '' },
+          { name: 'gender', label: 'Gender', type: 'select', value: user.gender || '' },
+          { name: 'phone_number', label: 'Phone Number', type: 'tel', value: user.phone_number || '' },
+          { name: 'address', label: 'Address', type: 'textarea', value: user.address || '' }
+        ];
+      } else if (section === 'academic') {
+        title = 'Edit Academic Information';
+        fields = [
+          { name: 'school', label: 'School', type: 'text', value: user.school || '' },
+          { name: 'course', label: 'Course', type: 'text', value: user.course || '' },
+          { name: 'year_level', label: 'Year Level', type: 'select', value: user.year_level || '' },
+          { name: 'id_number', label: 'ID Number', type: 'text', value: user.id_number || '' }
+        ];
+      } else if (section === 'guardian') {
+        title = 'Edit Guardian Information';
+        fields = [
+          { name: 'guardian_name', label: 'Guardian Name', type: 'text', value: user.guardian_name || '' },
+          { name: 'guardian_phone_number', label: 'Guardian Phone', type: 'tel', value: user.guardian_phone_number || '' }
+        ];
+      }
+
+      const { value: formValues } = await Swal.fire({
+        title,
+        html: `
+          <div class="space-y-3">
+            <div class="text-center mb-3">
+              <p class="text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'}">Editing: <strong class="${darkMode ? 'text-white' : 'text-gray-800'}">${user.full_name || user.email}</strong></p>
+            </div>
+            ${fields.map(field => `
+              <div class="text-left">
+                <label class="block text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">${field.label}</label>
+                ${field.type === 'select' && field.name === 'gender' ? `
+                  <select id="${field.name}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm">
+                    <option value="">Select Gender</option>
+                    <option value="Male" ${field.value === 'Male' ? 'selected' : ''}>Male</option>
+                    <option value="Female" ${field.value === 'Female' ? 'selected' : ''}>Female</option>
+                    <option value="Other" ${field.value === 'Other' ? 'selected' : ''}>Other</option>
+                  </select>
+                ` : field.type === 'select' && field.name === 'year_level' ? `
+                  <select id="${field.name}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm">
+                    <option value="">Select Year Level</option>
+                    <option value="1" ${field.value === 1 ? 'selected' : ''}>1st Year</option>
+                    <option value="2" ${field.value === 2 ? 'selected' : ''}>2nd Year</option>
+                    <option value="3" ${field.value === 3 ? 'selected' : ''}>3rd Year</option>
+                    <option value="4" ${field.value === 4 ? 'selected' : ''}>4th Year</option>
+                  </select>
+                ` : field.type === 'textarea' ? `
+                  <textarea id="${field.name}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm" rows="2" placeholder="Enter ${field.label.toLowerCase()}">${field.value}</textarea>
+                ` : `
+                  <input type="${field.type}" id="${field.name}" value="${field.value}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm" placeholder="Enter ${field.label.toLowerCase()}">
+                `}
+              </div>
+            `).join('')}
+            <div class="text-center mt-3">
+              <p class="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}">All fields are optional</p>
+            </div>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Save Changes',
+        confirmButtonColor: '#800000',
+        cancelButtonText: 'Cancel',
+        focusConfirm: false,
+        preConfirm: () => {
+          const formData: any = {};
+          fields.forEach(field => {
+            const element = document.getElementById(field.name) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+            if (element) {
+              formData[field.name] = field.type === 'number' ? parseInt(element.value) || null : element.value;
+            }
+          });
+          return formData;
+        },
+        width: '400px',
+        customClass: {
+          popup: `rounded-xl shadow-xl border ${darkMode ? 'border-gray-600 bg-gray-800' : 'border-gray-200 bg-white'}`,
+          title: `text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-3`,
+          htmlContainer: `${darkMode ? 'text-gray-200' : 'text-gray-700'}`,
+          confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-5 rounded-lg transition-colors shadow-lg hover:shadow-xl',
+          cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border font-medium py-2 px-5 rounded-lg transition-colors shadow`
+        }
+      });
+
+      if (formValues) {
+        console.log('📝 Updating user:', user.profile_id, 'section:', section, 'data:', formValues);
+        
+        const { error } = await supabase
+          .from('profiles')
+          .update(formValues)
+          .eq('id', user.profile_id);
+
+        if (error) {
+          throw new Error(`Failed to update user: ${error.message}`);
+        }
+
+        // Update local state
+        setUsers(prev => prev.map(u => 
+          u.profile_id === user.profile_id 
+            ? { ...u, ...formValues }
+            : u
+        ));
+
+        await Toast.fire({
+          icon: 'success',
+          iconColor: '#22c55e',
+          title: 'Updated',
+          text: `${title} updated successfully`,
+        });
+        
+        console.log('🎉 User updated successfully');
+      }
+    } catch (error) {
+      console.error('❌ Error updating user:', error);
+      
+      let errorMessage = 'Failed to update user';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      await Toast.fire({
+        icon: 'error',
+        iconColor: '#ef4444',
+        title: 'Error',
+        text: errorMessage,
+      });
+    }
+  };
+
   if (isLoading) {
     return <LoadingSpinner />;
   }
@@ -391,28 +584,23 @@ export default function GuidanceDashboard() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <Notifications darkMode={darkMode} />
+            <div className="flex items-center gap-2">
               <button
                 onClick={toggleDarkMode}
-                className={`p-2 rounded-lg transition-colors ${
-                  darkMode 
-                    ? 'bg-gray-700 hover:bg-gray-600 text-yellow-400' 
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-                }`}
+                className={`p-1.5 rounded-full ${darkMode ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
               >
                 {darkMode ? <FaSun /> : <FaMoon />}
               </button>
+              <div className="relative">
+                <Notifications darkMode={darkMode} />
+              </div>
               <button
                 onClick={handleSignOut}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                  darkMode 
-                    ? 'bg-red-700 hover:bg-red-600 text-white' 
-                    : 'bg-red-600 hover:bg-red-700 text-white'
-                }`}
+                className="flex items-center gap-1 px-2 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors hover:cursor-pointer text-xs"
               >
                 <FaSignOutAlt />
-                <span>Sign Out</span>
+                Sign Out
               </button>
             </div>
           </div>
@@ -563,8 +751,8 @@ export default function GuidanceDashboard() {
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              user.role === 'admin' 
-                                ? 'bg-purple-100 text-purple-800' 
+                              user.role === 'admin' || user.role === 'guidance'
+                                ? 'bg-purple-100 text-purple-800'
                                 : 'bg-green-100 text-green-800'
                             }`}>
                               {user.role}
@@ -836,9 +1024,18 @@ export default function GuidanceDashboard() {
                                    }}
                                    className={`text-xs font-medium flex items-center px-3 py-1.5 rounded-lg transition-colors ${
                                      assessments[user.profile_id] && assessments[user.profile_id].length > 0
-                                       ? (darkMode
-                                           ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                                           : 'bg-gray-50 hover:bg-gray-100 text-gray-700')
+                                       ? (() => {
+                                           const latestAssessment = getLatestAssessment(assessments[user.profile_id]);
+                                           if (latestAssessment) {
+                                             const colors = getAnxietyLevelColor(latestAssessment.anxiety_level);
+                                             return darkMode
+                                               ? `${colors.darkModeButton}`
+                                               : `${colors.button}`;
+                                           }
+                                           return darkMode
+                                             ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                                             : 'bg-gray-50 hover:bg-gray-100 text-gray-700';
+                                         })()
                                        : (darkMode
                                            ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
                                            : 'bg-gray-50 hover:bg-gray-100 text-gray-700')
@@ -846,7 +1043,18 @@ export default function GuidanceDashboard() {
                                  >
                                    {assessments[user.profile_id] && assessments[user.profile_id].length > 0 ? (
                                      <>
-                                       {getLatestAssessment(assessments[user.profile_id])?.anxiety_level || 'Unknown'} Anxiety
+                                       {(() => {
+                                         const latestAssessment = getLatestAssessment(assessments[user.profile_id]);
+                                         if (latestAssessment) {
+                                           const colors = getAnxietyLevelColor(latestAssessment.anxiety_level);
+                                           return (
+                                             <span className={`${darkMode ? colors.text : colors.text}`}>
+                                               {latestAssessment.anxiety_level || 'Unknown'} Anxiety
+                                             </span>
+                                           );
+                                         }
+                                         return 'Unknown Anxiety';
+                                       })()}
                                        <FaChevronRight className="ml-1 text-xs" />
                                      </>
                                    ) : (
@@ -903,32 +1111,32 @@ export default function GuidanceDashboard() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="mt-4 flex items-center justify-between">
-                <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Showing {startIndex + 1} to {Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} results
+              <div className={`mt-4 flex items-center justify-between ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                <div className="text-xs">
+                  Showing {startIndex + 1} to {Math.min(endIndex, sortedUsers.length)} of {sortedUsers.length} users
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className={`px-3 py-1 rounded-md text-sm ${
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
                       currentPage === 1
                         ? `${darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
-                        : `${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`
+                        : `${darkMode ? 'bg-[#800000] hover:bg-[#660000] text-white' : 'bg-[#800000] hover:bg-[#660000] text-white'}`
                     }`}
                   >
                     Previous
                   </button>
-                  <span className={`px-3 py-1 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <span className="text-xs px-2">
                     Page {currentPage} of {totalPages}
                   </span>
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className={`px-3 py-1 rounded-md text-sm ${
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
                       currentPage === totalPages
                         ? `${darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
-                        : `${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`
+                        : `${darkMode ? 'bg-[#800000] hover:bg-[#660000] text-white' : 'bg-[#800000] hover:bg-[#660000] text-white'}`
                     }`}
                   >
                     Next
@@ -941,9 +1149,9 @@ export default function GuidanceDashboard() {
 
         {activeView === 'archived' && (
           <>
-            <div className="mb-4 flex items-center ${darkMode ? 'bg-gray-700' : 'bg-red-50'} rounded-lg px-4 py-3 border ${darkMode ? 'border-gray-600' : 'border-red-200'} w-fit">
-              <FaArchive className={`mr-2 text-xl ${darkMode ? 'text-red-400' : 'text-red-600'}`} />
-              <span className={`font-semibold text-base ${darkMode ? 'text-red-400' : 'text-red-600'}`}>Archived Users:</span>
+            <div className={`mb-4 flex items-center ${darkMode ? 'bg-gray-700' : 'bg-[#800000]/5'} rounded-lg px-4 py-3 border ${darkMode ? 'border-gray-600' : 'border-[#800000]/30'} w-fit`}>
+              <FaArchive className={`mr-2 text-xl ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`} />
+              <span className={`font-semibold text-base ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`}>Archived Users:</span>
               <span className={`ml-2 text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{archivedUsers.length}</span>
             </div>
             <div className={`rounded-md shadow overflow-x-auto ${darkMode ? 'bg-gray-800' : 'bg-white'} w-full`}>
@@ -1005,7 +1213,7 @@ export default function GuidanceDashboard() {
                              </div>
                            </td>
                            <td className="px-4 py-3 whitespace-nowrap">
-                             <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-700">Archived</span>
+                             <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#800000]/10 text-[#800000]">Archived</span>
                            </td>
                            <td className="px-4 py-3 whitespace-nowrap">
                              <div className={`flex items-center text-xs ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
