@@ -69,13 +69,13 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
     // compact = false,
   } = props;
 
-  const [timeRange, setTimeRange] = useState('daily');
-  const [currentPage, setCurrentPage] = useState(0);
+    const [timeRange, setTimeRange] = useState('daily');
+    const [currentPage, setCurrentPage] = useState(timeRange === 'daily' ? 1 : 0);
 
   // Reset to first page when time range changes
   const handleTimeRangeChange = (newTimeRange: string) => {
     setTimeRange(newTimeRange);
-    setCurrentPage(0);
+      setCurrentPage(newTimeRange === 'daily' ? 1 : 0);
   };
 
   const getLocalDateKey = (dateInput: string | Date) => {
@@ -393,24 +393,24 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
           <h2 className={`text-sm font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Anxiety Level History</h2>
           <div className="flex items-center gap-2">
             <div className="flex">
-              <button
+            <button
                 onClick={() => handleTimeRangeChange('daily')}
-                className={`px-2 py-1 text-xs rounded ${timeRange === 'daily' ? 'bg-blue-500 text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')}`}
-              >
-                Daily
-              </button>
-              <button
+              className={`px-2 py-1 text-xs rounded ${timeRange === 'daily' ? 'bg-blue-500 text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')}`}
+            >
+              Daily
+            </button>
+            <button
                 onClick={() => handleTimeRangeChange('weekly')}
-                className={`ml-2 px-2 py-1 text-xs rounded ${timeRange === 'weekly' ? 'bg-blue-500 text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')}`}
-              >
-                Weekly
-              </button>
-              <button
+              className={`ml-2 px-2 py-1 text-xs rounded ${timeRange === 'weekly' ? 'bg-blue-500 text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')}`}
+            >
+              Weekly
+            </button>
+            <button
                 onClick={() => handleTimeRangeChange('monthly')}
-                className={`ml-2 px-2 py-1 text-xs rounded ${timeRange === 'monthly' ? 'bg-blue-500 text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')}`}
-              >
-                Monthly
-              </button>
+              className={`ml-2 px-2 py-1 text-xs rounded ${timeRange === 'monthly' ? 'bg-blue-500 text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')}`}
+            >
+              Monthly
+            </button>
             </div>
             
             {/* Pagination Controls */}

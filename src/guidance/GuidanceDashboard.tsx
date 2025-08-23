@@ -1033,7 +1033,7 @@ export default function GuidanceDashboard() {
                                                : `${colors.button}`;
                                            }
                                            return darkMode
-                                             ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                                           ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
                                              : 'bg-gray-50 hover:bg-gray-100 text-gray-700';
                                          })()
                                        : (darkMode

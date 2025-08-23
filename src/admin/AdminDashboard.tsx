@@ -11,6 +11,12 @@ import LoadingSpinner from './components/LoadingSpinner';
 import { ThemeContext } from '../App';
 import AdminNavbar from './components/AdminNavbar';
 import { archiveUser, unarchiveUser, isArchived } from './services/archiveService';
+import CBTModules from './components/CBTModules';
+import AnxietyVideos from './components/AnxietyVideos';
+import RelaxationTools from './components/RelaxationTools';
+import Referral from './components/Referral';
+import Schedule from './components/Schedule';
+import Gamification from './components/Gamification';
 
 type UserProfile = {
   id: string;
@@ -1469,6 +1475,12 @@ export default function AdminDashboard() {
                 </div>
               </>
             )}
+            {activeView === 'cbt-modules' && <CBTModules darkMode={darkMode} />}
+            {activeView === 'anxiety-videos' && <AnxietyVideos darkMode={darkMode} />}
+            {activeView === 'relaxation-tools' && <RelaxationTools darkMode={darkMode} />}
+            {activeView === 'referral' && <Referral darkMode={darkMode} />}
+            {activeView === 'schedule' && <Schedule darkMode={darkMode} />}
+            {activeView === 'gamification' && <Gamification darkMode={darkMode} />}
           </div>
           <Footer darkMode={darkMode} />
         </>
