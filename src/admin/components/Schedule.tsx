@@ -1,167 +1,246 @@
-
-
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import lotus from '../../../public/lotus.png';
-import { FaCalendarAlt, FaUser, FaClock, FaCheckCircle, FaTimesCircle, FaHourglassHalf } from 'react-icons/fa';
+import { FaCalendarAlt, FaUser, FaClock, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaSpinner, FaChevronDown, FaEye, FaTrash } from 'react-icons/fa';
+import { getAllAppointments, updateAppointment, deleteAppointment } from '../../lib/appointmentService';
+import type { Appointment } from '../../lib/appointmentService';
+import Swal from 'sweetalert2';
 
 interface ScheduleProps {
   darkMode: boolean;
 }
 
-interface Appointment {
-  id: number;
-  user: string;
-  date: string;
-  time: string;
-  status: 'In Progress' | 'Completed' | 'Canceled';
-}
-
-const users = [
-  'John Doe',
-  'Jane Smith',
-  'Alice Johnson',
-  'Bob Lee',
-];
-
 const statusColors: Record<string, string> = {
+  'Scheduled': 'bg-blue-100 text-blue-800',
   'In Progress': 'bg-yellow-100 text-yellow-800',
   'Completed': 'bg-green-100 text-green-800',
   'Canceled': 'bg-red-100 text-red-800',
+  'No Show': 'bg-gray-100 text-gray-800',
 };
 
+const statusOptions = ['Scheduled', 'In Progress', 'Completed', 'Canceled', 'No Show'];
+
 const statusIcons: Record<string, React.ReactNode> = {
+  'Scheduled': <FaCalendarAlt className="mr-1" />,
   'In Progress': <FaHourglassHalf className="mr-1" />,
   'Completed': <FaCheckCircle className="mr-1" />,
   'Canceled': <FaTimesCircle className="mr-1" />,
+  'No Show': <FaTimesCircle className="mr-1" />,
 };
 
 const Schedule = ({ darkMode }: ScheduleProps) => {
-  const [selectedUser, setSelectedUser] = useState(users[0]);
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [status, setStatus] = useState<'In Progress' | 'Completed' | 'Canceled'>('In Progress');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [expandedAppointment, setExpandedAppointment] = useState<number | null>(null);
 
-  const handleAddAppointment = () => {
-    if (!date || !time) return;
-    setAppointments([
-      ...appointments,
-      {
-        id: Date.now(),
-        user: selectedUser,
-        date,
-        time,
-        status,
-      },
-    ]);
-    setDate('');
-    setTime('');
-    setStatus('In Progress');
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getAllAppointments();
+        setAppointments(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching appointments:', err);
+        setError('Failed to load appointments');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAppointments();
+  }, []);
+
+  const handleStatusUpdate = async (appointmentId: number, newStatus: Appointment['status']) => {
+    try {
+      await updateAppointment(appointmentId, { status: newStatus });
+      // Refresh appointments
+      const data = await getAllAppointments();
+      setAppointments(data);
+      setExpandedAppointment(null);
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to update appointment status',
+      });
+    }
+  };
+
+  const showStudentInfo = (appointment: Appointment) => {
+    Swal.fire({
+      title: 'Student Information',
+      html: `
+        <div class="text-left space-y-3">
+          <div class="bg-gray-50 p-3 rounded-lg">
+            <h3 class="font-semibold text-gray-800 mb-2">Appointment Details</h3>
+            <p><strong>Student:</strong> ${appointment.student_name}</p>
+            <p><strong>Email:</strong> ${appointment.student_email}</p>
+            <p><strong>Date:</strong> ${appointment.appointment_date}</p>
+            <p><strong>Time:</strong> ${appointment.appointment_time}</p>
+            <p><strong>Status:</strong> <span class="px-2 py-1 rounded-full text-xs font-semibold ${statusColors[appointment.status]}">${appointment.status}</span></p>
+            ${appointment.notes ? `<p><strong>Notes:</strong> ${appointment.notes}</p>` : ''}
+          </div>
+        </div>
+      `,
+      confirmButtonText: 'Close',
+      confirmButtonColor: '#3085d6',
+    });
+  };
+
+  const handleDeleteAppointment = async (appointment: Appointment) => {
+    const result = await Swal.fire({
+      title: 'Delete Appointment',
+      html: `
+        <div class="text-center">
+          <p class="text-gray-600 mb-3">Are you sure you want to delete this appointment?</p>
+          <div class="bg-red-50 p-3 rounded-lg border border-red-200">
+            <p class="font-semibold text-red-800">${appointment.student_name}</p>
+            <p class="text-sm text-red-600">${appointment.appointment_date} at ${appointment.appointment_time}</p>
+          </div>
+        </div>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteAppointment(appointment.id);
+        // Refresh appointments
+        const data = await getAllAppointments();
+        setAppointments(data);
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'Appointment has been deleted successfully.',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      } catch (error) {
+        console.error('Error deleting appointment:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to delete appointment. Please try again.',
+        });
+      }
+    }
   };
 
   return (
-    <div
-      className={`relative rounded-2xl shadow-2xl p-8 transition-all overflow-hidden backdrop-blur-lg border border-white/20 ${darkMode ? 'bg-gradient-to-br from-indigo-900 via-purple-900 to-gray-900' : 'bg-gradient-to-br from-indigo-200 via-purple-100 to-white'}`}
-      style={{ minHeight: '80vh' }}
+    <section
+      className={`relative rounded-xl shadow-lg p-6 md:p-8 transition-all overflow-hidden border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+      style={{ minHeight: '60vh' }}
     >
-      <img src={lotus} alt="Lotus" className="absolute top-6 right-8 w-20 h-20 opacity-30 pointer-events-none select-none" />
-      <div className="flex items-center mb-10">
-        <FaCalendarAlt className={`mr-4 text-4xl animate-pulse ${darkMode ? 'text-indigo-300' : 'text-indigo-500'}`} />
-        <h2 className={`text-4xl font-black tracking-tight drop-shadow-lg ${darkMode ? 'text-white' : 'text-gray-900'}`}>Guidance Office Appointments</h2>
+      <img src={lotus} alt="Lotus" className="absolute top-4 right-6 w-14 h-14 opacity-20 pointer-events-none select-none" />
+      <div className="flex items-center mb-6">
+        <FaCalendarAlt className={`mr-3 text-3xl ${darkMode ? 'text-indigo-300' : 'text-indigo-500'}`} />
+        <h2 className={`text-2xl md:text-3xl font-bold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>Upcoming Appointments</h2>
       </div>
-      <div className="mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Create Appointment Card */}
-          <div className={`relative rounded-xl p-8 border shadow-lg transition-all ${darkMode ? 'bg-gradient-to-br from-gray-900 via-indigo-900 to-gray-800 border-gray-700' : 'bg-gradient-to-br from-white via-indigo-100 to-purple-100 border-gray-200'}`}>
-            <h3 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-indigo-200' : 'text-indigo-700'}`}>Create Appointment</h3>
-            <div className="mb-5">
-              <label className="block mb-2 font-semibold flex items-center text-lg">
-                <FaUser className="mr-2" /> Select User
-              </label>
-              <select
-                className={`w-full p-3 rounded-lg border focus:ring-2 focus:ring-indigo-400 transition ${darkMode ? 'bg-gray-800 text-white border-gray-600' : 'bg-white border-gray-300'}`}
-                value={selectedUser}
-                onChange={e => setSelectedUser(e.target.value)}
+      <div className="max-w-4xl mx-auto">
+        <div className={`rounded-lg p-5 border shadow transition-all flex flex-col gap-4 ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <FaSpinner className="animate-spin text-2xl text-blue-500 mr-3" />
+              <span className="text-gray-500">Loading appointments...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-red-500 text-base">{error}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
               >
-                {users.map(user => (
-                  <option key={user} value={user}>{user}</option>
-                ))}
-              </select>
+                Retry
+              </button>
             </div>
-            <div className="mb-5">
-              <label className="block mb-2 font-semibold flex items-center text-lg">
-                <FaClock className="mr-2" /> Date
-              </label>
-              <input
-                type="date"
-                className={`w-full p-3 rounded-lg border focus:ring-2 focus:ring-indigo-400 transition ${darkMode ? 'bg-gray-800 text-white border-gray-600' : 'bg-white border-gray-300'}`}
-                value={date}
-                onChange={e => setDate(e.target.value)}
-              />
-            </div>
-            <div className="mb-5">
-              <label className="block mb-2 font-semibold flex items-center text-lg">
-                <FaClock className="mr-2" /> Time
-              </label>
-              <input
-                type="time"
-                className={`w-full p-3 rounded-lg border focus:ring-2 focus:ring-indigo-400 transition ${darkMode ? 'bg-gray-800 text-white border-gray-600' : 'bg-white border-gray-300'}`}
-                value={time}
-                onChange={e => setTime(e.target.value)}
-              />
-            </div>
-            <div className="mb-5">
-              <label className="block mb-2 font-semibold text-lg">Status</label>
-              <select
-                className={`w-full p-3 rounded-lg border focus:ring-2 focus:ring-indigo-400 transition ${darkMode ? 'bg-gray-800 text-white border-gray-600' : 'bg-white border-gray-300'}`}
-                value={status}
-                onChange={e => setStatus(e.target.value as Appointment['status'])}
-              >
-                <option value="In Progress">In Progress</option>
-                <option value="Completed">Completed</option>
-                <option value="Canceled">Canceled</option>
-              </select>
-            </div>
-            <button
-              className={`w-full py-3 px-4 rounded-xl font-extrabold text-lg transition-all shadow-lg hover:scale-105 active:scale-95 ${darkMode ? 'bg-gradient-to-r from-indigo-700 to-purple-700 text-white hover:from-indigo-600 hover:to-purple-600' : 'bg-gradient-to-r from-indigo-400 to-purple-400 text-white hover:from-indigo-500 hover:to-purple-500'} ${(!date || !time) ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={handleAddAppointment}
-              disabled={!date || !time}
-            >
-              Add Appointment
-            </button>
-            <div className="absolute -top-6 -left-6 w-16 h-16 bg-indigo-400 opacity-10 rounded-full blur-2xl" />
-          </div>
-          {/* Upcoming Appointments Card */}
-          <div className={`relative rounded-xl p-8 border shadow-lg transition-all ${darkMode ? 'bg-gradient-to-br from-gray-900 via-indigo-900 to-gray-800 border-gray-700' : 'bg-gradient-to-br from-white via-indigo-100 to-purple-100 border-gray-200'}`}>
-            <h3 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-indigo-200' : 'text-indigo-700'}`}>Upcoming Appointments</h3>
-            {appointments.length === 0 ? (
-              <p className="text-gray-400 text-lg italic">No appointments scheduled yet.</p>
-            ) : (
-              <ul className="space-y-6">
-                {appointments.map(app => (
-                  <li
-                    key={app.id}
-                    className={`flex items-center justify-between p-5 rounded-xl shadow-lg border transition-all group hover:scale-[1.02] hover:shadow-2xl ${darkMode ? 'bg-gradient-to-r from-gray-900 via-indigo-900 to-gray-800 border-gray-700' : 'bg-gradient-to-r from-white via-indigo-100 to-purple-100 border-gray-200'}`}
-                  >
-                    <div>
-                      <div className="font-extrabold text-xl flex items-center mb-1">
-                        <FaUser className="mr-2 text-indigo-400 group-hover:animate-bounce" /> {app.user}
-                      </div>
-                      <div className="text-md text-gray-500 flex items-center">
-                        <FaClock className="mr-1" /> {app.date} at {app.time}
-                      </div>
+          ) : appointments.length === 0 ? (
+            <p className="text-gray-400 text-base italic">No appointments scheduled yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {appointments.map(app => (
+                <div
+                  key={app.id}
+                  className={`p-3 rounded-lg shadow-sm border transition-all group hover:shadow-md hover:scale-[1.02] ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+                >
+                  {/* Header with student name and actions */}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <FaUser className="text-blue-600 text-sm" />
+                      <span className="font-semibold text-sm truncate" title={app.student_name}>
+                        {app.student_name}
+                      </span>
                     </div>
-                    <span className={`flex items-center px-4 py-2 rounded-full text-sm font-bold shadow ${statusColors[app.status]} group-hover:scale-110 transition-all`}>{statusIcons[app.status]} {app.status}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="absolute -bottom-6 -right-6 w-16 h-16 bg-purple-400 opacity-10 rounded-full blur-2xl" />
-          </div>
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => showStudentInfo(app)}
+                        className="p-1.5 rounded-full hover:bg-blue-50 transition-colors"
+                        title="View details"
+                      >
+                        <FaEye className="text-blue-600 text-xs" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAppointment(app)}
+                        className="p-1.5 rounded-full hover:bg-red-50 transition-colors"
+                        title="Delete appointment"
+                      >
+                        <FaTrash className="text-red-500 text-xs" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Date and time */}
+                  <div className="flex items-center text-xs text-gray-500 mb-2">
+                    <FaCalendarAlt className="mr-1" />
+                    <span>{app.appointment_date}</span>
+                    <FaClock className="ml-2 mr-1" />
+                    <span>{app.appointment_time}</span>
+                  </div>
+
+                  {/* Status and actions */}
+                  <div className="flex items-center justify-between">
+                    <span className={`flex items-center px-2 py-1 rounded-full text-xs font-semibold ${statusColors[app.status]}`}>
+                      {statusIcons[app.status]} {app.status}
+                    </span>
+                    
+                    <div className="relative">
+                      <button
+                        onClick={() => setExpandedAppointment(expandedAppointment === app.id ? null : app.id)}
+                        className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+                        title="Change status"
+                      >
+                        <FaChevronDown className={`text-gray-600 text-xs transition-transform ${expandedAppointment === app.id ? 'rotate-180' : ''}`} />
+                      </button>
+                      {expandedAppointment === app.id && (
+                        <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-28">
+                          {statusOptions.map(status => (
+                            <button
+                              key={status}
+                              onClick={() => handleStatusUpdate(app.id, status as Appointment['status'])}
+                              className={`w-full text-left px-2 py-1.5 text-xs hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg ${
+                                status === app.status ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'
+                              }`}
+                            >
+                              {status}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

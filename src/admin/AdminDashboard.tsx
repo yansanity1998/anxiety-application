@@ -11,6 +11,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 import { ThemeContext } from '../App';
 import AdminNavbar from './components/AdminNavbar';
 import { archiveUser, unarchiveUser, isArchived } from './services/archiveService';
+import { createAppointment } from '../lib/appointmentService';
 import CBTModules from './components/CBTModules';
 import AnxietyVideos from './components/AnxietyVideos';
 import RelaxationTools from './components/RelaxationTools';
@@ -222,6 +223,19 @@ export default function AdminDashboard() {
 
     initializeDashboard();
   }, []);
+
+  // Make edit functions available globally for onclick handlers
+  useEffect(() => {
+    (window as any).handleEditPersonalInfo = handleEditPersonalInfo;
+    (window as any).handleEditAcademicInfo = handleEditAcademicInfo;
+    (window as any).handleEditGuardianInfo = handleEditGuardianInfo;
+
+    return () => {
+      delete (window as any).handleEditPersonalInfo;
+      delete (window as any).handleEditAcademicInfo;
+      delete (window as any).handleEditGuardianInfo;
+    };
+  }, [users]); // Re-run when users change
 
 
 
@@ -503,29 +517,218 @@ export default function AdminDashboard() {
     }
   };
 
-  // Set up global edit functions
-  useEffect(() => {
-    (window as any).editPersonalInfo = (profileId: string) => {
-      const user = users.find(u => u.profile_id.toString() === profileId);
-      if (user) {
-        handleEditUser(user, 'personal');
-      }
-    };
 
-    (window as any).editAcademicInfo = (profileId: string) => {
-      const user = users.find(u => u.profile_id.toString() === profileId);
-      if (user) {
-        handleEditUser(user, 'academic');
-      }
-    };
+  // Schedules state (in-memory, replace with DB integration if needed)
+  const [schedules, setSchedules] = useState<{ [profileId: string]: { date: string; time: string }[] }>({});
 
-    (window as any).editGuardianInfo = (profileId: string) => {
-      const user = users.find(u => u.profile_id.toString() === profileId);
-      if (user) {
-        handleEditUser(user, 'guardian');
+  // Handler for scheduling a guidance visit
+  const handleSchedule = async (user: UserProfile) => {
+    try {
+      // Only show upcoming appointments (future dates)
+      const now = new Date();
+      const upcoming = (schedules[user.profile_id] || []).filter(sch => {
+        const dt = new Date(`${sch.date}T${sch.time}`);
+        return dt > now;
+      });
+
+      const { value: formValues } = await Swal.fire({
+        title: 'Schedule Guidance Visit',
+        html: `
+          <div class="space-y-4">
+            <!-- User Info Header -->
+            <div class="text-center mb-3">
+              <div class="inline-flex items-center justify-center w-12 h-12 ${darkMode ? 'bg-[#800000]/20' : 'bg-[#800000]/10'} rounded-full mb-2">
+                <svg class="w-6 h-6 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 class="text-base font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-1">Schedule for ${user.full_name || user.email}</h3>
+              <p class="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}">Select a date and time for the guidance visit</p>
+            </div>
+
+            <!-- Date Selection -->
+            <div class="space-y-2">
+              <label class="block text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">
+                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Appointment Date
+              </label>
+              <div class="relative">
+                <input 
+                  type="date" 
+                  id="schedule-date" 
+                  min="${now.toISOString().split('T')[0]}"
+                  class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
+                />
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <button 
+                    type="button"
+                    onclick="document.getElementById('schedule-date').showPicker()"
+                    class="p-1.5 ${darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-100 hover:bg-gray-200'} rounded-md transition-all duration-200 cursor-pointer border ${darkMode ? 'border-gray-500' : 'border-gray-300'}"
+                    title="Click to open calendar"
+                  >
+                    <svg class="w-5 h-5 ${darkMode ? 'text-white' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Time Selection -->
+            <div class="space-y-2">
+              <label class="block text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">
+                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Appointment Time
+              </label>
+              <div class="relative">
+                <input 
+                  type="time" 
+                  id="schedule-time" 
+                  class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
+                />
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <button 
+                    type="button"
+                    onclick="document.getElementById('schedule-time').showPicker()"
+                    class="p-1.5 ${darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-100 hover:bg-gray-200'} rounded-md transition-all duration-200 cursor-pointer border ${darkMode ? 'border-gray-500' : 'border-gray-300'}"
+                    title="Click to open time picker"
+                  >
+                    <svg class="w-5 h-5 ${darkMode ? 'text-white' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Upcoming Appointments -->
+            <div class="mt-4 p-3 ${darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-200'} border rounded-lg">
+              <div class="flex items-center mb-2">
+                <svg class="w-4 h-4 mr-2 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <h4 class="text-xs font-semibold ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}">Upcoming Appointments</h4>
+              </div>
+              <div class="space-y-1.5">
+                ${upcoming.length === 0 ? (
+                  `<div class="text-center py-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}">
+                    <svg class="w-6 h-6 mx-auto mb-1 ${darkMode ? 'text-gray-600' : 'text-gray-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p class="text-xs">No upcoming appointments</p>
+                  </div>`
+                ) : upcoming.map(sch => `
+                  <div class="flex items-center justify-between p-2 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-md border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
+                    <div class="flex items-center">
+                      <div class="w-1.5 h-1.5 ${darkMode ? 'bg-[#800000]' : 'bg-[#800000]'} rounded-full mr-2"></div>
+                      <span class="text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${sch.date}</span>
+                    </div>
+                    <span class="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}">${sch.time}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Help Text -->
+            <div class="text-center">
+              <p class="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}">
+                <svg class="inline w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Select a future date and time for the appointment
+              </p>
+            </div>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Schedule Appointment',
+        confirmButtonColor: '#800000',
+        cancelButtonText: 'Cancel',
+        focusConfirm: false,
+        preConfirm: () => {
+          const date = (document.getElementById('schedule-date') as HTMLInputElement)?.value;
+          const time = (document.getElementById('schedule-time') as HTMLInputElement)?.value;
+          if (!date || !time) {
+            Swal.showValidationMessage('Please select both date and time');
+            return false;
+          }
+          return { date, time };
+        },
+        width: '400px',
+        customClass: {
+          popup: `rounded-xl shadow-xl border-2 ${darkMode ? 'border-[#800000] bg-gray-900' : 'border-[#800000] bg-white'}`,
+          title: `text-lg font-bold ${darkMode ? 'text-[#800000]' : 'text-[#800000]'} mb-3`,
+          htmlContainer: `${darkMode ? 'text-gray-200' : 'text-gray-700'}`,
+          confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105',
+          cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border-2 font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow hover:shadow-md`,
+          icon: 'hidden'
+        }
+      });
+
+      if (formValues) {
+        try {
+          // Save appointment to database
+          await createAppointment({
+            profile_id: user.profile_id,
+            student_name: user.full_name || user.email,
+            student_email: user.email,
+            appointment_date: formValues.date,
+            appointment_time: formValues.time,
+            status: 'Scheduled',
+            notes: `Scheduled by admin for guidance visit`
+          });
+
+          await Toast.fire({
+            icon: 'success',
+            iconColor: '#2563eb',
+            title: 'Scheduled',
+            text: `Guidance visit scheduled for ${formValues.date} at ${formValues.time}`,
+          });
+        } catch (error) {
+          console.error('Error creating appointment:', error);
+          await Toast.fire({
+            icon: 'error',
+            iconColor: '#ef4444',
+            title: 'Error',
+            text: 'Failed to schedule appointment. Please try again.',
+          });
+        }
       }
-    };
-  }, [users]);
+    } catch (error) {
+      console.error('❌ Error scheduling:', error);
+      let errorMessage = 'Failed to schedule appointment';
+      if (error instanceof Error) errorMessage = error.message;
+      await Toast.fire({
+        icon: 'error',
+        iconColor: '#ef4444',
+        title: 'Error',
+        text: errorMessage,
+      });
+    }
+  };
+
+  // Handler functions for edit buttons in the registration details modal
+  const handleEditPersonalInfo = async (profileId: string) => {
+    const user = users.find(u => u.profile_id.toString() === profileId);
+    if (!user) return;
+    await handleEditUser(user, 'personal');
+  };
+
+  const handleEditAcademicInfo = async (profileId: string) => {
+    const user = users.find(u => u.profile_id.toString() === profileId);
+    if (!user) return;
+    await handleEditUser(user, 'academic');
+  };
+
+  const handleEditGuardianInfo = async (profileId: string) => {
+    const user = users.find(u => u.profile_id.toString() === profileId);
+    if (!user) return;
+    await handleEditUser(user, 'guardian');
+  };
 
   const handleEditUser = async (user: UserProfile, section: 'personal' | 'academic' | 'guardian') => {
     try {
@@ -991,11 +1194,11 @@ export default function AdminDashboard() {
                                                     </div>
                                                     Personal Information
                                                   </div>
-                                                  <button onclick="window.editPersonalInfo && window.editPersonalInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Personal Information">
-                                                    <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
-                                                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                                    </svg>
-                                                  </button>
+                                                                                        <button onclick="handleEditPersonalInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Personal Information">
+                                        <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
+                                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                        </svg>
+                                      </button>
                                                 </h3>
                                                 <div class="space-y-1">
                                                   <div class="flex items-center group">
@@ -1047,11 +1250,11 @@ export default function AdminDashboard() {
                                                     </div>
                                                     Academic Information
                                                   </div>
-                                                  <button onclick="window.editAcademicInfo && window.editAcademicInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Academic Information">
-                                                    <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
-                                                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                                    </svg>
-                                                  </button>
+                                                                                                    <button onclick="handleEditAcademicInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Academic Information">
+                                        <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
+                                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                        </svg>
+                                      </button>
                                                 </h3>
                                                 <div class="space-y-1">
                                                   <div class="flex items-center group">
@@ -1090,11 +1293,11 @@ export default function AdminDashboard() {
                                                     </div>
                                                     Guardian Information
                                                   </div>
-                                                  <button onclick="window.editGuardianInfo && window.editGuardianInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Guardian Information">
-                                                    <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
-                                                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                                    </svg>
-                                                  </button>
+                                                                                                    <button onclick="handleEditGuardianInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Guardian Information">
+                                        <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
+                                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                        </svg>
+                                      </button>
                                                 </h3>
                                                 <div class="space-y-1">
                                                   <div class="flex items-center group">
@@ -1288,6 +1491,15 @@ export default function AdminDashboard() {
                                     title={isArchived(user.role) ? 'Already archived' : `Archive ${user.full_name || ''}`.trim()}
                                   >
                                     <FaArchive className={darkMode ? 'text-white' : 'text-[#800000]'} />
+                                  </button>
+                                  {/* Schedule Button */}
+                                  <button
+                                    onClick={() => handleSchedule(user)}
+                                    className={`ml-2 p-2 rounded-full transition-colors ${darkMode ? 'bg-blue-900 hover:bg-blue-800 text-blue-300' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'}`}
+                                    aria-label="Schedule guidance visit"
+                                    title={`Schedule visit for ${user.full_name || user.email}`.trim()}
+                                  >
+                                    <FaCalendarAlt className={darkMode ? 'text-blue-300' : 'text-blue-700'} />
                                   </button>
                                 </div>
                               </td>
