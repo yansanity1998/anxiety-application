@@ -31,9 +31,126 @@ export interface UpdateAppointmentData {
   notes?: string;
 }
 
-// Create a new appointment
+// Test database connectivity and permissions
+export const testAppointmentPermissions = async (): Promise<{ success: boolean; message: string; details?: any }> => {
+  try {
+    console.log('🔍 Testing appointment permissions...');
+    
+    // Test 1: Check if we can query the appointments table
+    const { data: testQuery, error: queryError } = await supabase
+      .from('appointments')
+      .select('id')
+      .limit(1);
+    
+    if (queryError) {
+      console.error('❌ Query test failed:', queryError);
+      return {
+        success: false,
+        message: `Query test failed: ${queryError.message}`,
+        details: queryError
+      };
+    }
+    
+    console.log('✅ Query test passed');
+    
+    // Test 2: Check if we can insert a test record (we'll delete it immediately)
+    const testData = {
+      profile_id: 999999, // Use a non-existent profile ID for testing
+      student_name: 'TEST_USER',
+      student_email: 'test@example.com',
+      appointment_date: '2099-12-31',
+      appointment_time: '23:59',
+      status: 'Scheduled' as const,
+      notes: 'Test appointment - will be deleted'
+    };
+    
+    const { data: testInsert, error: insertError } = await supabase
+      .from('appointments')
+      .insert([testData])
+      .select()
+      .single();
+    
+    if (insertError) {
+      console.error('❌ Insert test failed:', insertError);
+      return {
+        success: false,
+        message: `Insert test failed: ${insertError.message}`,
+        details: insertError
+      };
+    }
+    
+    console.log('✅ Insert test passed');
+    
+    // Test 3: Delete the test record
+    if (testInsert?.id) {
+      const { error: deleteError } = await supabase
+        .from('appointments')
+        .delete()
+        .eq('id', testInsert.id);
+      
+      if (deleteError) {
+        console.error('❌ Delete test failed:', deleteError);
+        return {
+          success: false,
+          message: `Delete test failed: ${deleteError.message}`,
+          details: deleteError
+        };
+      }
+      
+      console.log('✅ Delete test passed');
+    }
+    
+    return {
+      success: true,
+      message: 'All permission tests passed successfully'
+    };
+    
+  } catch (error) {
+    console.error('❌ Permission test error:', error);
+    return {
+      success: false,
+      message: `Permission test error: ${error instanceof Error ? error.message : String(error)}`,
+      details: error
+    };
+  }
+};
+
+// Check if a student already has an appointment
+export const checkStudentHasAppointment = async (profileId: number): Promise<boolean> => {
+  try {
+    // Only block if student has an appointment with status 'Scheduled' or 'In Progress'
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('id, status')
+      .eq('profile_id', profileId)
+      .in('status', ['Scheduled', 'In Progress'])
+      .limit(1);
+
+    if (error) {
+      console.error('Error checking student appointment:', error);
+      throw error;
+    }
+
+    return (data && data.length > 0);
+  } catch (error) {
+    console.error('Error in checkStudentHasAppointment:', error);
+    throw error;
+  }
+};
+
+// Create a new appointment (with duplicate check)
 export const createAppointment = async (appointmentData: CreateAppointmentData): Promise<Appointment | null> => {
   try {
+    console.log('🔍 Creating appointment with data:', appointmentData);
+    
+    // Check if student already has an active appointment
+    const hasExistingAppointment = await checkStudentHasAppointment(appointmentData.profile_id);
+    if (hasExistingAppointment) {
+      throw new Error('Student already has an active appointment. Please cancel the existing appointment first or edit it.');
+    }
+
+    console.log('✅ No existing appointment found, proceeding with creation...');
+
     const { data, error } = await supabase
       .from('appointments')
       .insert([appointmentData])
@@ -41,14 +158,37 @@ export const createAppointment = async (appointmentData: CreateAppointmentData):
       .single();
 
     if (error) {
-      console.error('Error creating appointment:', error);
-      throw error;
+      console.error('❌ Supabase error creating appointment:', error);
+      console.error('   Error code:', error.code);
+      console.error('   Error message:', error.message);
+      console.error('   Error details:', error.details);
+      console.error('   Error hint:', error.hint);
+      
+      // Provide more specific error messages based on error codes
+      if (error.code === '42501') {
+        throw new Error('Permission denied. Please check your database policies.');
+      } else if (error.code === '23505') {
+        throw new Error('Duplicate appointment detected. This time slot is already booked.');
+      } else if (error.code === '23503') {
+        throw new Error('Invalid profile ID. The student profile does not exist.');
+      } else if (error.message.includes('RLS')) {
+        throw new Error('Row Level Security policy blocked this operation. Please check your database policies.');
+      } else {
+        throw new Error(`Database error: ${error.message}`);
+      }
     }
 
+    console.log('✅ Appointment created successfully:', data);
     return data;
   } catch (error) {
-    console.error('Error in createAppointment:', error);
-    throw error;
+    console.error('❌ Error in createAppointment:', error);
+    
+    // Re-throw the error with more context
+    if (error instanceof Error) {
+      throw error;
+    } else {
+      throw new Error(`Unexpected error: ${String(error)}`);
+    }
   }
 };
 

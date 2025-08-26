@@ -11,6 +11,7 @@ import {
 } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
 import { useState, useMemo } from 'react';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import 'chart.js/auto';
 
 ChartJS.register(
@@ -54,17 +55,236 @@ type Assessment = {
   updated_at: string;
 };
 
-interface AdminChartsProps {
+type Appointment = {
+  id: number;
+  student_name: string;
+  student_email: string;
+  appointment_date: string;
+  appointment_time: string;
+  status: string;
+  notes?: string;
+};
+
+interface GuidanceChartsProps {
   users: UserProfile[];
   assessments: { [key: string]: Assessment[] };
+  appointments?: Appointment[];
   darkMode?: boolean;
   compact?: boolean;
 }
 
-export default function AdminCharts(props: AdminChartsProps) {
+// Calendar component
+const AppointmentCalendar = ({ appointments, darkMode }: { appointments?: Appointment[], darkMode: boolean }) => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  
+  // Helper to get local date string in YYYY-MM-DD format
+  const getLocalDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Get appointments count for a specific date (using local date)
+  const getAppointmentsForDate = (date: Date) => {
+    if (!appointments) return [];
+    const dateString = getLocalDateString(date);
+    return appointments.filter(app => app.appointment_date === dateString);
+  };
+
+  // Get current month's calendar days
+  const getCalendarDays = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    const days = [];
+    const currentDay = new Date(startDate);
+    
+    while (currentDay <= lastDay || currentDay.getDay() !== 0) {
+      days.push(new Date(currentDay));
+      currentDay.setDate(currentDay.getDate() + 1);
+    }
+    
+    return days;
+  };
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  const goToPreviousMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  const calendarDays = getCalendarDays();
+  const today = new Date();
+  const isToday = (date: Date) => {
+    return date.toDateString() === today.toDateString();
+  };
+
+  const isCurrentMonth = (date: Date) => {
+    return date.getMonth() === currentDate.getMonth();
+  };
+
+  return (
+    <div className={`p-3 rounded-lg border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+      {/* Calendar Header */}
+      <div className="flex items-center justify-between mb-3">
+        <h3 className={`text-base font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+        </h3>
+        <div className="flex items-center space-x-1">
+          <button
+            onClick={goToPreviousMonth}
+            className={`p-1.5 rounded-md transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
+          >
+            <FaChevronLeft className="w-3 h-3" />
+          </button>
+          <button
+            onClick={goToToday}
+            className={`px-2 py-1 text-xs rounded-md transition-colors ${darkMode ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-indigo-500 hover:bg-indigo-600 text-white'}`}
+          >
+            Today
+          </button>
+          <button
+            onClick={goToNextMonth}
+            className={`p-1.5 rounded-md transition-colors ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
+          >
+            <FaChevronRight className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+
+      {/* Calendar Grid */}
+      <div className="grid grid-cols-7 gap-0.5">
+        {/* Day Headers */}
+        {dayNames.map(day => (
+          <div
+            key={day}
+            className={`p-1 text-center text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
+          >
+            {day}
+          </div>
+        ))}
+        
+        {/* Calendar Days */}
+        {calendarDays.map((date, index) => {
+          const appointmentsForDay = getAppointmentsForDate(date);
+          const appointmentCount = appointmentsForDay.length;
+          const hasAppointments = appointmentCount > 0;
+          return (
+            <div
+              key={index}
+              className={`relative p-1 min-h-[40px] border rounded-md transition-all cursor-pointer ${
+                darkMode 
+                  ? 'border-gray-700 hover:bg-gray-700' 
+                  : 'border-gray-200 hover:bg-gray-50'
+              } ${
+                !isCurrentMonth(date) 
+                  ? darkMode ? 'text-gray-600' : 'text-gray-400'
+                  : ''
+              }`}
+              onClick={() => {
+                if (hasAppointments) {
+                  setSelectedDate(date);
+                  setShowModal(true);
+                }
+              }}
+              title={hasAppointments ? `View appointments for ${getLocalDateString(date)}` : undefined}
+            >
+              {/* Date Number */}
+              <div className={`text-xs font-medium ${
+                isToday(date) 
+                  ? 'text-white bg-indigo-500 rounded-full w-5 h-5 flex items-center justify-center mx-auto mb-0.5'
+                  : ''
+              }`}>
+                {date.getDate()}
+              </div>
+              {/* Appointment Count */}
+              {hasAppointments && (
+                <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2">
+                  <div className={`flex items-center justify-center w-4 h-4 rounded-full text-xs font-bold ${
+                    appointmentCount >= 5 
+                      ? 'bg-red-500 text-white' 
+                      : appointmentCount >= 3 
+                        ? 'bg-yellow-500 text-white' 
+                        : 'bg-green-500 text-white'
+                  }`}>
+                    {appointmentCount}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      {showModal && selectedDate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/10">
+          <div className={`rounded-2xl shadow-2xl p-4 w-full max-w-xs border ${darkMode ? 'bg-gray-900 text-white border-gray-700' : 'bg-white text-gray-900 border-gray-200'}`}
+            style={{ minWidth: '270px', maxWidth: '320px' }}>
+            <h3 className="text-base font-bold mb-2 text-center">Appointments for <span className="text-indigo-600">{getLocalDateString(selectedDate)}</span></h3>
+            <ul className="space-y-2">
+              {getAppointmentsForDate(selectedDate).map((app, idx) => (
+                <li key={app.id || idx} className={`p-2 rounded-lg border flex flex-col gap-1 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}> 
+                  <div className="font-semibold text-[#800000] text-sm">{app.student_name}</div>
+                  <div className="text-xs text-gray-500">{app.student_email}</div>
+                  <div className="text-xs"><span className="font-medium text-gray-600">Time:</span> <span className="text-indigo-600 font-semibold">{app.appointment_time}</span></div>
+                  <div className="text-xs"><span className="font-medium text-gray-600">Status:</span> <span className={`font-semibold ${app.status === 'Completed' ? 'text-green-600' : app.status === 'Canceled' ? 'text-red-600' : 'text-blue-600'}`}>{app.status}</span></div>
+                  {app.notes && <div className="text-xs text-gray-700"><span className="font-medium">Notes:</span> {app.notes}</div>}
+                </li>
+              ))}
+            </ul>
+            <button
+              className={`mt-4 w-full py-1.5 rounded-lg font-semibold transition-colors text-sm ${darkMode ? 'bg-indigo-700 hover:bg-indigo-800 text-white' : 'bg-indigo-500 hover:bg-indigo-600 text-white'}`}
+              onClick={() => setShowModal(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="flex items-center justify-center mt-3 space-x-3 text-xs">
+        <div className="flex items-center space-x-1">
+          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <span className={darkMode ? 'text-gray-300' : 'text-gray-600'}>1-2</span>
+        </div>
+        <div className="flex items-center space-x-1">
+          <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+          <span className={darkMode ? 'text-gray-300' : 'text-gray-600'}>3-4</span>
+        </div>
+        <div className="flex items-center space-x-1">
+          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+          <span className={darkMode ? 'text-gray-300' : 'text-gray-600'}>5+</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function GuidanceCharts(props: GuidanceChartsProps) {
   const {
     users,
     assessments,
+    appointments,
     darkMode = false,
     // compact = false,
   } = props;
@@ -296,7 +516,13 @@ export default function AdminCharts(props: AdminChartsProps) {
   }, [assessments, timeRange, currentPage]);
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 w-full px-0 md:px-0`}>
+    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4 w-full px-0 md:px-0`}>
+      {/* Appointment Calendar */}
+      <div className={`${darkMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'} p-3 rounded-md shadow min-w-0 w-full`}>
+        <h2 className={`text-sm font-semibold mb-3 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Appointment Calendar</h2>
+        <AppointmentCalendar appointments={appointments} darkMode={darkMode} />
+      </div>
+
       {/* Gender Distribution Chart */}
       <div className={`${darkMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'} p-3 rounded-md shadow min-w-0 w-full relative`}>
         <h2 className={`text-sm font-semibold mb-1 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Gender Distribution</h2>
@@ -388,7 +614,7 @@ export default function AdminCharts(props: AdminChartsProps) {
       </div>
 
       {/* Anxiety History Bar Chart */}
-      <div className={`md:col-span-2 ${darkMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'} p-3 rounded-md shadow min-w-0 w-full`}>
+      <div className={`lg:col-span-3 ${darkMode ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'} p-3 rounded-md shadow min-w-0 w-full`}>
         <div className="flex justify-between items-center mb-2">
           <h2 className={`text-sm font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Anxiety Level History</h2>
           <div className="flex items-center gap-2">

@@ -11,7 +11,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 import { ThemeContext } from '../App';
 import AdminNavbar from './components/AdminNavbar';
 import { archiveUser, unarchiveUser, isArchived } from './services/archiveService';
-import { createAppointment } from '../lib/appointmentService';
+import { createAppointment, getAllAppointments, updateAppointment } from '../lib/appointmentService';
 import CBTModules from './components/CBTModules';
 import AnxietyVideos from './components/AnxietyVideos';
 import RelaxationTools from './components/RelaxationTools';
@@ -124,6 +124,17 @@ const getAnxietyLevelColor = (level: string) => {
   }
 };
 
+// Helper function to format date in user-friendly format
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  };
+  return date.toLocaleDateString('en-US', options);
+};
+
 // Mark users as NEW if registered within the last N days
 const NEW_USER_DAYS = 1;
 const isNewlyRegistered = (createdAt?: string) => {
@@ -138,6 +149,7 @@ export default function AdminDashboard() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [assessments, setAssessments] = useState<{ [key: string]: Assessment[] }>({});
+  const [appointments, setAppointments] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -452,9 +464,22 @@ export default function AdminDashboard() {
         }
       }
 
+      // Fetch appointments
+      console.log('🔍 Fetching appointments...');
+      try {
+        const appointmentsData = await getAllAppointments();
+        setAppointments(appointmentsData);
+        console.log('✅ Successfully fetched appointments:', appointmentsData?.length || 0);
+      } catch (appointmentsError) {
+        console.error('⚠️ Error fetching appointments:', appointmentsError);
+        console.log('   Continuing without appointments data');
+        setAppointments([]);
+      }
+
       console.log('🎉 Fetch completed successfully!');
       console.log('   Total users:', transformedUsers.length);
       console.log('   Users with assessments:', assessmentsData ? Object.keys(assessmentsByUser).length : 0);
+      console.log('   Total appointments:', appointments?.length || 0);
 
     } catch (error) {
       console.error('❌ Error in fetchUsers:', error);
@@ -524,6 +549,62 @@ export default function AdminDashboard() {
   // Handler for scheduling a guidance visit
   const handleSchedule = async (user: UserProfile) => {
     try {
+      // Check if user already has an appointment
+      const existingAppointments = appointments.filter(app => app.profile_id === user.profile_id);
+      const hasActiveAppointment = existingAppointments.some(app => 
+        app.status !== 'Canceled' && app.status !== 'Completed'
+      );
+
+      if (hasActiveAppointment) {
+        // Show existing appointment with option to edit
+        const activeAppointment = existingAppointments.find(app => 
+          app.status !== 'Canceled' && app.status !== 'Completed'
+        );
+        
+        if (activeAppointment) {
+          const result = await Modal.fire({
+            title: 'Student Already Has Appointment',
+            html: `
+              <div class="text-center space-y-4">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-3">
+                  <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900">Existing Appointment Found</h3>
+                <p class="text-gray-600">${user.full_name || user.email} already has an appointment scheduled.</p>
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                  <p class="font-semibold text-blue-800 text-lg">${activeAppointment.student_name}</p>
+                  <p class="text-sm text-blue-600">${formatDate(activeAppointment.appointment_date)} at ${activeAppointment.appointment_time}</p>
+                  <p class="text-sm text-blue-600">Status: ${activeAppointment.status}</p>
+                </div>
+                <p class="text-sm text-gray-500">Would you like to edit this appointment or cancel it?</p>
+              </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Edit Appointment',
+            confirmButtonColor: '#800000',
+            cancelButtonText: 'Cancel',
+            focusConfirm: false,
+            width: '400px',
+            customClass: {
+              popup: `rounded-xl shadow-xl border-2 ${darkMode ? 'border-[#800000] bg-gray-900' : 'border-[#800000] bg-white'}`,
+              title: `text-lg font-bold ${darkMode ? 'text-[#800000]' : 'text-[#800000]'} mb-3`,
+              htmlContainer: `${darkMode ? 'text-gray-200' : 'text-gray-700'}`,
+              confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105',
+              cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border-2 font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow hover:shadow-md`,
+              icon: 'hidden'
+            }
+          });
+
+          if (result.isConfirmed) {
+            // Edit existing appointment
+            await handleEditAppointment(activeAppointment);
+          }
+        }
+        return;
+      }
+
       // Only show upcoming appointments (future dates)
       const now = new Date();
       const upcoming = (schedules[user.profile_id] || []).filter(sch => {
@@ -688,13 +769,20 @@ export default function AdminDashboard() {
             title: 'Scheduled',
             text: `Guidance visit scheduled for ${formValues.date} at ${formValues.time}`,
           });
+
+          // Refresh appointments
+          await fetchUsers();
         } catch (error) {
           console.error('Error creating appointment:', error);
+          let errorMessage = 'Failed to schedule appointment. Please try again.';
+          if (error instanceof Error) {
+            errorMessage = error.message;
+          }
           await Toast.fire({
             icon: 'error',
             iconColor: '#ef4444',
             title: 'Error',
-            text: 'Failed to schedule appointment. Please try again.',
+            text: errorMessage,
           });
         }
       }
@@ -707,6 +795,143 @@ export default function AdminDashboard() {
         iconColor: '#ef4444',
         title: 'Error',
         text: errorMessage,
+      });
+    }
+  };
+
+  // Handler for editing an existing appointment
+  const handleEditAppointment = async (appointment: any) => {
+    try {
+      const { value: formValues } = await Swal.fire({
+        title: 'Edit Appointment',
+        html: `
+          <div class="space-y-4">
+            <!-- User Info Header -->
+            <div class="text-center mb-3">
+              <div class="inline-flex items-center justify-center w-12 h-12 ${darkMode ? 'bg-[#800000]/20' : 'bg-[#800000]/10'} rounded-full mb-2">
+                <svg class="w-6 h-6 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 class="text-base font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-1">Edit Appointment for ${appointment.student_name}</h3>
+              <p class="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}">Current: ${formatDate(appointment.appointment_date)} at ${appointment.appointment_time}</p>
+            </div>
+
+            <!-- Date Selection -->
+            <div class="space-y-2">
+              <label class="block text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">
+                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                New Appointment Date
+              </label>
+              <div class="relative">
+                <input 
+                  type="date" 
+                  id="edit-date" 
+                  value="${appointment.appointment_date}"
+                  min="${new Date().toISOString().split('T')[0]}"
+                  class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
+                />
+              </div>
+            </div>
+
+            <!-- Time Selection -->
+            <div class="space-y-2">
+              <label class="block text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">
+                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                New Appointment Time
+              </label>
+              <div class="relative">
+                <input 
+                  type="time" 
+                  id="edit-time" 
+                  value="${appointment.appointment_time}"
+                  class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
+                />
+              </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="space-y-2">
+              <label class="block text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">
+                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Notes (Optional)
+              </label>
+              <textarea 
+                id="edit-notes" 
+                class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
+                rows="2"
+                placeholder="Add any additional notes..."
+              >${appointment.notes || ''}</textarea>
+            </div>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Update Appointment',
+        confirmButtonColor: '#800000',
+        cancelButtonText: 'Cancel',
+        focusConfirm: false,
+        preConfirm: () => {
+          const date = (document.getElementById('edit-date') as HTMLInputElement)?.value;
+          const time = (document.getElementById('edit-time') as HTMLInputElement)?.value;
+          const notes = (document.getElementById('edit-notes') as HTMLTextAreaElement)?.value;
+          if (!date || !time) {
+            Swal.showValidationMessage('Please select both date and time');
+            return false;
+          }
+          return { date, time, notes };
+        },
+        width: '400px',
+        customClass: {
+          popup: `rounded-xl shadow-xl border-2 ${darkMode ? 'border-[#800000] bg-gray-900' : 'border-[#800000] bg-white'}`,
+          title: `text-lg font-bold ${darkMode ? 'text-[#800000]' : 'text-[#800000]'} mb-3`,
+          htmlContainer: `${darkMode ? 'text-gray-200' : 'text-gray-700'}`,
+          confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105',
+          cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border-2 font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow hover:shadow-md`,
+          icon: 'hidden'
+        }
+      });
+
+      if (formValues) {
+        try {
+          // Update appointment
+          await updateAppointment(appointment.id, {
+            appointment_date: formValues.date,
+            appointment_time: formValues.time,
+            notes: formValues.notes
+          });
+
+          await Toast.fire({
+            icon: 'success',
+            iconColor: '#22c55e',
+            title: 'Updated',
+            text: `Appointment updated successfully`,
+          });
+
+          // Refresh appointments
+          await fetchUsers();
+        } catch (error) {
+          console.error('Error updating appointment:', error);
+          await Toast.fire({
+            icon: 'error',
+            iconColor: '#ef4444',
+            title: 'Error',
+            text: 'Failed to update appointment. Please try again.',
+          });
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error editing appointment:', error);
+      await Toast.fire({
+        icon: 'error',
+        iconColor: '#ef4444',
+        title: 'Error',
+        text: 'Failed to edit appointment',
       });
     }
   };
@@ -1010,9 +1235,9 @@ export default function AdminDashboard() {
               >
                 {darkMode ? <FaSun /> : <FaMoon />}
               </button>
-              <div className="relative">
-                <Notifications darkMode={darkMode} />
-              </div>
+                              <div className="relative">
+                  <Notifications darkMode={darkMode} />
+                </div>
               <button
                 onClick={handleSignOut}
                 className="flex items-center gap-1 px-2 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors hover:cursor-pointer text-xs"
@@ -1028,7 +1253,7 @@ export default function AdminDashboard() {
           <div className="max-w-10xl mx-auto px-6 sm:px-12 lg:px-16 py-8">
             {activeView === 'dashboard' && (
               <div className="w-full">
-                <AdminCharts users={users} assessments={assessments} darkMode={darkMode} compact={true} />
+                <AdminCharts users={users} assessments={assessments} appointments={appointments} darkMode={darkMode} compact={true} />
               </div>
             )}
 
@@ -1466,14 +1691,14 @@ export default function AdminDashboard() {
                               <td className="px-4 py-3 whitespace-nowrap">
                                 <div className={`flex items-center text-xs ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
                                   <FaCalendarAlt className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-                                  {new Date(user.created_at).toLocaleDateString()}
+                                  {formatDate(user.created_at)}
                                 </div>
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap">
                                 <div className={`flex items-center text-xs ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
                                   <FaCalendarAlt className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
                                   {user.last_sign_in 
-                                    ? new Date(user.last_sign_in).toLocaleDateString()
+                                    ? formatDate(user.last_sign_in)
                                     : 'Never'}
                                 </div>
                               </td>
@@ -1647,14 +1872,14 @@ export default function AdminDashboard() {
                               <td className="px-4 py-3 whitespace-nowrap">
                                 <div className={`flex items-center text-xs ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
                                   <FaCalendarAlt className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-                                  {new Date(user.created_at).toLocaleDateString()}
+                                  {formatDate(user.created_at)}
                                 </div>
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap">
                                 <div className={`flex items-center text-xs ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
                                   <FaCalendarAlt className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
                                   {user.last_sign_in 
-                                    ? new Date(user.last_sign_in).toLocaleDateString()
+                                    ? formatDate(user.last_sign_in)
                                     : 'Never'}
                                 </div>
                               </td>

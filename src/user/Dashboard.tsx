@@ -225,6 +225,10 @@ const getFireBorderColor = (streak: number) => {
 };
 
 const Dashboard = () => {
+  // ...existing code...
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedTab, setSelectedTab] = useState('home');
@@ -238,6 +242,30 @@ const Dashboard = () => {
   const [loadingStreak, setLoadingStreak] = useState(true);
   const [streakIncrease] = useState(false);
   const prevStreakRef = useRef<number>(0);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        if (!userData || !userData.id) return;
+        const { data, error } = await supabase
+          .from('appointments')
+          .select('*')
+          .eq('profile_id', userData.id)
+          .in('status', ['Scheduled', 'In Progress'])
+          .gte('appointment_date', new Date().toISOString().split('T')[0]);
+        if (error) {
+          console.error('Error fetching notifications:', error);
+          setNotifications([]);
+        } else {
+          setNotifications(data || []);
+        }
+      } catch (err) {
+        console.error('Unexpected error fetching notifications:', err);
+        setNotifications([]);
+      }
+    };
+    fetchNotifications();
+  }, [userData]);
 
   // Add these refs for scroll effects
   const headerRef = useRef(null);
@@ -565,14 +593,55 @@ const Dashboard = () => {
                 className="relative p-2 bg-[#800000]/10 rounded-full"
                 whileTap={{ scale: 0.9 }}
                 whileHover={{ scale: 1.1, backgroundColor: "#f1dcdc" }}
+                onClick={() => setShowNotifications((prev) => !prev)}
+                aria-label="Show notifications"
               >
                 <FaBell className="text-[#800000]" />
-                <motion.div 
-                  className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ repeat: Infinity, duration: 2 }}
-                ></motion.div>
+                {notifications.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold animate-pulse">
+                    {notifications.length}
+                  </span>
+                )}
               </motion.button>
+              {/* Notification dropdown/modal */}
+              {showNotifications && (
+                <div className="absolute right-4 top-14 bg-white border border-gray-200 rounded-xl shadow-lg z-50 w-80">
+                  <div className="p-4">
+                    <h3 className="font-bold text-[#800000] mb-2 text-lg flex items-center">
+                      <FaBell className="mr-2" /> Notifications
+                    </h3>
+                    {notifications.length === 0 ? (
+                      <p className="text-gray-500 text-sm">No upcoming appointments.</p>
+                    ) : (
+                      <ul className="space-y-3">
+                        {notifications.map((appt) => (
+                          <li key={appt.id} className="bg-[#800000]/5 rounded-lg p-3 border border-[#800000]/10">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <span className="font-semibold text-[#800000]">Appointment Scheduled</span>
+                                <div className="text-xs text-gray-700 mt-1">
+                                  {new Date(appt.appointment_date).toLocaleDateString()} at {appt.appointment_time}
+                                </div>
+                                <div className="text-xs text-gray-500">Status: {appt.status}</div>
+                              </div>
+                              <FaCalendarAlt className="text-[#800000] text-lg" />
+                            </div>
+                            {appt.notes && (
+                              <div className="text-xs text-gray-600 mt-2">Notes: {appt.notes}</div>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                  <div className="border-t px-4 py-2 text-right">
+                    <button
+                      className="text-[#800000] font-semibold hover:underline text-sm"
+                      onClick={() => setShowNotifications(false)}
+                    >Close</button>
+                  </div>
+                </div>
+              )}
               <motion.div 
                 className="w-10 h-10 bg-[#800000] rounded-full flex items-center justify-center cursor-pointer"
                 whileHover={{ scale: 1.1, rotate: 5 }}
