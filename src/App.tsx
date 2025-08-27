@@ -1,14 +1,14 @@
 // App.tsx
 import { useState, useEffect, createContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LoginForm from './auth/Login';
-import RegisterForm from './auth/Register';
+import LandingPage from './components/LandingPage';
 import Assessment from './user/assessment/Assessment';  
 import AdminDashboard from './admin/AdminDashboard';
 import GuidanceDashboard from './guidance/GuidanceDashboard';
 import UserDashboard from './user/Dashboard';
 import ProfilePage from './user/ProfilePage';
 import CBTModules from './user/components/CBTModules';
+import AnxietyVideos from './user/components/AnxietyVideos';
 import { supabase } from './lib/supabase';
 import './App.css';
 
@@ -121,7 +121,6 @@ function App() {
     const savedTheme = localStorage.getItem('darkMode');
     return savedTheme === 'true';
   };
-  const [showLogin, setShowLogin] = useState(true);
   const [darkMode, setDarkMode] = useState(getInitialDarkMode);
 
   // Immediately set the dark class on first render
@@ -147,11 +146,7 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={showLogin ? (
-              <LoginForm onSwitch={() => setShowLogin(false)} />
-            ) : (
-              <RegisterForm onSwitch={() => setShowLogin(true)} />
-            )}
+            element={<LandingPage />}
           />
           <Route 
             path="/assessment" 
@@ -182,6 +177,14 @@ function App() {
             element={
               <AuthRoute>
                 <CBTModules />
+              </AuthRoute>
+            } 
+          />
+          <Route 
+            path="/anxiety-videos" 
+            element={
+              <AuthRoute>
+                <AnxietyVideos />
               </AuthRoute>
             } 
           />

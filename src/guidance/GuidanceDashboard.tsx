@@ -452,9 +452,9 @@ export default function GuidanceDashboard() {
     };
   }, [users]);
 
-  // Schedules state (in-memory, replace with DB integration if needed)
-  const [schedules, setSchedules] = useState<{ [profileId: string]: { date: string; time: string }[] }>({});
-
+    // Schedules state (in-memory, replace with DB integration if needed)
+  const [schedules] = useState<{ [profileId: string]: { date: string; time: string }[] }>({});
+  
   // Handler for scheduling a guidance visit
   const handleSchedule = async (user: UserProfile) => {
     try {
@@ -993,12 +993,12 @@ export default function GuidanceDashboard() {
         <div className="max-w-10xl mx-auto px-6 sm:px-12 lg:px-16">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-600 p-3 rounded-full">
+              <div className="bg-red-900 p-3 rounded-full">
                 <FaUser className="text-white text-2xl" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-blue-600">Guidance Dashboard</h1>
-                <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-red-900'}`}>Guidance Dashboard</h1>
+                <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-red-900'}`}>
                   Student Counseling & Support Management
                 </p>
               </div>

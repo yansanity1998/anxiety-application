@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaBrain, FaPlay, FaCheck, FaEye, FaCalendarAlt, FaTimes, FaArrowLeft, FaFilter, FaSearch, FaTrophy, FaBookOpen } from 'react-icons/fa';
+import { FaBrain, FaBookOpen, FaSearch, FaEye, FaPlay, FaCheck, FaCalendarAlt, FaTrophy, FaArrowLeft, FaFilter, FaTimes } from 'react-icons/fa';
 import { cbtModuleService } from '../../lib/cbtModuleService';
 import type { CBTModule } from '../../lib/cbtModuleService';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -271,7 +271,7 @@ const CBTModules = ({ }: CBTModulesProps) => {
               >
                 {/* Module Image */}
                 {module.module_image ? (
-                  <div className="h-40 overflow-hidden relative cursor-pointer" onClick={() => openModuleDetail(module)}>
+                  <div className="h-32 overflow-hidden relative cursor-pointer" onClick={() => openModuleDetail(module)}>
                     <img
                       src={module.module_image}
                       alt={module.module_title}
@@ -282,78 +282,94 @@ const CBTModules = ({ }: CBTModulesProps) => {
                     />
                   </div>
                 ) : (
-                  <div className="h-40 bg-gradient-to-br from-[#800000]/10 to-[#800000]/20 flex items-center justify-center cursor-pointer" onClick={() => openModuleDetail(module)}>
-                    <FaBrain className="text-4xl text-[#800000]/40" />
+                  <div className="h-32 bg-gradient-to-br from-[#800000]/10 to-[#800000]/20 flex items-center justify-center cursor-pointer" onClick={() => openModuleDetail(module)}>
+                    <FaBrain className="text-3xl text-[#800000]/40" />
                   </div>
                 )}
 
-                {/* Module Content */}
+                {/* Enhanced Module Content */}
                 <div className="p-4">
-                  <div className="mb-2">
-                    <span className="text-xs font-medium text-gray-500">Title:</span>
+                  <div className="mb-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <FaBookOpen className="text-sm text-blue-500" />
+                      <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Module Title</span>
+                    </div>
                     <h3 className="font-bold text-base text-gray-900 line-clamp-2">
                       {module.module_title}
                     </h3>
                   </div>
                   
                   <div className="mb-3">
-                    <span className="text-xs font-medium text-gray-500">Description:</span>
-                    <p className="text-gray-600 text-sm line-clamp-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <FaSearch className="text-sm text-green-500" />
+                      <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Description</span>
+                    </div>
+                    <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
                       {module.module_description}
                     </p>
                   </div>
 
-                  {/* Status Badge - Under the image */}
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(module.module_status)}`}>
-                      {getStatusIcon(module.module_status)}
-                      <span className="ml-1 capitalize">{module.module_status.replace('_', ' ')}</span>
+                  {/* Enhanced Status Badge */}
+                  <div className="flex items-center justify-center mb-3">
+                    <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border-2 transition-all duration-300 hover:scale-105 ${
+                      module.module_status === 'completed' 
+                        ? 'text-green-700 bg-gradient-to-r from-green-100 to-green-200 border-green-300 shadow-green-200/50' 
+                        : module.module_status === 'in_progress'
+                        ? 'text-blue-700 bg-gradient-to-r from-blue-100 to-blue-200 border-blue-300 shadow-blue-200/50'
+                        : 'text-gray-700 bg-gradient-to-r from-gray-100 to-gray-200 border-gray-300 shadow-gray-200/50'
+                    } shadow-lg`}>
+                      <div className="mr-1.5 p-0.5 rounded-full bg-white/50">
+                        {getStatusIcon(module.module_status)}
+                      </div>
+                      <span className="capitalize">{module.module_status.replace('_', ' ')}</span>
                     </span>
                   </div>
 
-                  {/* Dates */}
-                  <div className="space-y-1 mb-3">
+                  {/* Enhanced Dates */}
+                  <div className="space-y-1 mb-3 bg-gray-50 rounded-lg p-2">
                     {module.module_date_started && (
-                      <div className="flex items-center text-xs text-gray-500">
-                        <FaCalendarAlt className="mr-1" />
-                        Started: {formatDate(module.module_date_started)}
+                      <div className="flex items-center text-xs text-gray-600">
+                        <FaCalendarAlt className="mr-1.5 text-[#800000]" />
+                        <span className="font-medium">Started:</span>
+                        <span className="ml-1">{formatDate(module.module_date_started)}</span>
                       </div>
                     )}
                     {module.module_date_complete && (
-                      <div className="flex items-center text-xs text-gray-500">
-                        <FaTrophy className="mr-1 text-yellow-500" />
-                        Completed: {formatDate(module.module_date_complete)}
+                      <div className="flex items-center text-xs text-gray-600">
+                        <FaTrophy className="mr-1.5 text-yellow-500" />
+                        <span className="font-medium">Completed:</span>
+                        <span className="ml-1">{formatDate(module.module_date_complete)}</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
+                  {/* Icon-Only Action Buttons */}
+                  <div className="flex items-center justify-center gap-3">
                     <button
                       onClick={() => openModuleDetail(module)}
-                      className="flex-1 flex items-center justify-center px-3 py-2 bg-[#800000] hover:bg-[#660000] text-white rounded-lg text-sm transition-all duration-200 hover:shadow-md"
+                      className="p-2.5 bg-gradient-to-r from-[#800000] to-[#660000] hover:from-[#660000] hover:to-[#4d0000] text-white rounded-xl transition-all duration-300 transform hover:scale-110 active:scale-95 shadow-lg hover:shadow-xl hover:shadow-[#800000]/25"
+                      title="View Details"
                     >
-                      <FaEye className="mr-1" />
-                      View Details
+                      <FaEye className="text-sm" />
                     </button>
-                  </div>
-
-                  {/* Status Change Buttons */}
-                  <div className="flex gap-2 mt-3">
+                    
                     {module.module_status !== 'in_progress' && (
                       <button
                         onClick={() => handleStatusChange(module, 'in_progress')}
-                        className="flex-1 px-2 py-1 text-xs bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium transition-all duration-200 transform hover:scale-105 active:scale-95"
+                        className="p-2.5 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-600 text-white rounded-xl transition-all duration-300 transform hover:scale-110 active:scale-95 shadow-lg hover:shadow-xl hover:shadow-indigo-500/25"
+                        title={module.module_status === 'completed' ? 'Restart Module' : 'Start Module'}
                       >
-                        {module.module_status === 'completed' ? 'Restart' : 'Start'}
+                        <FaPlay className="text-sm" />
                       </button>
                     )}
+                    
                     {module.module_status !== 'completed' && (
                       <button
                         onClick={() => handleStatusChange(module, 'completed')}
-                        className="flex-1 px-2 py-1 text-xs bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg font-medium transition-all duration-200 transform hover:scale-105 active:scale-95"
+                        className="p-2.5 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-xl transition-all duration-300 transform hover:scale-110 active:scale-95 shadow-lg hover:shadow-xl hover:shadow-emerald-500/25"
+                        title="Mark Complete"
                       >
-                        Complete
+                        <FaCheck className="text-sm" />
                       </button>
                     )}
                   </div>

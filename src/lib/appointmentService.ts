@@ -37,7 +37,7 @@ export const testAppointmentPermissions = async (): Promise<{ success: boolean; 
     console.log('🔍 Testing appointment permissions...');
     
     // Test 1: Check if we can query the appointments table
-    const { data: testQuery, error: queryError } = await supabase
+    const { data: _testQuery, error: queryError } = await supabase
       .from('appointments')
       .select('id')
       .limit(1);

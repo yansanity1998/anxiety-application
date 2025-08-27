@@ -894,7 +894,7 @@ const Dashboard = () => {
                 title="Anxiety Videos"
                 subtitle="Guided support content"
                 color="red"
-                onClick={() => alert('Anxiety Videos - Coming Soon!')}
+                onClick={() => navigate('/anxiety-videos')}
               />
             </div>
 

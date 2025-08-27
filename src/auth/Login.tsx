@@ -273,16 +273,8 @@
     };
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#800000]/5 p-4 relative overflow-hidden text-sm sm:text-base">
-        {/* Floating background elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-10 left-10 w-20 h-20 bg-[#800000]/20 rounded-full opacity-20 animate-pulse"></div>
-          <div className="absolute top-32 right-20 w-16 h-16 bg-[#800000]/20 rounded-full opacity-20 animate-pulse delay-1000"></div>
-          <div className="absolute bottom-20 left-32 w-24 h-24 bg-[#800000]/20 rounded-full opacity-20 animate-pulse delay-2000"></div>
-          <div className="absolute bottom-32 right-10 w-12 h-12 bg-[#800000]/20 rounded-full opacity-20 animate-pulse delay-500"></div>
-        </div>
-
-        <div className="w-full max-w-md relative z-10">
+      <div className="p-6 relative text-sm sm:text-base">
+        <div className="w-full relative">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">

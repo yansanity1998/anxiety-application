@@ -13,29 +13,35 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: <FaTachometerAlt />, color: darkMode ? 'text-blue-400' : 'text-blue-500', hoverColor: darkMode ? 'group-hover:text-blue-400' : 'group-hover:text-blue-500' },
-    { id: 'users', label: 'User Management', icon: <FaUsers />, color: darkMode ? 'text-purple-400' : 'text-purple-500', hoverColor: darkMode ? 'group-hover:text-purple-400' : 'group-hover:text-purple-500' },
-    { id: 'archived', label: 'Archived Users', icon: <FaArchive />, color: darkMode ? 'text-red-900' : 'text-red-800', hoverColor: darkMode ? 'group-hover:text-red-900' : 'group-hover:text-red-800' },
-    { id: 'schedule', label: 'Schedule', icon: <FaCalendarAlt />, color: darkMode ? 'text-indigo-400' : 'text-indigo-500', hoverColor: darkMode ? 'group-hover:text-indigo-400' : 'group-hover:text-indigo-500' },
-    { id: 'cbt-modules', label: 'CBT Modules', icon: <FaBrain />, color: darkMode ? 'text-green-400' : 'text-green-500', hoverColor: darkMode ? 'group-hover:text-green-400' : 'group-hover:text-green-500' },
-    { id: 'anxiety-videos', label: 'Anxiety Videos', icon: <FaVideo />, color: darkMode ? 'text-red-400' : 'text-red-500', hoverColor: darkMode ? 'group-hover:text-red-400' : 'group-hover:text-red-500' },
-    { id: 'relaxation-tools', label: 'Relaxation Tools', icon: <FaSpa />, color: darkMode ? 'text-cyan-400' : 'text-cyan-500', hoverColor: darkMode ? 'group-hover:text-cyan-400' : 'group-hover:text-cyan-500' },
-    { id: 'referral', label: 'Referral', icon: <FaHandshake />, color: darkMode ? 'text-yellow-400' : 'text-yellow-500', hoverColor: darkMode ? 'group-hover:text-yellow-400' : 'group-hover:text-yellow-500' },
-    { id: 'gamification', label: 'Gamification', icon: <FaGamepad />, color: darkMode ? 'text-pink-400' : 'text-pink-500', hoverColor: darkMode ? 'group-hover:text-pink-400' : 'group-hover:text-pink-500' },
+    { id: 'dashboard', label: 'Dashboard', icon: <FaTachometerAlt />, color: 'text-blue-500' },
+    { id: 'users', label: 'User Management', icon: <FaUsers />, color: 'text-purple-500' },
+    { id: 'archived', label: 'Archived Users', icon: <FaArchive />, color: 'text-red-500' },
+    { id: 'schedule', label: 'Schedule', icon: <FaCalendarAlt />, color: 'text-indigo-500' },
+    { id: 'cbt-modules', label: 'CBT Modules', icon: <FaBrain />, color: 'text-green-500' },
+    { id: 'anxiety-videos', label: 'Anxiety Videos', icon: <FaVideo />, color: 'text-orange-500' },
+    { id: 'relaxation-tools', label: 'Relaxation Tools', icon: <FaSpa />, color: 'text-teal-500' },
+    { id: 'referral', label: 'Referral', icon: <FaHandshake />, color: 'text-yellow-500' },
+    { id: 'gamification', label: 'Gamification', icon: <FaGamepad />, color: 'text-pink-500' },
   ];
 
-  const navLinkClasses = (view: string) => 
+  // Desktop link styles
+  const navLinkClasses = (view: string) =>
     `group flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
       activeView === view
-        ? (darkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-900')
-        : (darkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-100')
+        ? 'bg-[#800000] text-white' // Active = Maroon
+        : darkMode
+        ? 'text-gray-300 hover:bg-[#b56576] hover:text-white' // Hover = Light Maroon
+        : 'text-gray-600 hover:bg-[#b56576] hover:text-white'
     }`;
 
-  const mobileNavLinkClasses = (view: string) => 
+  // Mobile link styles
+  const mobileNavLinkClasses = (view: string) =>
     `group flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${
       activeView === view
-        ? (darkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-900')
-        : (darkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-100')
+        ? 'bg-[#800000] text-white'
+        : darkMode
+        ? 'text-gray-300 hover:bg-[#b56576] hover:text-white'
+        : 'text-gray-600 hover:bg-[#b56576] hover:text-white'
     }`;
 
   return (
@@ -51,12 +57,20 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
                     onClick={() => setActiveView(item.id)}
                     className={navLinkClasses(item.id)}
                   >
-                    <span className={`mr-1 transition-colors ${item.color} ${item.hoverColor}`}>{item.icon}</span>
+                    <span
+                      className={`mr-1 ${
+                        activeView === item.id ? 'text-white' : item.color
+                      }`}
+                    >
+                      {item.icon}
+                    </span>
                     {item.label}
                     {item.id === 'archived' && archivedUsersCount > 0 && (
-                      <span className={`ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full ${
-                        darkMode ? 'bg-red-600 text-white' : 'bg-red-500 text-white'
-                      }`}>
+                      <span
+                        className={`ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full ${
+                          darkMode ? 'bg-red-600 text-white' : 'bg-red-500 text-white'
+                        }`}
+                      >
                         {archivedUsersCount}
                       </span>
                     )}
@@ -69,7 +83,11 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
             <button
               onClick={() => setIsOpen(!isOpen)}
               type="button"
-              className={`inline-flex items-center justify-center p-2 rounded-md ${darkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'} focus:outline-none`}
+              className={`inline-flex items-center justify-center p-2 rounded-md ${
+                darkMode
+                  ? 'text-gray-400 hover:text-white hover:bg-[#b56576]'
+                  : 'text-gray-500 hover:text-white hover:bg-[#b56576]'
+              } focus:outline-none`}
               aria-controls="mobile-menu"
               aria-expanded="false"
             >
@@ -92,12 +110,20 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
                 }}
                 className={mobileNavLinkClasses(item.id)}
               >
-                <span className={`mr-1 transition-colors ${item.color} ${item.hoverColor}`}>{item.icon}</span>
+                <span
+                  className={`mr-1 ${
+                    activeView === item.id ? 'text-white' : item.color
+                  }`}
+                >
+                  {item.icon}
+                </span>
                 {item.label}
                 {item.id === 'archived' && archivedUsersCount > 0 && (
-                  <span className={`ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full ${
-                    darkMode ? 'bg-red-600 text-white' : 'bg-red-500 text-white'
-                  }`}>
+                  <span
+                    className={`ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full ${
+                      darkMode ? 'bg-red-600 text-white' : 'bg-red-500 text-white'
+                    }`}
+                  >
                     {archivedUsersCount}
                   </span>
                 )}
@@ -110,4 +136,4 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
   );
 };
 
-export default AdminNavbar; 
+export default AdminNavbar;

@@ -543,9 +543,9 @@ export default function AdminDashboard() {
   };
 
 
-  // Schedules state (in-memory, replace with DB integration if needed)
-  const [schedules, setSchedules] = useState<{ [profileId: string]: { date: string; time: string }[] }>({});
-
+    // Schedules state (in-memory, replace with DB integration if needed)
+  const [schedules] = useState<{ [profileId: string]: { date: string; time: string }[] }>({});
+  
   // Handler for scheduling a guidance visit
   const handleSchedule = async (user: UserProfile) => {
     try {
@@ -1222,10 +1222,10 @@ export default function AdminDashboard() {
         <LoadingSpinner />
       ) : (
         <>
-          <div className="flex justify-between items-center p-4 sm:px-12 lg:px-16 border-b dark:border-gray-700">
+          <div className="flex justify-between items-center p-4 sm:px-12 lg:px-16 border-b dark:border-gray-200">
             <div>
-              <h1 className={`text-2xl sm:text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-700'}`}>Admin Panel</h1>
-              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mt-1 text-sm`}>Welcome, Admin!</p>
+              <h1 className={`text-2xl sm:text-4xl font-bold ${darkMode ? 'text-white' : 'text-red-900'}`}>Admin Panel</h1>
+              <p className={`${darkMode ? 'text-gray-300' : 'text-red-900'} mt-1 text-m`}>Welcome, Admin!</p>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -1240,7 +1240,7 @@ export default function AdminDashboard() {
                 </div>
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-1 px-2 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors hover:cursor-pointer text-xs"
+                className="flex items-center gap-1 px-2 py-1.5 bg-red-900 text-white rounded-md hover:bg-red-700 transition-colors hover:cursor-pointer text-xs"
               >
                 <FaSignOutAlt />
                 Sign Out
