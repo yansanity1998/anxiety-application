@@ -8,6 +8,7 @@ import AdminDashboard from './admin/AdminDashboard';
 import GuidanceDashboard from './guidance/GuidanceDashboard';
 import UserDashboard from './user/Dashboard';
 import ProfilePage from './user/ProfilePage';
+import CBTModules from './user/components/CBTModules';
 import { supabase } from './lib/supabase';
 import './App.css';
 
@@ -173,6 +174,14 @@ function App() {
             element={
               <AuthRoute>
                 <ProfilePage />
+              </AuthRoute>
+            } 
+          />
+          <Route 
+            path="/cbt-modules" 
+            element={
+              <AuthRoute>
+                <CBTModules />
               </AuthRoute>
             } 
           />

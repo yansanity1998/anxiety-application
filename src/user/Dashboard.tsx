@@ -887,7 +887,7 @@ const Dashboard = () => {
                 title="CBT Modules"
                 subtitle="Learn coping strategies"
                 color="red"
-                onClick={() => alert('CBT Modules - Coming Soon!')}
+                onClick={() => navigate('/cbt-modules')}
               />
               <QuickAction
                 icon={<FaPlay />}
