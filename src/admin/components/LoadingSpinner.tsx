@@ -1,5 +1,6 @@
 import { useContext } from 'react';
 import { ThemeContext } from '../../App';
+import { FaBrain } from 'react-icons/fa';
 
 const LoadingSpinner = () => {
   const { darkMode } = useContext(ThemeContext);
@@ -9,67 +10,31 @@ const LoadingSpinner = () => {
       <div className={`relative ${darkMode ? 'bg-gray-800' : 'bg-white'} p-8 rounded-2xl shadow-xl border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
         <div className="flex flex-col items-center space-y-6">
           <div className="relative">
-            {/* Multiple Hearts Container */}
+            {/* Multiple Brains Container */}
             <div className="w-20 h-20 relative">
-              {/* Background Hearts (Multiple layers for depth) */}
-              <svg 
-                className="absolute inset-0 w-full h-full opacity-30" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path 
-                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
-                  fill={darkMode ? '#4b5563' : '#d1d5db'} 
-                  stroke={darkMode ? '#6b7280' : '#9ca3af'} 
-                  strokeWidth="0.5"
+              {/* Background Brain (Multiple layers for depth) */}
+              <div className="absolute inset-0 w-full h-full opacity-30 flex items-center justify-center">
+                <FaBrain 
+                  className={`text-5xl ${darkMode ? 'text-gray-500' : 'text-gray-300'}`}
                 />
-              </svg>
+              </div>
               
-              {/* Main Filling Heart (Maroon) */}
-              <svg 
-                className="absolute inset-0 w-full h-full heart-fill-animation" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path 
-                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
-                  fill="#800000" 
-                  stroke="#660000" 
-                  strokeWidth="0.5"
-                />
-              </svg>
+              {/* Main Filling Brain (Maroon) */}
+              <div className="absolute inset-0 w-full h-full brain-fill-animation flex items-center justify-center">
+                <FaBrain className="text-5xl text-[#800000]" />
+              </div>
 
-              {/* Pulsing Heart Ring */}
-              <div className="absolute inset-0 w-full h-full heart-pulse-ring"></div>
+              {/* Pulsing Brain Ring */}
+              <div className="absolute inset-0 w-full h-full brain-pulse-ring"></div>
               
-              {/* Floating Hearts */}
+              {/* Floating Brains */}
               <div className="absolute inset-0 w-full h-full">
-                <svg 
-                  className="absolute top-0 right-0 w-4 h-4 floating-heart-1" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path 
-                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
-                    fill="#800000" 
-                    opacity="0.6"
-                  />
-                </svg>
-                <svg 
-                  className="absolute bottom-0 left-0 w-3 h-3 floating-heart-2" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path 
-                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" 
-                    fill="#800000" 
-                    opacity="0.4"
-                  />
-                </svg>
+                <div className="absolute top-0 right-0 w-4 h-4 floating-brain-1 flex items-center justify-center">
+                  <FaBrain className="text-sm text-[#800000] opacity-60" />
+                </div>
+                <div className="absolute bottom-0 left-0 w-3 h-3 floating-brain-2 flex items-center justify-center">
+                  <FaBrain className="text-xs text-[#800000] opacity-40" />
+                </div>
               </div>
             </div>
           </div>
@@ -88,7 +53,7 @@ const LoadingSpinner = () => {
         {/* Custom CSS for enhanced animations with longer durations */}
         <style dangerouslySetInnerHTML={{
           __html: `
-            @keyframes heartFill {
+            @keyframes brainFill {
               0% {
                 clip-path: inset(100% 0 0 0);
                 transform: scale(1);
@@ -111,7 +76,7 @@ const LoadingSpinner = () => {
               }
             }
             
-            @keyframes heartPulse {
+            @keyframes brainPulse {
               0%, 100% {
                 transform: scale(1);
                 opacity: 0.3;
@@ -122,7 +87,7 @@ const LoadingSpinner = () => {
               }
             }
             
-            @keyframes floatingHeart1 {
+            @keyframes floatingBrain1 {
               0%, 100% {
                 transform: translate(0, 0) scale(1);
                 opacity: 0.6;
@@ -133,7 +98,7 @@ const LoadingSpinner = () => {
               }
             }
             
-            @keyframes floatingHeart2 {
+            @keyframes floatingBrain2 {
               0%, 100% {
                 transform: translate(0, 0) scale(1);
                 opacity: 0.4;
@@ -153,22 +118,22 @@ const LoadingSpinner = () => {
               }
             }
             
-            .heart-fill-animation {
-              animation: heartFill 4s ease-in-out infinite;
+            .brain-fill-animation {
+              animation: brainFill 4s ease-in-out infinite;
             }
             
-            .heart-pulse-ring {
+            .brain-pulse-ring {
               border: 2px solid #800000;
               border-radius: 50%;
-              animation: heartPulse 3.5s ease-in-out infinite;
+              animation: brainPulse 3.5s ease-in-out infinite;
             }
             
-            .floating-heart-1 {
-              animation: floatingHeart1 5s ease-in-out infinite;
+            .floating-brain-1 {
+              animation: floatingBrain1 5s ease-in-out infinite;
             }
             
-            .floating-heart-2 {
-              animation: floatingHeart2 6s ease-in-out infinite;
+            .floating-brain-2 {
+              animation: floatingBrain2 6s ease-in-out infinite;
             }
             
             .typing-animation {

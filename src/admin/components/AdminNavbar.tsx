@@ -16,11 +16,11 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
     { id: 'dashboard', label: 'Dashboard', icon: <FaTachometerAlt />, color: darkMode ? 'text-blue-400' : 'text-blue-500', hoverColor: darkMode ? 'group-hover:text-blue-400' : 'group-hover:text-blue-500' },
     { id: 'users', label: 'User Management', icon: <FaUsers />, color: darkMode ? 'text-purple-400' : 'text-purple-500', hoverColor: darkMode ? 'group-hover:text-purple-400' : 'group-hover:text-purple-500' },
     { id: 'archived', label: 'Archived Users', icon: <FaArchive />, color: darkMode ? 'text-red-900' : 'text-red-800', hoverColor: darkMode ? 'group-hover:text-red-900' : 'group-hover:text-red-800' },
+    { id: 'schedule', label: 'Schedule', icon: <FaCalendarAlt />, color: darkMode ? 'text-indigo-400' : 'text-indigo-500', hoverColor: darkMode ? 'group-hover:text-indigo-400' : 'group-hover:text-indigo-500' },
     { id: 'cbt-modules', label: 'CBT Modules', icon: <FaBrain />, color: darkMode ? 'text-green-400' : 'text-green-500', hoverColor: darkMode ? 'group-hover:text-green-400' : 'group-hover:text-green-500' },
     { id: 'anxiety-videos', label: 'Anxiety Videos', icon: <FaVideo />, color: darkMode ? 'text-red-400' : 'text-red-500', hoverColor: darkMode ? 'group-hover:text-red-400' : 'group-hover:text-red-500' },
     { id: 'relaxation-tools', label: 'Relaxation Tools', icon: <FaSpa />, color: darkMode ? 'text-cyan-400' : 'text-cyan-500', hoverColor: darkMode ? 'group-hover:text-cyan-400' : 'group-hover:text-cyan-500' },
     { id: 'referral', label: 'Referral', icon: <FaHandshake />, color: darkMode ? 'text-yellow-400' : 'text-yellow-500', hoverColor: darkMode ? 'group-hover:text-yellow-400' : 'group-hover:text-yellow-500' },
-    { id: 'schedule', label: 'Schedule', icon: <FaCalendarAlt />, color: darkMode ? 'text-indigo-400' : 'text-indigo-500', hoverColor: darkMode ? 'group-hover:text-indigo-400' : 'group-hover:text-indigo-500' },
     { id: 'gamification', label: 'Gamification', icon: <FaGamepad />, color: darkMode ? 'text-pink-400' : 'text-pink-500', hoverColor: darkMode ? 'group-hover:text-pink-400' : 'group-hover:text-pink-500' },
   ];
 
