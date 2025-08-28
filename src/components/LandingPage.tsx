@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaBrain, FaHeart, FaUsers, FaShieldAlt, FaChevronLeft, FaChevronRight, FaTimes, FaArrowDown } from 'react-icons/fa';
+import { FaBrain, FaHeart, FaUsers, FaShieldAlt, FaChevronLeft, FaChevronRight, FaTimes, FaArrowDown, FaStar, FaQuoteLeft, FaPlay, FaCheckCircle, FaAward, FaClock, FaGraduationCap } from 'react-icons/fa';
 import Login from '../auth/Login';
 import Register from '../auth/Register';
 
@@ -25,10 +25,20 @@ export default function LandingPage() {
       src: '/guidance 3.jpg',
       title: 'Community & Growth',
       description: 'Join a supportive community focused on mental wellness'
+    },
+    {
+      src: '/guidance 4.jpg',
+      title: 'Mindful Wellness Journey',
+      description: 'Discover inner peace through guided mindfulness and meditation'
+    },
+    {
+      src: '/guidance 5.png',
+      title: 'Personalized Care Approach',
+      description: 'Experience tailored support designed specifically for your needs'
     }
   ];
 
-  // Auto-advance carousel every 5 seconds
+  // Auto-advance carousel every 4 seconds with smooth transitions
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
@@ -81,23 +91,36 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white relative overflow-hidden">
       {/* Full-Width Hero Section */}
       <section className="relative h-screen w-full overflow-hidden">
-        {/* Hero Image */}
-        <div className="absolute inset-0">
-          <img
-            src={carouselImages[currentSlide].src}
-            alt={carouselImages[currentSlide].title}
-            className="w-full h-full object-cover transition-all duration-1000 ease-in-out"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60"></div>
+        {/* Hero Image with Enhanced Animations */}
+        <div className="absolute inset-0 overflow-hidden">
+          {carouselImages.map((image, index) => (
+            <div
+              key={index}
+              className={`absolute inset-0 transition-all duration-1000 ease-in-out transform ${
+                index === currentSlide
+                  ? 'opacity-100 scale-100 translate-x-0'
+                  : index < currentSlide
+                  ? 'opacity-0 scale-110 -translate-x-full'
+                  : 'opacity-0 scale-110 translate-x-full'
+              }`}
+            >
+              <img
+                src={image.src}
+                alt={image.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60"></div>
+            </div>
+          ))}
         </div>
 
         {/* Floating Header */}
         <header className="absolute top-0 left-0 right-0 z-20 flex flex-wrap sm:flex-nowrap justify-between items-center p-3 sm:p-6 gap-3 backdrop-blur-md bg-white/10">
   <div className="flex items-center gap-2 sm:gap-3 flex-shrink min-w-0">
     <img 
-      src="/lotus.png" 
-      alt="Lotus Logo" 
-      className="w-8 h-8 sm:w-12 sm:h-12 object-contain"
+      src="/spc-guidance.png" 
+      alt="spc-guidance Logo" 
+      className="w-8 h-8 sm:w-15 sm:h-15 object-contain"
     />
     <div className="min-w-0">
       <h1 className="text-base sm:text-lg md:text-3xl font-bold text-white drop-shadow-lg truncate">
@@ -117,18 +140,20 @@ export default function LandingPage() {
 </header>
 
 
-        {/* Hero Content */}
+        {/* Hero Content with Animated Text */}
         <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4 z-10">
           <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
-            <h2 className="text-2xl sm:text-2xl md:text-5xl lg:text-5xl font-bold text-white drop-shadow-2xl leading-tight">
-              <span className="block mb-2 sm:mb-2">Manage Anxiety</span>
-              <span className="text-1xl sm:text-2xl md:text-3xl lg:text-3xl font-light text-white/90">
+            <h2 className="text-2xl sm:text-2xl md:text-5xl lg:text-5xl font-bold text-white drop-shadow-2xl leading-tight transition-all duration-700 ease-in-out">
+              <span className="block mb-2 sm:mb-2 animate-fade-in">Manage Anxiety</span>
+              <span className="text-1xl sm:text-2xl md:text-3xl lg:text-3xl font-light text-white/90 animate-fade-in" style={{animationDelay: '0.2s'}}>
                 with Professional Guidance
               </span>
             </h2>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed drop-shadow-lg">
-              {carouselImages[currentSlide].description}
-            </p>
+            <div className="transition-all duration-500 ease-in-out transform">
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed drop-shadow-lg animate-fade-in" style={{animationDelay: '0.4s'}}>
+                {carouselImages[currentSlide].description}
+              </p>
+            </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
               <button
                 onClick={() => setShowLogin(true)}
@@ -178,10 +203,150 @@ export default function LandingPage() {
 
       {/* Main Content */}
       <main className="relative z-10 bg-gradient-to-br from-gray-50 to-white">
+        {/* Statistics Section */}
+        <section className="py-12 sm:py-16 px-4 sm:px-6 bg-gradient-to-r from-[#800000] to-[#a00000] relative overflow-hidden">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full animate-pulse"></div>
+            <div className="absolute bottom-10 right-10 w-24 h-24 bg-white rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+            <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-white rounded-full animate-pulse" style={{animationDelay: '2s'}}></div>
+          </div>
+          <div className="relative z-10 max-w-7xl mx-auto">
+            <div className="text-center mb-12">
+              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
+                Trusted by Students Nationwide
+              </h3>
+              <p className="text-lg text-white/90 max-w-2xl mx-auto">
+                Join thousands who have transformed their mental health journey
+              </p>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+              <div className="text-center group">
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 sm:p-8 transform hover:scale-105 transition-all duration-300 hover:bg-white/20">
+                  <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform duration-300">1K+</div>
+                  <div className="text-sm sm:text-base text-white/80 font-medium">Active Students</div>
+                  <div className="text-xs text-white/60 mt-1">In St. Peter's College</div>
+                </div>
+              </div>
+              <div className="text-center group">
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 sm:p-8 transform hover:scale-105 transition-all duration-300 hover:bg-white/20">
+                  <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform duration-300">98%</div>
+                  <div className="text-sm sm:text-base text-white/80 font-medium">Success Rate</div>
+                  <div className="text-xs text-white/60 mt-1">Anxiety Reduction</div>
+                </div>
+              </div>
+              <div className="text-center group">
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 sm:p-8 transform hover:scale-105 transition-all duration-300 hover:bg-white/20">
+                  <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform duration-300">24/7</div>
+                  <div className="text-sm sm:text-base text-white/80 font-medium">Support Available</div>
+                  <div className="text-xs text-white/60 mt-1">Guidance Counselor  </div>
+                </div>
+              </div>
+              <div className="text-center group">
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 sm:p-8 transform hover:scale-105 transition-all duration-300 hover:bg-white/20">
+                  <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-2 group-hover:scale-110 transition-transform duration-300">4.9</div>
+                  <div className="text-sm sm:text-base text-white/80 font-medium flex items-center justify-center gap-1">
+                    <FaStar className="text-yellow-300" />
+                    <span>Rating</span>
+                  </div>
+                  <div className="text-xs text-white/60 mt-1">From 5,000+ Reviews</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        {/* How It Works Section */}
+        <section className="py-16 sm:py-24 px-4 sm:px-6 max-w-7xl mx-auto" data-animate id="how-it-works">
+          <div className={`transition-all duration-1000 ${isVisible['how-it-works'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div className="text-center mb-16">
+              <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-[#800000] to-[#a00000] bg-clip-text text-transparent">
+                Your Path to Wellness in 3 Simple Steps
+              </h3>
+              <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Start your mental health journey with our proven, step-by-step approach designed specifically for students
+              </p>
+            </div>
+            
+            <div className="relative">
+              
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 relative z-10">
+                <div className="text-center group">
+                  <div className="relative mb-8">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-r from-[#800000] to-[#a00000] rounded-full flex items-center justify-center mx-auto shadow-2xl group-hover:scale-110 transition-all duration-300">
+                      <FaGraduationCap className="text-white text-2xl sm:text-3xl" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                      1
+                    </div>
+                  </div>
+                  <h4 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 group-hover:text-[#800000] transition-colors duration-300">
+                    Complete Assessment
+                  </h4>
+                  <p className="text-gray-600 leading-relaxed mb-6">
+                    Take our comprehensive anxiety assessment designed by licensed therapists to understand your unique needs and triggers.
+                  </p>
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-gray-200/50">
+                    <div className="flex items-center justify-center gap-2 text-sm text-gray-700">
+                      <FaClock className="text-[#800000]" />
+                      <span className="font-medium">Takes only 5 minutes</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-center group">
+                  <div className="relative mb-8">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-r from-[#800000] to-[#a00000] rounded-full flex items-center justify-center mx-auto shadow-2xl group-hover:scale-110 transition-all duration-300">
+                      <FaBrain className="text-white text-2xl sm:text-3xl" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                      2
+                    </div>
+                  </div>
+                  <h4 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 group-hover:text-[#800000] transition-colors duration-300">
+                    Get Matched
+                  </h4>
+                  <p className="text-gray-600 leading-relaxed mb-6">
+                    Our AI-powered system connects you with the perfect counselor and creates a personalized treatment plan just for you.
+                  </p>
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-gray-200/50">
+                    <div className="flex items-center justify-center gap-2 text-sm text-gray-700">
+                      <FaAward className="text-[#800000]" />
+                      <span className="font-medium">Certified professionals only</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-center group">
+                  <div className="relative mb-8">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-r from-[#800000] to-[#a00000] rounded-full flex items-center justify-center mx-auto shadow-2xl group-hover:scale-110 transition-all duration-300">
+                      <FaHeart className="text-white text-2xl sm:text-3xl" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                      3
+                    </div>
+                  </div>
+                  <h4 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 group-hover:text-[#800000] transition-colors duration-300">
+                    Start Healing
+                  </h4>
+                  <p className="text-gray-600 leading-relaxed mb-6">
+                    Begin your journey with interactive CBT modules, mindfulness exercises, and regular check-ins with your counselor.
+                  </p>
+                  <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl p-4 border border-gray-200/50">
+                    <div className="flex items-center justify-center gap-2 text-sm text-gray-700">
+                      <FaCheckCircle className="text-[#800000]" />
+                      <span className="font-medium">See results in 2 weeks</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Features Section */}
         <section 
           id="features" 
-          className="py-16 sm:py-24 px-4 sm:px-6 max-w-7xl mx-auto"
+          className="py-16 sm:py-24 px-4 sm:px-6 max-w-7xl mx-auto bg-gradient-to-br from-gray-50 to-white"
           data-animate
         >
           <div className={`transition-all duration-1000 ${isVisible.features ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
@@ -261,37 +426,201 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Additional Benefits Section */}
+            {/* Video Demo Section */}
             <div className={`mt-16 sm:mt-20 transition-all duration-1000 delay-500 ${isVisible.features ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-8 sm:p-12 border border-gray-200/50">
-                <div className="text-center mb-8">
-                  <h4 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">What Makes Us Different?</h4>
-                  <p className="text-gray-600 max-w-2xl mx-auto">
-                    We combine evidence-based therapy techniques with modern technology to create a comprehensive support system
-                  </p>
+              <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-3xl p-8 sm:p-12 border border-gray-200/50 relative overflow-hidden">
+                <div className="absolute inset-0 opacity-5">
+                  <div className="absolute top-0 left-0 w-40 h-40 bg-indigo-500 rounded-full filter blur-3xl"></div>
+                  <div className="absolute bottom-0 right-0 w-32 h-32 bg-purple-500 rounded-full filter blur-3xl"></div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-                  <div className="text-center group">
-                    <div className="bg-white p-6 rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
-                      <div className="text-3xl mb-4">🧠</div>
-                      <h5 className="font-bold text-gray-800 mb-2">CBT Modules</h5>
-                      <p className="text-sm text-gray-600">Interactive cognitive behavioral therapy exercises</p>
+                <div className="relative z-10">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+                    <div>
+                      <h4 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-6">
+                        See How It Works
+                      </h4>
+                      <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+                        Watch how our platform helps students like you overcome anxiety and build confidence through personalized support and evidence-based techniques.
+                      </p>
+                      <div className="space-y-4 mb-8">
+                        <div className="flex items-center gap-3">
+                          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                            <FaCheckCircle className="text-white text-xs" />
+                          </div>
+                          <span className="text-gray-700 font-medium">Interactive CBT modules</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                            <FaCheckCircle className="text-white text-xs" />
+                          </div>
+                          <span className="text-gray-700 font-medium">Real-time progress tracking</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                            <FaCheckCircle className="text-white text-xs" />
+                          </div>
+                          <span className="text-gray-700 font-medium">24/7 professional support</span>
+                        </div>
+                      </div>
+                      <button className="bg-gradient-to-r from-[#800000] to-[#a00000] text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center gap-3">
+                        <FaPlay className="text-sm" />
+                        Watch Demo Video
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-300">
+                        <div className="bg-gradient-to-br from-[#800000] to-[#a00000] rounded-xl p-6 mb-6">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                              <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                              <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                            </div>
+                            <span className="text-white/70 text-sm">Anxiety Support Dashboard</span>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="bg-white/10 rounded-lg p-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-white text-sm">Daily Check-in</span>
+                                <span className="text-green-300 text-xs">Completed</span>
+                              </div>
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-white text-sm">CBT Module 3</span>
+                                <span className="text-yellow-300 text-xs">In Progress</span>
+                              </div>
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-white text-sm">Counselor Session</span>
+                                <span className="text-blue-300 text-xs">Tomorrow 2PM</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 cursor-pointer hover:bg-white/30 transition-colors duration-300">
+                            <FaPlay className="text-white text-xl ml-1" />
+                          </div>
+                          <p className="text-white/80 text-sm">2 min demo video</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-center group">
-                    <div className="bg-white p-6 rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
-                      <div className="text-3xl mb-4">🎯</div>
-                      <h5 className="font-bold text-gray-800 mb-2">Progress Tracking</h5>
-                      <p className="text-sm text-gray-600">Visual insights into your mental wellness journey</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials Section */}
+        <section className="py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-br from-white to-gray-50" data-animate id="testimonials">
+          <div className={`max-w-7xl mx-auto transition-all duration-1000 ${isVisible.testimonials ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <div className="text-center mb-16">
+              <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-[#800000] to-[#a00000] bg-clip-text text-transparent">
+                What Students Are Saying
+              </h3>
+              <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Real stories from students who transformed their mental health journey with our support
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="group">
+                <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#800000] to-[#a00000]"></div>
+                  <div className="flex items-center mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-[#800000] to-[#a00000] rounded-full flex items-center justify-center mr-4">
+                      <FaQuoteLeft className="text-white text-lg" />
+                    </div>
+                    <div className="flex text-yellow-400">
+                      {[...Array(5)].map((_, i) => (
+                        <FaStar key={i} className="text-sm" />
+                      ))}
                     </div>
                   </div>
-                  <div className="text-center group">
-                    <div className="bg-white p-6 rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
-                      <div className="text-3xl mb-4">🌟</div>
-                      <h5 className="font-bold text-gray-800 mb-2">Gamification</h5>
-                      <p className="text-sm text-gray-600">Achieve milestones and build healthy habits</p>
+                  <p className="text-gray-700 leading-relaxed mb-6 italic">
+                    "This platform completely changed how I handle my anxiety. The CBT modules are so easy to follow, and having a counselor available 24/7 gave me the confidence I needed."
+                  </p>
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
+                      J
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-800">Jesper B.</div>
+                      <div className="text-sm text-gray-500">BSIT Student, SPC</div>
                     </div>
                   </div>
+                </div>
+              </div>
+              
+              <div className="group">
+                <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#800000] to-[#a00000]"></div>
+                  <div className="flex items-center mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-[#800000] to-[#a00000] rounded-full flex items-center justify-center mr-4">
+                      <FaQuoteLeft className="text-white text-lg" />
+                    </div>
+                    <div className="flex text-yellow-400">
+                      {[...Array(5)].map((_, i) => (
+                        <FaStar key={i} className="text-sm" />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-gray-700 leading-relaxed mb-6 italic">
+                    "I was skeptical at first, but the personalized approach and the supportive community made all the difference. My panic attacks have reduced by 90% in just 3 months."
+                  </p>
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
+                      T
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-800">Tristan B.</div>
+                      <div className="text-sm text-gray-500">BSIT Student, SPC</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="group">
+                <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 hover:shadow-2xl transform hover:scale-105 transition-all duration-300 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#800000] to-[#a00000]"></div>
+                  <div className="flex items-center mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-r from-[#800000] to-[#a00000] rounded-full flex items-center justify-center mr-4">
+                      <FaQuoteLeft className="text-white text-lg" />
+                    </div>
+                    <div className="flex text-yellow-400">
+                      {[...Array(5)].map((_, i) => (
+                        <FaStar key={i} className="text-sm" />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-gray-700 leading-relaxed mb-6 italic">
+                    "The progress tracking feature helped me see how far I've come. It's amazing to look back and see the improvement in my daily anxiety levels and overall mood."
+                  </p>
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-gradient-to-r from-pink-400 to-rose-400 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
+                      R
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-800">Romarc B.</div>
+                      <div className="text-sm text-gray-500">BSIT Student, SPC</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center mt-12">
+              <div className="inline-flex items-center gap-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
+                <div className="flex items-center gap-2">
+                  <FaStar className="text-yellow-400" />
+                  <span className="text-2xl font-bold text-gray-800">4.9/5</span>
+                </div>
+                <div className="text-gray-600">
+                  <div className="font-semibold">Average Rating</div>
+                  <div className="text-sm">From 5,000+ verified reviews</div>
                 </div>
               </div>
             </div>
