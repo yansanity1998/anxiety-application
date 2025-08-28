@@ -595,10 +595,10 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
       borderWidth: 1,
     }));
 
-    return { labels, datasets, totalPages };
-  }, [assessments, timeRange, currentPage]);
+return { labels, datasets, totalPages };
+}, [assessments, timeRange, currentPage]);
 
-  return (
+return (
     <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 w-full px-0 md:px-0`}>
       {/* Appointment Calendar */}
       <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-4 rounded-xl shadow-lg border-0 min-w-0 w-full backdrop-blur-sm`}>
@@ -625,7 +625,7 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
             </div>
           </div>
         </div>
-        <div className={`h-56 w-full min-w-0`}>
+        <div className={`h-64 w-full min-w-0`}>
           <Pie data={genderDistributionData} options={{
             responsive: true,
             maintainAspectRatio: false,
@@ -717,7 +717,7 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
             </div>
           </div>
         </div>
-        <div className={`h-56 w-full min-w-0`}>
+        <div className={`h-64 w-full min-w-0`}>
           <Pie data={anxietyLevelDistributionData} options={{
             responsive: true,
             maintainAspectRatio: false,
@@ -977,6 +977,19 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
             }
           }} />
         </div>
+      </div>
+      
+      {/* Print Button - Aligned with charts container */}
+      <div className="mt-6 justify-end w-full">
+        <button
+          onClick={() => window.print()}
+          className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 bg-gradient-to-r from-[#800000] to-[#8B0000] hover:from-[#8B0000] hover:to-[#A0522D] text-white shadow-lg hover:shadow-xl flex items-center gap-2`}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          Print Report
+        </button>
       </div>
     </div>
   );

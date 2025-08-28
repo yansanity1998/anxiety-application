@@ -26,6 +26,7 @@ import {
   // FaTree,
   // FaCloudSun,
   FaChevronRight,
+  FaChevronLeft,
   // FaPlus,
   FaArrowUp
 } from 'react-icons/fa';
@@ -222,6 +223,250 @@ const getFireBorderColor = (streak: number) => {
   if (streak >= 20) return 'border-blue-500';
   if (streak >= 10) return 'border-green-500';
   return 'border-orange-500';
+};
+
+// Add this new component for the main navigation carousel
+const MainNavCarousel = ({ navigate }: { navigate: any }) => {
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const mainNavItems = [
+    {
+      id: 'cbt-modules',
+      title: 'CBT Modules',
+      subtitle: 'Learn coping strategies',
+      icon: FaBookOpen,
+      gradient: 'from-blue-500 to-indigo-600',
+      bgGradient: 'from-blue-50 to-indigo-100',
+      borderColor: 'border-blue-200',
+      onClick: () => navigate('/cbt-modules'),
+      tags: ['Interactive', 'Proven']
+    },
+    {
+      id: 'anxiety-videos',
+      title: 'Anxiety Videos',
+      subtitle: 'Guided support content',
+      icon: FaPlay,
+      gradient: 'from-red-500 to-pink-600',
+      bgGradient: 'from-red-50 to-pink-100',
+      borderColor: 'border-red-200',
+      onClick: () => navigate('/anxiety-videos'),
+      tags: ['Video Guides', 'Expert Led']
+    },
+    {
+      id: 'relaxation',
+      title: 'Relaxation',
+      subtitle: 'Breathing & meditation',
+      icon: FaLeaf,
+      gradient: 'from-green-500 to-emerald-600',
+      bgGradient: 'from-green-50 to-emerald-100',
+      borderColor: 'border-green-200',
+      onClick: () => alert('Relaxation Tools - Opening!'),
+      tags: ['Mindfulness', 'Calming']
+    },
+    {
+      id: 'activities',
+      title: 'Activities',
+      subtitle: 'Fun wellness challenges',
+      icon: FaGamepad,
+      gradient: 'from-orange-500 to-amber-600',
+      bgGradient: 'from-orange-50 to-amber-100',
+      borderColor: 'border-orange-200',
+      onClick: () => alert('Gamification - Coming Soon!'),
+      tags: ['Coming Soon', 'Fun']
+    }
+  ];
+
+  const checkScrollButtons = () => {
+    if (carouselRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+    }
+  };
+
+  const updateActiveIndex = () => {
+    if (carouselRef.current) {
+      const { scrollLeft, clientWidth } = carouselRef.current;
+      const cardWidth = 280; // Width of one card plus gap (264px + 16px gap)
+      const currentIndex = Math.round(scrollLeft / cardWidth);
+      setActiveIndex(Math.min(currentIndex, mainNavItems.length - 1));
+    }
+  };
+
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = 280; // Width of one card plus gap
+      const newScrollLeft = carouselRef.current.scrollLeft + (direction === 'right' ? scrollAmount : -scrollAmount);
+      carouselRef.current.scrollTo({
+        left: newScrollLeft,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const scrollToIndex = (index: number) => {
+    if (carouselRef.current) {
+      const cardWidth = 280; // Width of one card plus gap
+      const scrollLeft = index * cardWidth;
+      carouselRef.current.scrollTo({
+        left: scrollLeft,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (carousel) {
+      const handleScroll = () => {
+        checkScrollButtons();
+        updateActiveIndex();
+      };
+
+      carousel.addEventListener('scroll', handleScroll);
+      handleScroll(); // Initial check
+      
+      return () => carousel.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
+
+  return (
+    <div className="mb-6">
+      <motion.h2 
+        className="font-bold text-xl text-gray-800 mb-4 px-1"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        🎯 Your Wellness Tools
+      </motion.h2>
+      
+      <div className="relative">
+        {/* Left Scroll Button */}
+        <AnimatePresence>
+          {canScrollLeft && (
+            <motion.button
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white transition-all duration-200"
+              onClick={() => scrollCarousel('left')}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FaChevronLeft className="text-gray-600 text-sm" />
+            </motion.button>
+          )}
+        </AnimatePresence>
+
+        {/* Right Scroll Button */}
+        <AnimatePresence>
+          {canScrollRight && (
+            <motion.button
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white transition-all duration-200"
+              onClick={() => scrollCarousel('right')}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FaChevronRight className="text-gray-600 text-sm" />
+            </motion.button>
+          )}
+        </AnimatePresence>
+
+        {/* Carousel Container */}
+        <div
+          ref={carouselRef}
+          className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth px-2 py-2"
+        >
+          {mainNavItems.map((item, index) => (
+            <motion.div
+              key={item.id}
+              className={`flex-shrink-0 w-64 bg-gradient-to-r ${item.bgGradient} rounded-2xl p-5 shadow-lg border ${item.borderColor} cursor-pointer group hover:shadow-xl transition-all duration-300`}
+              onClick={item.onClick}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              whileHover={{ y: -8, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="flex items-center gap-4 mb-3">
+                <div className={`w-14 h-14 bg-gradient-to-r ${item.gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <item.icon className="text-white text-xl" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-gray-800 text-lg mb-1">{item.title}</h3>
+                  <p className="text-gray-600 text-sm">{item.subtitle}</p>
+                </div>
+              </div>
+              
+              <div className="flex gap-2 flex-wrap">
+                {item.tags.map((tag, tagIndex) => (
+                  <span
+                    key={tagIndex}
+                    className={`text-xs px-2 py-1 rounded-full font-medium ${
+                      item.id === 'cbt-modules' ? 'bg-blue-100 text-blue-800' :
+                      item.id === 'anxiety-videos' ? 'bg-red-100 text-red-800' :
+                      item.id === 'relaxation' ? 'bg-green-100 text-green-800' :
+                      'bg-orange-100 text-orange-800'
+                    }`}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              
+              <div className="mt-3 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-gray-500">
+                  <div className="w-2 h-2 bg-current rounded-full opacity-60"></div>
+                  <span className="text-xs">Tap to explore</span>
+                </div>
+                <FaChevronRight className={`text-gray-400 group-hover:text-gray-600 transition-colors text-sm group-hover:translate-x-1 transition-transform`} />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+        
+        {/* Enhanced Scroll Indicator Dots */}
+        <div className="flex justify-center gap-3 mt-4">
+          {mainNavItems.map((_, index) => (
+            <motion.button
+              key={index}
+              className={`relative rounded-full transition-all duration-300 cursor-pointer ${
+                activeIndex === index 
+                  ? 'w-8 h-3 bg-[#800000]' 
+                  : 'w-3 h-3 bg-gray-300 hover:bg-gray-400'
+              }`}
+              onClick={() => scrollToIndex(index)}
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.9 }}
+              initial={false}
+              animate={{
+                width: activeIndex === index ? 32 : 12,
+                backgroundColor: activeIndex === index ? '#800000' : '#d1d5db'
+              }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              {/* Active indicator glow effect */}
+              {activeIndex === index && (
+                <motion.div
+                  className="absolute inset-0 bg-[#800000] rounded-full opacity-30 blur-sm"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1.5 }}
+                  transition={{ duration: 0.3 }}
+                />
+              )}
+            </motion.button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const Dashboard = () => {
@@ -571,7 +816,7 @@ const Dashboard = () => {
       {/* Header with scroll effect */}
       <motion.div 
         ref={headerRef}
-        className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10"
+        className="bg-gradient-to-r from-[#4a0e0e] to-[#660000] backdrop-blur-sm border-b border-[#800000]/30 sticky top-0 z-10 shadow-lg"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -583,22 +828,22 @@ const Dashboard = () => {
         <div className="px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-[#800000]">
+              <h1 className="text-xl font-bold text-white drop-shadow-md">
                 {getGreeting()}, {loadingUser ? '...' : userData?.full_name || userData?.name || mockUserData.name}! 👋
               </h1>
-              <p className="text-sm text-gray-600">{getMotivationalQuote()}</p>
+              <p className="text-sm text-white/80">{getMotivationalQuote()}</p>
             </div>
             <div className="flex items-center gap-3">
               <motion.button 
-                className="relative p-2 bg-[#800000]/10 rounded-full"
+                className="relative p-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30"
                 whileTap={{ scale: 0.9 }}
-                whileHover={{ scale: 1.1, backgroundColor: "#f1dcdc" }}
+                whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.3)" }}
                 onClick={() => setShowNotifications((prev) => !prev)}
                 aria-label="Show notifications"
               >
-                <FaBell className="text-[#800000]" />
+                <FaBell className="text-white" />
                 {notifications.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold animate-pulse">
+                  <span className="absolute -top-1 -right-1 bg-red-400 text-white text-xs rounded-full px-1.5 py-0.5 font-bold animate-pulse shadow-lg">
                     {notifications.length}
                   </span>
                 )}
@@ -643,8 +888,8 @@ const Dashboard = () => {
                 </div>
               )}
               <motion.div 
-                className="w-10 h-10 bg-[#800000] rounded-full flex items-center justify-center cursor-pointer"
-                whileHover={{ scale: 1.1, rotate: 5 }}
+                className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center cursor-pointer border border-white/30"
+                whileHover={{ scale: 1.1, rotate: 5, backgroundColor: "rgba(255,255,255,0.3)" }}
                 whileTap={{ scale: 0.9 }}
                 onClick={goToProfile}
               >
@@ -657,8 +902,12 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <div className="px-4 py-6 pb-20">
+        {/* Main Navigation Carousel */}
+        <MainNavCarousel navigate={navigate} />
+        
         {/* Stats Cards */}
         <div className="grid grid-cols-2 gap-4 mb-6">
+          {/* Day Streak Card */}
           <motion.div 
             className={`bg-white rounded-2xl p-4 shadow-lg border-2 ${getFireBorderColor(userStreak)}`}
             initial={{ opacity: 0, x: -20 }}
@@ -717,205 +966,181 @@ const Dashboard = () => {
             </div>
           </motion.div>
 
+          {/* Recent Assessment Compact Card */}
           <motion.div 
-            className="bg-white rounded-2xl p-4 shadow-lg border-2 border-[#800000]/30"
+            className={`relative overflow-hidden rounded-2xl p-4 shadow-lg border-2 ${
+              loadingAssessment ? 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-300' :
+              !recentAssessment ? 'bg-gradient-to-br from-[#800000]/10 to-[#800000]/20 border-[#800000]/30' :
+              recentAssessment.percentage < 25 ? 'bg-gradient-to-br from-green-50 to-emerald-100 border-green-400' :
+              recentAssessment.percentage < 50 ? 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-400' :
+              recentAssessment.percentage < 75 ? 'bg-gradient-to-br from-yellow-50 to-orange-100 border-yellow-400' :
+              'bg-gradient-to-br from-red-50 to-red-100 border-red-400'
+            }`}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
             whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
           >
-            <div className="flex items-center justify-between mb-2">
-              <motion.div
-                animate={{ y: [0, -5, 0] }}
-                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-              >
-                <FaGem className="text-[#800000] text-xl" />
-              </motion.div>
-              <motion.span 
-                className="text-2xl font-bold text-gray-800"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
-              >
-                {mockUserData.totalPoints}
-              </motion.span>
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className={`w-full h-full ${
+                loadingAssessment ? 'bg-gray-200' :
+                !recentAssessment ? 'bg-[#800000]' :
+                recentAssessment.percentage < 25 ? 'bg-green-500' :
+                recentAssessment.percentage < 50 ? 'bg-blue-500' :
+                recentAssessment.percentage < 75 ? 'bg-yellow-500' :
+                'bg-red-500'
+              }`} style={{
+                backgroundImage: 'radial-gradient(circle at 20% 80%, currentColor 15%, transparent 16%), radial-gradient(circle at 80% 20%, currentColor 15%, transparent 16%), radial-gradient(circle at 40% 40%, currentColor 15%, transparent 16%)'
+              }}></div>
             </div>
-            <p className="text-sm text-gray-600">Total Points</p>
-            <div className="mt-2">
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                <motion.div 
-                  className="bg-[#800000] h-1.5 rounded-full"
-                  style={{ width: `${(mockUserData.totalPoints / mockUserData.nextLevelPoints) * 100}%` }}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(mockUserData.totalPoints / mockUserData.nextLevelPoints) * 100}%` }}
-                  transition={{ duration: 1, delay: 0.5 }}
-                ></motion.div>
+
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-3">
+                {/* Icon with animated background */}
+                <motion.div
+                  className={`relative w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${
+                    loadingAssessment ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
+                    !recentAssessment ? 'bg-gradient-to-r from-[#800000] to-[#a00000]' :
+                    recentAssessment.percentage < 25 ? 'bg-gradient-to-r from-green-500 to-emerald-600' :
+                    recentAssessment.percentage < 50 ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
+                    recentAssessment.percentage < 75 ? 'bg-gradient-to-r from-yellow-500 to-orange-600' :
+                    'bg-gradient-to-r from-red-500 to-red-600'
+                  }`}
+                  animate={{ 
+                    y: [0, -3, 0],
+                    rotate: [0, 5, 0]
+                  }}
+                  transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                >
+                  <FaChartLine className="text-white text-lg drop-shadow-sm" />
+                  {/* Pulse effect */}
+                  <div className={`absolute inset-0 rounded-xl ${
+                    loadingAssessment ? 'bg-gray-400' :
+                    !recentAssessment ? 'bg-[#800000]' :
+                    recentAssessment.percentage < 25 ? 'bg-green-500' :
+                    recentAssessment.percentage < 50 ? 'bg-blue-500' :
+                    recentAssessment.percentage < 75 ? 'bg-yellow-500' :
+                    'bg-red-500'
+                  } animate-pulse opacity-30`}></div>
+                </motion.div>
+                
+                {/* Progress Ring or Loading */}
+                {loadingAssessment ? (
+                  <div className="w-8 h-8 rounded-full border-2 border-gray-300 border-t-[#800000] animate-spin"></div>
+                ) : recentAssessment ? (
+                  <motion.div 
+                    className="flex items-center gap-2"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
+                  >
+                    <div className="relative">
+                      <ProgressRing progress={recentAssessment.percentage} size={45} strokeWidth={4} />
+                      {/* Glow effect */}
+                      <div className={`absolute inset-0 rounded-full blur-md opacity-20 ${
+                        recentAssessment.percentage < 25 ? 'bg-green-400' :
+                        recentAssessment.percentage < 50 ? 'bg-blue-400' :
+                        recentAssessment.percentage < 75 ? 'bg-yellow-400' :
+                        'bg-red-400'
+                      }`}></div>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    className="w-10 h-10 bg-gradient-to-r from-[#800000] to-[#a00000] rounded-xl flex items-center justify-center shadow-lg"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
+                  >
+                    <FaBrain className="text-white text-sm" />
+                  </motion.div>
+                )}
               </div>
+              
+              {/* Content */}
+              {loadingAssessment ? (
+                <>
+                  <p className="text-sm font-bold text-gray-700 mb-1">Assessment</p>
+                  <p className="text-xs text-gray-500">Loading your data...</p>
+                  <div className="mt-2 flex gap-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </>
+              ) : recentAssessment ? (
+                <>
+                  <div className="flex items-center gap-2 mb-2">
+                    <p className={`text-lg font-black ${
+                      recentAssessment.percentage < 25 ? 'text-green-700' :
+                      recentAssessment.percentage < 50 ? 'text-blue-700' :
+                      recentAssessment.percentage < 75 ? 'text-yellow-700' :
+                      'text-red-700'
+                    }`}>
+                      {recentAssessment.anxiety_level}
+                    </p>
+                    {/* Status Badge */}
+                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                      recentAssessment.percentage < 25 ? 'bg-green-200 text-green-800' :
+                      recentAssessment.percentage < 50 ? 'bg-blue-200 text-blue-800' :
+                      recentAssessment.percentage < 75 ? 'bg-yellow-200 text-yellow-800' :
+                      'bg-red-200 text-red-800'
+                    }`}>
+                      {recentAssessment.percentage}%
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FaCalendarAlt className={`text-xs ${
+                        recentAssessment.percentage < 25 ? 'text-green-600' :
+                        recentAssessment.percentage < 50 ? 'text-blue-600' :
+                        recentAssessment.percentage < 75 ? 'text-yellow-600' :
+                        'text-red-600'
+                      }`} />
+                      <span className="text-xs font-medium text-gray-600">
+                        {formatAssessmentDate(recentAssessment.created_at)}
+                      </span>
+                    </div>
+                    
+                    {calculateImprovement() && (
+                      <motion.span 
+                        className={`font-bold text-xs flex items-center gap-1 px-2 py-1 rounded-full ${
+                          calculateImprovement()!.isPositive 
+                            ? 'bg-green-100 text-green-700 border border-green-300' 
+                            : 'bg-red-100 text-red-700 border border-red-300'
+                        }`}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.5, type: "spring" }}
+                      >
+                        {calculateImprovement()!.isPositive ? <FaArrowUp className="text-xs" /> : <FaArrowUp className="text-xs rotate-180" />}
+                        {calculateImprovement()!.isPositive ? '+' : ''}{calculateImprovement()!.value}%
+                      </motion.span>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-bold text-[#800000] mb-1">Assessment</p>
+                  <p className="text-xs text-gray-600 mb-3">Start your wellness journey</p>
+                  <motion.button 
+                    onClick={goToAssessment}
+                    className="w-full bg-gradient-to-r from-[#800000] to-[#a00000] text-white text-xs px-3 py-2 rounded-lg hover:from-[#660000] hover:to-[#800000] transition-all duration-200 font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <FaChartLine className="text-xs" />
+                    Take Assessment
+                  </motion.button>
+                </>
+              )}
             </div>
           </motion.div>
         </div>
 
-        {/* Recent Assessment with scroll reveal */}
-        <ScrollReveal>
-          <motion.div 
-            className={`bg-white rounded-2xl p-4 shadow-lg border-2 mb-6 ${
-              loadingAssessment ? 'border-gray-300' :
-              !recentAssessment ? 'border-gray-300' :
-              recentAssessment.percentage < 25 ? 'border-green-300' :
-              recentAssessment.percentage < 50 ? 'border-yellow-300' :
-              recentAssessment.percentage < 75 ? 'border-orange-300' :
-              'border-red-300'
-            }`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-            whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-                <FaChartLine className={`${
-                  loadingAssessment ? 'text-[#800000]' :
-                  !recentAssessment ? 'text-[#800000]' :
-                  recentAssessment.percentage < 25 ? 'text-green-500' :
-                  recentAssessment.percentage < 50 ? 'text-yellow-500' :
-                  recentAssessment.percentage < 75 ? 'text-orange-500' :
-                  'text-red-500'
-                }`} />
-                Recent Assessment
-              </h3>
-              {loadingAssessment ? (
-                <span className="text-xs text-gray-500">Loading...</span>
-              ) : recentAssessment ? (
-                <span className="text-xs text-gray-500 flex items-center gap-1">
-                  <FaCalendarAlt className={`${
-                    recentAssessment.percentage < 25 ? 'text-green-400' :
-                    recentAssessment.percentage < 50 ? 'text-yellow-400' :
-                    recentAssessment.percentage < 75 ? 'text-yellow-400' :
-                    'text-red-400'
-                  }`} />
-                  {formatAssessmentDate(recentAssessment.created_at)}
-                </span>
-              ) : (
-                <span className="text-xs text-gray-500">No assessments yet</span>
-              )}
-            </div>
-            
-            {loadingAssessment ? (
-              <div className="flex flex-col items-center justify-center py-6">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#800000] mb-2"></div>
-                <p className="text-sm text-gray-500">Loading your assessment data...</p>
-              </div>
-            ) : recentAssessment ? (
-              <div className="flex items-center gap-4">
-                <ProgressRing progress={recentAssessment.percentage} />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`font-semibold ${
-                      recentAssessment.percentage < 25 ? 'text-green-600' : 
-                      recentAssessment.percentage < 50 ? 'text-yellow-600' :
-                      recentAssessment.percentage < 75 ? 'text-yellow-600' : 
-                      'text-red-600'
-                    }`}>
-                      {recentAssessment.anxiety_level}
-                    </span>
-                    {calculateImprovement() && (
-                      <span className={`text-sm font-medium px-2 py-1 rounded-full flex items-center gap-1 ${
-                        calculateImprovement()!.isPositive 
-                          ? 'text-green-600 bg-green-50' 
-                          : 'text-red-600 bg-red-50'
-                      }`}>
-                        {calculateImprovement()!.isPositive ? <FaArrowUp className="text-xs" /> : <FaArrowUp className="text-xs rotate-180" />}
-                        {calculateImprovement()!.isPositive ? '+' : ''}{calculateImprovement()!.value}%
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600 flex items-center gap-2">
-                    {calculateImprovement() === null ? (
-                      <><FaCheck className="text-[#800000]" /> First assessment completed. Keep tracking your progress! 📊</>
-                    ) : recentAssessment.percentage < 25 ? (
-                      <><FaSmile className="text-green-500" /> {calculateImprovement()!.isPositive ? 
-                        "Excellent! Your low anxiety levels are improving further! 🌟" : 
-                        "Low anxiety detected. Continue your wellness practices! 💚"}</>
-                    ) : recentAssessment.percentage < 50 ? (
-                      <><FaLeaf className="text-[#800000]" /> {calculateImprovement()!.isPositive ? 
-                        "Your mild anxiety is improving. Great progress! 🌊" : 
-                        "Mild anxiety detected. Try daily mindfulness! 🧠"}</>
-                    ) : recentAssessment.percentage < 75 ? (
-                      <><FaBrain className="text-yellow-500" /> {calculateImprovement()!.isPositive ? 
-                        "Your moderate anxiety is decreasing. Keep it up! 👏" : 
-                        "Moderate anxiety detected. Consider breathing exercises! 🧘‍♀️"}</>
-                    ) : (
-                      <><FaHeart className="text-red-500" /> {calculateImprovement()!.isPositive ? 
-                        "Your high anxiety is reducing. Stay committed! 🌈" : 
-                        "High anxiety detected. Please reach out for support! 🤝"}</>
-                    )}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <div className="w-16 h-16 bg-[#800000]/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <FaBrain className="text-[#800000] text-xl" />
-                </div>
-                <p className="text-gray-700 font-medium mb-2">No assessments taken yet</p>
-                <p className="text-gray-500 text-sm mb-4">Complete an assessment to track your anxiety levels</p>
-                <button 
-                  onClick={goToAssessment}
-                  className="bg-[#800000] hover:bg-[#660000] text-white text-sm px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
-                >
-                  <FaChartLine className="text-white" />
-                  Take Assessment Now
-                </button>
-              </div>
-            )}
-          </motion.div>
-        </ScrollReveal>
 
-        {/* Quick Actions - Main Features with scroll reveal */}
-        <ScrollReveal delay={0.1} direction="left">
-          <div className="mb-6">
-            <motion.h3 
-              className="font-semibold text-gray-800 mb-4 flex items-center gap-2"
-            >
-              <FaBrain className="text-[#800000]" />
-              Your Wellness Toolkit
-            </motion.h3>
-            
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <QuickAction
-                icon={<FaBookOpen />}
-                title="CBT Modules"
-                subtitle="Learn coping strategies"
-                color="red"
-                onClick={() => navigate('/cbt-modules')}
-              />
-              <QuickAction
-                icon={<FaPlay />}
-                title="Anxiety Videos"
-                subtitle="Guided support content"
-                color="red"
-                onClick={() => navigate('/anxiety-videos')}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <QuickAction
-                icon={<FaLeaf />}
-                title="Relaxation Tools"
-                subtitle="Breathing & meditation"
-                color="green"
-                onClick={() => alert('Relaxation Tools - Opening!')}
-              />
-              <QuickAction
-                icon={<FaGamepad />}
-                title="Gamification"
-                subtitle="Fun wellness activities"
-                color="orange"
-                onClick={() => alert('Gamification - Coming Soon!')}
-              />
-            </div>
-          </div>
-        </ScrollReveal>
 
         {/* Breathing Exercise with scroll reveal */}
         <ScrollReveal delay={0.2} direction="right">

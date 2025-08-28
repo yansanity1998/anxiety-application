@@ -390,7 +390,7 @@ export default function Register({ onSwitch }: RegisterProps) {
                 className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm text-xs cursor-pointer flex justify-between items-center"
                 onClick={() => setShowYearLevelDropdown(!showYearLevelDropdown)}
               >
-                {yearLevel || 'Select year level'}
+                {yearLevel || 'Select year'}
                 <FaChevronDown className="text-gray-400 text-xs" />
               </div>
               {showYearLevelDropdown && (
