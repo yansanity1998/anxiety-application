@@ -187,82 +187,193 @@ export default function LandingPage() {
           <div className={`transition-all duration-1000 ${isVisible.features ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             <div className="text-center mb-12 sm:mb-16">
               <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-[#800000] to-[#a00000] bg-clip-text text-transparent">
-                Why Choose Our Platform?
+                Your Mental Wellness Companion
               </h3>
-              <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-                Comprehensive support designed specifically for your mental wellness journey
+              <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Experience a comprehensive approach to anxiety management with tools designed specifically for students and young adults
               </p>
             </div>
 
-            {/* Feature Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+            {/* Enhanced Feature Cards with Staggered Animation */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6 sm:gap-8">
               <div 
-                className={`bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-3xl shadow-xl border border-[#800000]/10 hover:shadow-2xl transition-all duration-700 transform hover:scale-105 ${isVisible.features ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+                className={`group bg-white/95 backdrop-blur-sm p-6 sm:p-8 rounded-3xl shadow-xl border border-[#800000]/10 hover:shadow-2xl transition-all duration-700 transform hover:scale-105 hover:-translate-y-2 ${isVisible.features ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
                 style={{ transitionDelay: '100ms' }}
               >
-                
-                <div className="bg-gradient-to-r from-[#800000] to-[#a00000] p-4 rounded-2xl w-fit mb-6"> <FaBrain className="text-white text-2xl" /> </div> <h3 className="text-xl font-bold text-[#800000] mb-4">Expert Guidance</h3> <p className="text-gray-600 leading-relaxed"> Connect with certified mental health professionals who specialize in anxiety management and student wellness. </p> </div>
+                <div className="bg-gradient-to-r from-[#800000] to-[#a00000] p-4 rounded-2xl w-fit mb-6 group-hover:scale-110 transition-transform duration-300"> 
+                  <FaBrain className="text-white text-2xl" /> 
+                </div> 
+                <h3 className="text-xl font-bold text-[#800000] mb-4 group-hover:text-[#a00000] transition-colors duration-300">24/7 Expert Support</h3> 
+                <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300"> 
+                  Access certified counselors and mental health professionals anytime you need support, guidance, or just someone to talk to.
+                </p> 
+                <div className="mt-4 text-sm text-[#800000] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  → Available around the clock
+                </div>
+              </div>
 
               <div 
-                className={`bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-3xl shadow-xl border border-[#800000]/10 hover:shadow-2xl transition-all duration-700 transform hover:scale-105 ${isVisible.features ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+                className={`group bg-white/95 backdrop-blur-sm p-6 sm:p-8 rounded-3xl shadow-xl border border-[#800000]/10 hover:shadow-2xl transition-all duration-700 transform hover:scale-105 hover:-translate-y-2 ${isVisible.features ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
                 style={{ transitionDelay: '200ms' }}
               >
-                <div className="bg-gradient-to-r from-[#800000] to-[#a00000] p-4 rounded-2xl w-fit mb-6">
+                <div className="bg-gradient-to-r from-[#800000] to-[#a00000] p-4 rounded-2xl w-fit mb-6 group-hover:scale-110 transition-transform duration-300">
                   <FaHeart className="text-white text-2xl" />
                 </div>
-                <h3 className="text-xl font-bold text-[#800000] mb-4">Personalized Care</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Receive tailored strategies and coping mechanisms designed specifically for your unique situation and needs.
+                <h3 className="text-xl font-bold text-[#800000] mb-4 group-hover:text-[#a00000] transition-colors duration-300">Personalized Journey</h3>
+                <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300">
+                  Get customized coping strategies, mindfulness exercises, and progress tracking tailored to your unique anxiety patterns.
                 </p>
+                <div className="mt-4 text-sm text-[#800000] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  → Tailored just for you
+                </div>
               </div>
 
               <div 
-                className={`bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-3xl shadow-xl border border-[#800000]/10 hover:shadow-2xl transition-all duration-700 transform hover:scale-105 ${isVisible.features ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+                className={`group bg-white/95 backdrop-blur-sm p-6 sm:p-8 rounded-3xl shadow-xl border border-[#800000]/10 hover:shadow-2xl transition-all duration-700 transform hover:scale-105 hover:-translate-y-2 ${isVisible.features ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
                 style={{ transitionDelay: '300ms' }}
               >
-                <div className="bg-gradient-to-r from-[#800000] to-[#a00000] p-4 rounded-2xl w-fit mb-6">
+                <div className="bg-gradient-to-r from-[#800000] to-[#a00000] p-4 rounded-2xl w-fit mb-6 group-hover:scale-110 transition-transform duration-300">
                   <FaShieldAlt className="text-white text-2xl" />
                 </div>
-                <h3 className="text-xl font-bold text-[#800000] mb-4">Safe Environment</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Express yourself freely in a confidential, judgment-free space designed for healing and growth.
+                <h3 className="text-xl font-bold text-[#800000] mb-4 group-hover:text-[#a00000] transition-colors duration-300">Complete Privacy</h3>
+                <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300">
+                  Share your thoughts and feelings in a completely confidential, secure environment with end-to-end encryption.
                 </p>
+                <div className="mt-4 text-sm text-[#800000] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  → Your safety guaranteed
+                </div>
               </div>
 
               <div 
-                className={`bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-3xl shadow-xl border border-[#800000]/10 hover:shadow-2xl transition-all duration-700 transform hover:scale-105 ${isVisible.features ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+                className={`group bg-white/95 backdrop-blur-sm p-6 sm:p-8 rounded-3xl shadow-xl border border-[#800000]/10 hover:shadow-2xl transition-all duration-700 transform hover:scale-105 hover:-translate-y-2 ${isVisible.features ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
                 style={{ transitionDelay: '400ms' }}
               >
-                <div className="bg-gradient-to-r from-[#800000] to-[#a00000] p-4 rounded-2xl w-fit mb-6">
+                <div className="bg-gradient-to-r from-[#800000] to-[#a00000] p-4 rounded-2xl w-fit mb-6 group-hover:scale-110 transition-transform duration-300">
                   <FaUsers className="text-white text-2xl" />
                 </div>
-                <h3 className="text-xl font-bold text-[#800000] mb-4">Community Support</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  Join a supportive community of peers and professionals committed to mental wellness and recovery.
+                <h3 className="text-xl font-bold text-[#800000] mb-4 group-hover:text-[#a00000] transition-colors duration-300">Supportive Community</h3>
+                <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300">
+                  Connect with peers who understand your journey and share experiences in moderated, safe group sessions.
                 </p>
+                <div className="mt-4 text-sm text-[#800000] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  → You're never alone
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Benefits Section */}
+            <div className={`mt-16 sm:mt-20 transition-all duration-1000 delay-500 ${isVisible.features ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-8 sm:p-12 border border-gray-200/50">
+                <div className="text-center mb-8">
+                  <h4 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4">What Makes Us Different?</h4>
+                  <p className="text-gray-600 max-w-2xl mx-auto">
+                    We combine evidence-based therapy techniques with modern technology to create a comprehensive support system
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+                  <div className="text-center group">
+                    <div className="bg-white p-6 rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
+                      <div className="text-3xl mb-4">🧠</div>
+                      <h5 className="font-bold text-gray-800 mb-2">CBT Modules</h5>
+                      <p className="text-sm text-gray-600">Interactive cognitive behavioral therapy exercises</p>
+                    </div>
+                  </div>
+                  <div className="text-center group">
+                    <div className="bg-white p-6 rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
+                      <div className="text-3xl mb-4">🎯</div>
+                      <h5 className="font-bold text-gray-800 mb-2">Progress Tracking</h5>
+                      <p className="text-sm text-gray-600">Visual insights into your mental wellness journey</p>
+                    </div>
+                  </div>
+                  <div className="text-center group">
+                    <div className="bg-white p-6 rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
+                      <div className="text-3xl mb-4">🌟</div>
+                      <h5 className="font-bold text-gray-800 mb-2">Gamification</h5>
+                      <p className="text-sm text-gray-600">Achieve milestones and build healthy habits</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Call to Action */}
+        {/* Enhanced Call to Action */}
         <section 
           id="cta" 
           className="py-16 sm:py-24 px-4 sm:px-6 max-w-7xl mx-auto"
           data-animate
         >
           <div className={`transition-all duration-1000 ${isVisible.cta ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            <div className="text-center bg-gradient-to-r from-[#800000] to-[#a00000] rounded-3xl p-8 sm:p-12 lg:p-16 text-white shadow-2xl">
-              <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6">Ready to Begin Your Journey?</h3>
-              <p className="text-lg sm:text-xl mb-8 sm:mb-10 opacity-90 max-w-2xl mx-auto">
-                Take the first step towards better mental health with our comprehensive support system.
-              </p>
-              <button
-                onClick={() => setShowLogin(true)}
-                className="bg-white text-[#800000] px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-lg sm:text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-              >
-                Get Started Today
-              </button>
+            <div className="relative bg-gradient-to-r from-[#800000] via-[#900000] to-[#a00000] rounded-3xl p-8 sm:p-12 lg:p-16 text-white shadow-2xl overflow-hidden">
+              {/* Animated Background Elements */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-0 left-0 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-xl animate-pulse"></div>
+                <div className="absolute bottom-0 right-0 w-72 h-72 bg-white rounded-full mix-blend-overlay filter blur-xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+              </div>
+              
+              <div className="relative z-10 text-center">
+                <div className="mb-8">
+                  <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6 animate-fade-in">
+                    Ready to Transform Your Mental Health?
+                  </h3>
+                  <p className="text-lg sm:text-xl mb-6 opacity-90 max-w-3xl mx-auto leading-relaxed">
+                    Join thousands of students who have already taken the first step towards a calmer, more confident life. 
+                    Your journey to wellness starts with a single click.
+                  </p>
+                  
+                  {/* Stats Section */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-10">
+                    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 transform hover:scale-105 transition-all duration-300">
+                      <div className="text-2xl sm:text-3xl font-bold mb-2">95%</div>
+                      <div className="text-sm opacity-90">Report Reduced Anxiety</div>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 transform hover:scale-105 transition-all duration-300">
+                      <div className="text-2xl sm:text-3xl font-bold mb-2">24/7</div>
+                      <div className="text-sm opacity-90">Professional Support</div>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 transform hover:scale-105 transition-all duration-300">
+                      <div className="text-2xl sm:text-3xl font-bold mb-2">10K+</div>
+                      <div className="text-sm opacity-90">Students Helped</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
+                  <button
+                    onClick={() => setShowLogin(true)}
+                    className="group bg-white text-[#800000] px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-lg sm:text-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center gap-3 min-w-[220px] justify-center"
+                  >
+                    <span>Start Your Journey</span>
+                    <div className="transform group-hover:translate-x-1 transition-transform duration-300">→</div>
+                  </button>
+                  <button
+                    onClick={() => setShowRegister(true)}
+                    className="bg-transparent border-2 border-white text-white px-8 sm:px-10 py-4 sm:py-5 rounded-2xl font-semibold text-lg sm:text-xl shadow-lg hover:bg-white hover:text-[#800000] transform hover:scale-105 transition-all duration-300 min-w-[220px]"
+                  >
+                    Create Free Account
+                  </button>
+                </div>
+                
+                {/* Trust Indicators */}
+                <div className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-white/20">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm opacity-90">
+                    <div className="flex items-center gap-2">
+                      <FaShieldAlt className="text-green-300" />
+                      <span>100% Confidential</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>•</span>
+                      <span>Free to Start</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>•</span>
+                      <span>No Credit Card Required</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>

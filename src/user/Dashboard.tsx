@@ -10,11 +10,9 @@ import {
   FaCalendarAlt, 
   FaChartLine, 
   // FaMedal,
-  FaGem,
   FaFire,
   // FaStar,
   FaCheck,
-  FaLock,
   // FaHeadphones,
   FaBookOpen,
   FaGamepad,
@@ -56,44 +54,6 @@ const mockUserData = {
     { id: 4, name: "Calm Collector", icon: "☮️", unlocked: false }
   ]
 };
-
-type QuickActionProps = {
-  icon: React.ReactNode;
-  title: string;
-  subtitle: string;
-  color: string;
-  onClick: () => void;
-  locked?: boolean;
-};
-
-const QuickAction = ({ icon, title, subtitle, color, onClick, locked = false }: QuickActionProps) => (
-  <motion.div 
-    className={`relative bg-white rounded-2xl p-4 shadow-lg border-2 transition-all duration-300 ${
-      locked 
-        ? 'border-gray-200 opacity-50' 
-        : `border-${color}-200 hover:border-${color}-300 hover:shadow-xl hover:scale-105 active:scale-95 cursor-pointer`
-    }`}
-    onClick={!locked ? onClick : undefined}
-    whileHover={!locked ? { scale: 1.05 } : {}}
-    whileTap={!locked ? { scale: 0.95 } : {}}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3 }}
-  >
-    {locked && (
-      <div className="absolute top-2 right-2">
-        <FaLock className="text-gray-400 text-sm" />
-      </div>
-    )}
-    <div className={`text-2xl mb-2 ${locked ? 'text-gray-400' : `text-${color}-500`}`}>
-      {icon}
-    </div>
-    <h3 className={`font-semibold text-sm ${locked ? 'text-gray-400' : 'text-gray-800'}`}>
-      {title}
-    </h3>
-    <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
-  </motion.div>
-);
 
 type ProgressRingProps = {
   progress: number;
@@ -172,7 +132,7 @@ interface ScrollRevealProps {
 }
 
 const ScrollReveal = ({ children, delay = 0, direction = "up" }: ScrollRevealProps) => {
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement | null>(null);
   const isInView = useInView(ref, { once: true, amount: 0.3 });
   
   const variants: Variants = {
@@ -289,7 +249,7 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
 
   const updateActiveIndex = () => {
     if (carouselRef.current) {
-      const { scrollLeft, clientWidth } = carouselRef.current;
+      const { scrollLeft } = carouselRef.current;
       const cardWidth = 280; // Width of one card plus gap (264px + 16px gap)
       const currentIndex = Math.round(scrollLeft / cardWidth);
       setActiveIndex(Math.min(currentIndex, mainNavItems.length - 1));
@@ -513,7 +473,7 @@ const Dashboard = () => {
   }, [userData]);
 
   // Add these refs for scroll effects
-  const headerRef = useRef(null);
+  const headerRef = useRef<HTMLDivElement | null>(null);
   const { scrollY } = useScroll();
   const headerOpacity = useTransform(scrollY, [0, 100], [1, 0.8]);
   const headerScale = useTransform(scrollY, [0, 100], [1, 0.98]);
