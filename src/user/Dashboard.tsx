@@ -104,7 +104,7 @@ const ProgressRing = ({ progress, size = 60 }: ProgressRingProps) => {
       transition={{ duration: 0.5, delay: 0.2 }}
     >
       <motion.div 
-        className={`w-${size/4} h-${size/4} rounded-full ${progressInfo.bgColor} ${progressInfo.borderColor} border-2 flex items-center justify-center relative`}
+        className={`rounded-full ${progressInfo.bgColor} ${progressInfo.borderColor} border-2 flex items-center justify-center relative`}
         style={{ width: size, height: size }}
         initial={{ opacity: 0, rotate: -180 }}
         animate={{ opacity: 1, rotate: 0 }}
@@ -241,28 +241,54 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
 
   const updateActiveIndex = () => {
     if (carouselRef.current) {
-      const { scrollLeft } = carouselRef.current;
-      const cardWidth = 280; // Width of one card plus gap (264px + 16px gap)
-      const currentIndex = Math.round(scrollLeft / cardWidth);
-      setActiveIndex(Math.min(currentIndex, mainNavItems.length - 1));
+      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
+      const maxScroll = scrollWidth - clientWidth;
+      const scrollPercentage = scrollLeft / maxScroll;
+      
+      // Map to 3 positions: 0 (start), 1 (middle), 2 (end)
+      let currentIndex;
+      if (scrollPercentage < 0.25) {
+        currentIndex = 0;
+      } else if (scrollPercentage < 0.75) {
+        currentIndex = 1;
+      } else {
+        currentIndex = 2;
+      }
+      
+      setActiveIndex(currentIndex);
     }
   };
 
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
-      const scrollAmount = 280; // Width of one card plus gap
-      const newScrollLeft = carouselRef.current.scrollLeft + (direction === 'right' ? scrollAmount : -scrollAmount);
-      carouselRef.current.scrollTo({
-        left: newScrollLeft,
-        behavior: 'smooth'
-      });
+      const { scrollWidth, clientWidth } = carouselRef.current;
+      const maxScroll = scrollWidth - clientWidth;
+      
+      let newIndex;
+      if (direction === 'right') {
+        newIndex = Math.min(activeIndex + 1, 2);
+      } else {
+        newIndex = Math.max(activeIndex - 1, 0);
+      }
+      
+      scrollToIndex(newIndex);
     }
   };
 
   const scrollToIndex = (index: number) => {
     if (carouselRef.current) {
-      const cardWidth = 280; // Width of one card plus gap
-      const scrollLeft = index * cardWidth;
+      const { scrollWidth, clientWidth } = carouselRef.current;
+      const maxScroll = scrollWidth - clientWidth;
+      
+      let scrollLeft;
+      if (index === 0) {
+        scrollLeft = 0;
+      } else if (index === 1) {
+        scrollLeft = maxScroll * 0.5; // Middle position
+      } else {
+        scrollLeft = maxScroll; // End position
+      }
+      
       carouselRef.current.scrollTo({
         left: scrollLeft,
         behavior: 'smooth'
@@ -286,7 +312,7 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
   }, []);
 
   return (
-    <div className="mb-6">
+    <div className="mb-6 w-full overflow-hidden">
       <motion.h2 
         className="font-bold text-xl text-gray-800 mb-4 px-1"
         initial={{ opacity: 0, y: -20 }}
@@ -296,12 +322,12 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
         🎯 Your Wellness Tools
       </motion.h2>
       
-      <div className="relative">
+      <div className="relative w-full">
         {/* Left Scroll Button */}
         <AnimatePresence>
           {canScrollLeft && (
             <motion.button
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white transition-all duration-200"
+              className="absolute left-1 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white transition-all duration-200"
               onClick={() => scrollCarousel('left')}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -309,7 +335,7 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <FaChevronLeft className="text-gray-600 text-sm" />
+              <FaChevronLeft className="text-gray-600 text-xs sm:text-sm" />
             </motion.button>
           )}
         </AnimatePresence>
@@ -318,7 +344,7 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
         <AnimatePresence>
           {canScrollRight && (
             <motion.button
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white transition-all duration-200"
+              className="absolute right-1 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white transition-all duration-200"
               onClick={() => scrollCarousel('right')}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -326,7 +352,7 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <FaChevronRight className="text-gray-600 text-sm" />
+              <FaChevronRight className="text-gray-600 text-xs sm:text-sm" />
             </motion.button>
           )}
         </AnimatePresence>
@@ -334,12 +360,17 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
         {/* Carousel Container */}
         <div
           ref={carouselRef}
-          className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth px-2 py-2"
+          className="flex gap-3 sm:gap-4 overflow-x-auto scrollbar-hide scroll-smooth px-2 py-2"
+          style={{ 
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            WebkitOverflowScrolling: 'touch'
+          }}
         >
           {mainNavItems.map((item, index) => (
             <motion.div
               key={item.id}
-              className={`flex-shrink-0 w-64 bg-gradient-to-r ${item.bgGradient} rounded-2xl p-5 shadow-lg border ${item.borderColor} cursor-pointer group hover:shadow-xl transition-all duration-300`}
+              className={`flex-shrink-0 w-56 sm:w-64 bg-gradient-to-r ${item.bgGradient} rounded-2xl p-4 sm:p-5 shadow-lg border ${item.borderColor} cursor-pointer group hover:shadow-xl transition-all duration-300`}
               onClick={item.onClick}
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -347,13 +378,13 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
               whileHover={{ y: -8, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <div className="flex items-center gap-4 mb-3">
-                <div className={`w-14 h-14 bg-gradient-to-r ${item.gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                  <item.icon className="text-white text-xl" />
+              <div className="flex items-center gap-3 sm:gap-4 mb-3">
+                <div className={`w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r ${item.gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <item.icon className="text-white text-lg sm:text-xl" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-gray-800 text-lg mb-1">{item.title}</h3>
-                  <p className="text-gray-600 text-sm">{item.subtitle}</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-gray-800 text-base sm:text-lg mb-1 truncate">{item.title}</h3>
+                  <p className="text-gray-600 text-xs sm:text-sm truncate">{item.subtitle}</p>
                 </div>
               </div>
               
@@ -385,21 +416,21 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
         </div>
         
         {/* Enhanced Scroll Indicator Dots */}
-        <div className="flex justify-center gap-3 mt-4">
-          {mainNavItems.map((_, index) => (
+        <div className="flex justify-center gap-2 sm:gap-3 mt-4">
+          {[0, 1, 2].map((index) => (
             <motion.button
               key={index}
               className={`relative rounded-full transition-all duration-300 cursor-pointer ${
                 activeIndex === index 
-                  ? 'w-8 h-3 bg-[#800000]' 
-                  : 'w-3 h-3 bg-gray-300 hover:bg-gray-400'
+                  ? 'w-6 sm:w-8 h-2.5 sm:h-3 bg-[#800000]' 
+                  : 'w-2.5 sm:w-3 h-2.5 sm:h-3 bg-gray-300 hover:bg-gray-400'
               }`}
               onClick={() => scrollToIndex(index)}
               whileHover={{ scale: 1.2 }}
               whileTap={{ scale: 0.9 }}
               initial={false}
               animate={{
-                width: activeIndex === index ? 32 : 12,
+                width: activeIndex === index ? (window.innerWidth > 640 ? 32 : 24) : (window.innerWidth > 640 ? 12 : 10),
                 backgroundColor: activeIndex === index ? '#800000' : '#d1d5db'
               }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
@@ -906,11 +937,11 @@ const Dashboard = () => {
   const closeNotificationPopover = () => setActiveNotification(null);
 
   return (
-    <div className="min-h-screen bg-[#800000]/5">
+    <div className="min-h-screen bg-[#800000]/5 w-full overflow-x-hidden" style={{ maxWidth: '100vw' }}>
       {/* Header with scroll effect */}
       <motion.div 
         ref={headerRef}
-        className="relative bg-gradient-to-br from-[#4a0e0e] via-[#660000] to-[#800000] backdrop-blur-md border-b border-white/10 sticky top-0 z-50 shadow-2xl overflow-hidden"
+        className="relative bg-gradient-to-br from-[#4a0e0e] via-[#660000] to-[#800000] backdrop-blur-md border-b border-white/10 sticky top-0 z-50 shadow-2xl overflow-hidden w-full"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -996,78 +1027,78 @@ const Dashboard = () => {
           />
         </div>
         
-        <div className="relative px-3 sm:px-4 md:px-6 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
+        <div className="relative px-3 sm:px-4 md:px-6 py-3 sm:py-4 w-full max-w-full">
+          <div className="flex items-center justify-between w-full max-w-full">
             {/* Left: Greeting Section */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 max-w-[calc(100%-120px)] sm:max-w-[calc(100%-140px)]">
               <div className="flex items-center space-x-2 sm:space-x-3">
-                {/* Enhanced Lotus Icon with Multiple Effects */}
-                <motion.div
-                  className="relative"
-                  animate={{ 
-                    rotate: [0, 5, 0, -5, 0],
-                    y: [0, -2, 0, -1, 0]
-                  }}
-                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                >
-                  {/* Outer glow ring */}
-                  <motion.div 
-                    className="absolute inset-0 w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-gradient-to-r from-pink-400/30 via-purple-400/30 to-cyan-400/30 rounded-full blur-lg -z-20"
+                                  {/* Enhanced Lotus Icon with Multiple Effects */}
+                  <motion.div
+                    className="relative flex-shrink-0"
                     animate={{ 
-                      scale: [1, 1.2, 1],
-                      opacity: [0.3, 0.6, 0.3]
+                      rotate: [0, 5, 0, -5, 0],
+                      y: [0, -2, 0, -1, 0]
                     }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  
-                  {/* Inner glow */}
-                  <motion.div 
-                    className="absolute inset-0 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 bg-white/30 rounded-full blur-md -z-10"
-                    animate={{ 
-                      scale: [1, 1.1, 1],
-                      opacity: [0.4, 0.7, 0.4]
-                    }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  
-                  {/* Sparkle effects */}
-                  <motion.div 
-                    className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white/60 rounded-full"
-                    animate={{ 
-                      scale: [0, 1, 0],
-                      opacity: [0, 1, 0]
-                    }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                  />
-                  <motion.div 
-                    className="absolute -bottom-1 -left-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-cyan-300/60 rounded-full"
-                    animate={{ 
-                      scale: [0, 1, 0],
-                      opacity: [0, 1, 0]
-                    }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                  />
-                  
-                  {/* Main lotus image */}
-                  <motion.img 
-                    src="/lotus.png" 
-                    alt="Lotus" 
-                    className="relative z-10 h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-18 lg:w-18 drop-shadow-2xl filter brightness-125 contrast-110" 
-                    animate={{ 
-                      filter: [
-                        'brightness(125%) contrast(110%) saturate(120%)',
-                        'brightness(135%) contrast(120%) saturate(130%)',
-                        'brightness(125%) contrast(110%) saturate(120%)'
-                      ]
-                    }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                </motion.div>
+                    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                  >
+                    {/* Outer glow ring */}
+                    <motion.div 
+                      className="absolute inset-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-18 lg:h-18 bg-gradient-to-r from-pink-400/30 via-purple-400/30 to-cyan-400/30 rounded-full blur-lg -z-20"
+                      animate={{ 
+                        scale: [1, 1.2, 1],
+                        opacity: [0.3, 0.6, 0.3]
+                      }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    
+                    {/* Inner glow */}
+                    <motion.div 
+                      className="absolute inset-0 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 bg-white/30 rounded-full blur-md -z-10"
+                      animate={{ 
+                        scale: [1, 1.1, 1],
+                        opacity: [0.4, 0.7, 0.4]
+                      }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    
+                    {/* Sparkle effects */}
+                    <motion.div 
+                      className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-white/60 rounded-full"
+                      animate={{ 
+                        scale: [0, 1, 0],
+                        opacity: [0, 1, 0]
+                      }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                    />
+                    <motion.div 
+                      className="absolute -bottom-0.5 -left-0.5 sm:-bottom-1 sm:-left-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-cyan-300/60 rounded-full"
+                      animate={{ 
+                        scale: [0, 1, 0],
+                        opacity: [0, 1, 0]
+                      }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                    />
+                    
+                    {/* Main lotus image */}
+                    <motion.img 
+                      src="/lotus.png" 
+                      alt="Lotus" 
+                      className="relative z-10 h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 lg:h-16 lg:w-16 drop-shadow-2xl filter brightness-125 contrast-110" 
+                      animate={{ 
+                        filter: [
+                          'brightness(125%) contrast(110%) saturate(120%)',
+                          'brightness(135%) contrast(120%) saturate(130%)',
+                          'brightness(125%) contrast(110%) saturate(120%)'
+                        ]
+                      }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  </motion.div>
                 
                 {/* Enhanced Greeting Text */}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 ml-2 sm:ml-3">
                   <motion.h1 
-                    className="relative text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white truncate"
+                    className="relative text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white"
                     style={{ 
                       textShadow: '0 2px 8px rgba(0,0,0,0.4), 0 0 30px rgba(255,255,255,0.15), 0 0 60px rgba(255,255,255,0.05)'
                     }}
@@ -1084,14 +1115,13 @@ const Dashboard = () => {
                       }}
                       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                     />
-                    <span className="block sm:inline">
+                    <span className="block">
                       {getGreeting()}
                     </span>
-                    <span className="hidden xs:inline sm:inline">, </span>
-                    <span className="block xs:inline sm:inline text-base sm:text-lg md:text-xl lg:text-2xl font-medium text-white/90 truncate">
+                    <span className="block text-sm sm:text-base md:text-lg lg:text-xl font-medium text-white/90 truncate">
                       {loadingUser ? (
                         <span className="inline-flex items-center">
-                          <span className="w-4 h-4 bg-white/30 rounded-full animate-pulse mr-1"></span>
+                          <span className="w-3 h-3 sm:w-4 sm:h-4 bg-white/30 rounded-full animate-pulse mr-1"></span>
                           Loading...
                         </span>
                       ) : (
@@ -1102,7 +1132,7 @@ const Dashboard = () => {
                   
                   {/* Time indicator - now visible on small screens with larger text */}
                   <motion.p 
-                    className="hidden xs:block text-sm sm:text-base md:text-lg text-white/80 font-medium mt-1"
+                    className="hidden sm:block text-xs sm:text-sm md:text-base text-white/80 font-medium mt-1 truncate"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4, duration: 0.6 }}
@@ -1118,10 +1148,10 @@ const Dashboard = () => {
             </div>
 
             {/* Right: Enhanced Action Buttons */}
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
               {/* Enhanced Notification Button */}
               <motion.button 
-                className="relative group p-2 sm:p-2.5 bg-gradient-to-br from-white/15 via-white/20 to-white/15 hover:from-white/25 hover:via-white/30 hover:to-white/25 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-white/30 shadow-lg hover:shadow-2xl transition-all duration-300"
+                className="relative group p-1.5 sm:p-2 bg-gradient-to-br from-white/15 via-white/20 to-white/15 hover:from-white/25 hover:via-white/30 hover:to-white/25 backdrop-blur-sm rounded-lg sm:rounded-xl border border-white/30 shadow-lg hover:shadow-2xl transition-all duration-300"
                 whileTap={{ scale: 0.95 }}
                 whileHover={{ scale: 1.05, y: -2 }}
                 onClick={() => {
@@ -1135,7 +1165,7 @@ const Dashboard = () => {
               >
                 {/* Button glow effect */}
                 <motion.div 
-                  className="absolute inset-0 bg-gradient-to-br from-cyan-400/20 to-purple-400/20 rounded-xl sm:rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="absolute inset-0 bg-gradient-to-br from-cyan-400/20 to-purple-400/20 rounded-lg sm:rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   animate={{ 
                     scale: [1, 1.1, 1],
                   }}
@@ -1148,12 +1178,12 @@ const Dashboard = () => {
                   }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  <FaBell className="relative z-10 text-white text-sm sm:text-base drop-shadow-lg" />
+                  <FaBell className="relative z-10 text-white text-xs sm:text-sm drop-shadow-lg" />
                 </motion.div>
                 
                 {notifications.length > 0 && (
                   <motion.span 
-                    className="absolute -top-1 -right-1 bg-gradient-to-r from-red-400 via-red-500 to-pink-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold shadow-xl border-2 border-white/30"
+                    className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-gradient-to-r from-red-400 via-red-500 to-pink-500 text-white text-xs rounded-full min-w-[16px] h-[16px] sm:min-w-[18px] sm:h-[18px] flex items-center justify-center font-bold shadow-xl border-2 border-white/30"
                     initial={{ scale: 0 }}
                     animate={{ 
                       scale: 1,
@@ -1175,14 +1205,14 @@ const Dashboard = () => {
 
               {/* Enhanced Profile Button */}
               <motion.div 
-                className="relative group w-9 h-9 sm:w-11 sm:h-11 bg-gradient-to-br from-white/15 via-white/20 to-white/15 hover:from-white/25 hover:via-white/30 hover:to-white/25 backdrop-blur-sm rounded-xl sm:rounded-2xl flex items-center justify-center cursor-pointer border border-white/30 shadow-lg hover:shadow-2xl transition-all duration-300"
+                className="relative group w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-white/15 via-white/20 to-white/15 hover:from-white/25 hover:via-white/30 hover:to-white/25 backdrop-blur-sm rounded-lg sm:rounded-xl flex items-center justify-center cursor-pointer border border-white/30 shadow-lg hover:shadow-2xl transition-all duration-300"
                 whileHover={{ scale: 1.05, rotate: 5, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={goToProfile}
               >
                 {/* Profile button glow */}
                 <motion.div 
-                  className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-xl sm:rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-lg sm:rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   animate={{ 
                     scale: [1, 1.05, 1],
                   }}
@@ -1191,7 +1221,7 @@ const Dashboard = () => {
                 
                 {/* Animated border */}
                 <motion.div 
-                  className="absolute inset-0 rounded-xl sm:rounded-2xl border border-white/20"
+                  className="absolute inset-0 rounded-lg sm:rounded-xl border border-white/20"
                   animate={{ 
                     borderColor: [
                       'rgba(255,255,255,0.2)',
@@ -1202,7 +1232,7 @@ const Dashboard = () => {
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 />
                 
-                <FaUser className="relative z-10 text-white text-sm sm:text-base drop-shadow-lg" />
+                <FaUser className="relative z-10 text-white text-xs sm:text-sm drop-shadow-lg" />
               </motion.div>
             </div>
           </div>
@@ -1401,26 +1431,26 @@ const Dashboard = () => {
       </AnimatePresence>
 
       {/* Main Content */}
-      <div className="px-4 py-6 pb-20">
+      <div className="w-full max-w-full px-3 sm:px-4 py-4 sm:py-6 pb-20 overflow-x-hidden">
         {/* Main Navigation Carousel */}
         <MainNavCarousel navigate={navigate} />
         
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-6 w-full">
           {/* Day Streak Card */}
           <motion.div 
-            className={`bg-white rounded-2xl p-4 shadow-lg border-2 ${getFireBorderColor(userStreak)}`}
+            className={`bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-lg border-2 w-full ${getFireBorderColor(userStreak)}`}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
             whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
           >
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
               <motion.div
                 animate={{ rotate: [0, 10, 0, -10, 0] }}
                 transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
               >
-                <FaFire className={`${getFireColor(userStreak)} text-xl`} title={
+                <FaFire className={`${getFireColor(userStreak)} text-lg sm:text-xl`} title={
                   userStreak >= 100 ? '🔥 100+ Day Streak! Legendary!' :
                   userStreak >= 60 ? '🔥 60+ Day Streak! Incredible!' :
                   userStreak >= 50 ? '🔥 50+ Day Streak! Amazing!' :
@@ -1431,10 +1461,10 @@ const Dashboard = () => {
                 } />
               </motion.div>
               {loadingStreak ? (
-                <div className="w-6 h-6 rounded-full border-2 border-gray-300 border-t-orange-500 animate-spin"></div>
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-gray-300 border-t-orange-500 animate-spin"></div>
               ) : (
                 <motion.span 
-                  className={`text-2xl font-bold relative ${getFireColor(userStreak)}`}
+                  className={`text-xl sm:text-2xl font-bold relative ${getFireColor(userStreak)}`}
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.2 }}
@@ -1442,7 +1472,7 @@ const Dashboard = () => {
                   {userStreak}
                   {streakIncrease && (
                     <motion.span
-                      className="absolute -top-4 left-1/2 -translate-x-1/2 text-green-500 text-base font-bold drop-shadow"
+                      className="absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 text-green-500 text-sm sm:text-base font-bold drop-shadow"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: -10 }}
                       exit={{ opacity: 0, y: -20 }}
@@ -1454,21 +1484,21 @@ const Dashboard = () => {
                 </motion.span>
               )}
             </div>
-            <p className={`text-sm font-bold mb-1 ${getFireColor(userStreak)}`}>Day Streak</p>
-            <div className="flex flex-col items-center mt-2 mb-2">
+            <p className={`text-xs sm:text-sm font-bold mb-1 ${getFireColor(userStreak)}`}>Day Streak</p>
+            <div className="flex flex-col items-center mt-1 mb-1 sm:mt-2 sm:mb-2">
               <StreakPet streak={userStreak} className="animate-bounce-slow" showLabel={false} />
             </div>
-            <div className="mt-2 flex items-center gap-1 justify-center">
+            <div className="mt-1 sm:mt-2 flex items-center gap-1 justify-center">
               <FaArrowUp className={`text-xs ${getFireColor(userStreak)}`} />
-              <span className={`text-xs font-medium ${getFireColor(userStreak)}`}>
-                {userStreak > 0 ? `${userStreak} days and counting!` : 'Start your streak today!'}
+              <span className={`text-xs font-medium ${getFireColor(userStreak)} text-center leading-tight`}>
+                {userStreak > 0 ? `${userStreak} days!` : 'Start today!'}
               </span>
             </div>
           </motion.div>
 
           {/* Recent Assessment Compact Card */}
           <motion.div 
-            className={`relative overflow-hidden rounded-2xl p-4 shadow-lg border-2 ${
+            className={`relative overflow-hidden rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-lg border-2 w-full ${
               loadingAssessment ? 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-300' :
               !recentAssessment ? 'bg-gradient-to-br from-[#800000]/10 to-[#800000]/20 border-[#800000]/30' :
               recentAssessment.percentage < 25 ? 'bg-gradient-to-br from-green-50 to-emerald-100 border-green-400' :
@@ -1496,10 +1526,10 @@ const Dashboard = () => {
             </div>
 
             <div className="relative z-10">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
                 {/* Icon with animated background */}
                 <motion.div
-                  className={`relative w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${
+                  className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg ${
                     loadingAssessment ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
                     !recentAssessment ? 'bg-gradient-to-r from-[#800000] to-[#a00000]' :
                     recentAssessment.percentage < 25 ? 'bg-gradient-to-r from-green-500 to-emerald-600' :
@@ -1513,9 +1543,9 @@ const Dashboard = () => {
                   }}
                   transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
                 >
-                  <FaChartLine className="text-white text-lg drop-shadow-sm" />
+                  <FaChartLine className="text-white text-base sm:text-lg drop-shadow-sm" />
                   {/* Pulse effect */}
-                  <div className={`absolute inset-0 rounded-xl ${
+                  <div className={`absolute inset-0 rounded-lg sm:rounded-xl ${
                     loadingAssessment ? 'bg-gray-400' :
                     !recentAssessment ? 'bg-[#800000]' :
                     recentAssessment.percentage < 25 ? 'bg-green-500' :
@@ -1527,16 +1557,16 @@ const Dashboard = () => {
                 
                 {/* Progress Ring or Loading */}
                 {loadingAssessment ? (
-                  <div className="w-8 h-8 rounded-full border-2 border-gray-300 border-t-[#800000] animate-spin"></div>
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 border-t-[#800000] animate-spin"></div>
                 ) : recentAssessment ? (
                   <motion.div 
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-1 sm:gap-2"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
                   >
                     <div className="relative">
-                      <ProgressRing progress={recentAssessment.percentage} size={45} />
+                      <ProgressRing progress={recentAssessment.percentage} size={35} />
                       {/* Glow effect */}
                       <div className={`absolute inset-0 rounded-full blur-md opacity-20 ${
                         recentAssessment.percentage < 25 ? 'bg-green-400' :
@@ -1548,12 +1578,12 @@ const Dashboard = () => {
                   </motion.div>
                 ) : (
                   <motion.div 
-                    className="w-10 h-10 bg-gradient-to-r from-[#800000] to-[#a00000] rounded-xl flex items-center justify-center shadow-lg"
+                    className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-[#800000] to-[#a00000] rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
                   >
-                    <FaBrain className="text-white text-sm" />
+                    <FaBrain className="text-white text-xs sm:text-sm" />
                   </motion.div>
                 )}
               </div>
@@ -1561,18 +1591,18 @@ const Dashboard = () => {
               {/* Content */}
               {loadingAssessment ? (
                 <>
-                  <p className="text-sm font-bold text-gray-700 mb-1">Assessment</p>
-                  <p className="text-xs text-gray-500">Loading your data...</p>
-                  <div className="mt-2 flex gap-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <p className="text-xs sm:text-sm font-bold text-gray-700 mb-1">Assessment</p>
+                  <p className="text-xs text-gray-500">Loading...</p>
+                  <div className="mt-1 sm:mt-2 flex gap-1">
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </>
               ) : recentAssessment ? (
                 <>
-                  <div className="flex items-center gap-2 mb-2">
-                    <p className={`text-lg font-black ${
+                  <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                    <p className={`text-sm sm:text-base font-black leading-tight ${
                       recentAssessment.percentage < 25 ? 'text-green-700' :
                       recentAssessment.percentage < 50 ? 'text-blue-700' :
                       recentAssessment.percentage < 75 ? 'text-yellow-700' :
@@ -1581,7 +1611,7 @@ const Dashboard = () => {
                       {recentAssessment.anxiety_level}
                     </p>
                     {/* Status Badge */}
-                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                    <span className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold ${
                       recentAssessment.percentage < 25 ? 'bg-green-200 text-green-800' :
                       recentAssessment.percentage < 50 ? 'bg-blue-200 text-blue-800' :
                       recentAssessment.percentage < 75 ? 'bg-yellow-200 text-yellow-800' :
@@ -1592,21 +1622,21 @@ const Dashboard = () => {
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <FaCalendarAlt className={`text-xs ${
+                    <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
+                      <FaCalendarAlt className={`text-xs flex-shrink-0 ${
                         recentAssessment.percentage < 25 ? 'text-green-600' :
                         recentAssessment.percentage < 50 ? 'text-blue-600' :
                         recentAssessment.percentage < 75 ? 'text-yellow-600' :
                         'text-red-600'
                       }`} />
-                      <span className="text-xs font-medium text-gray-600">
+                      <span className="text-xs font-medium text-gray-600 truncate">
                         {formatAssessmentDate(recentAssessment.created_at)}
                       </span>
                     </div>
                     
                     {calculateImprovement() && (
                       <motion.span 
-                        className={`font-bold text-xs flex items-center gap-1 px-2 py-1 rounded-full ${
+                        className={`font-bold text-xs flex items-center gap-0.5 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full flex-shrink-0 ${
                           calculateImprovement()!.isPositive 
                             ? 'bg-green-100 text-green-700 border border-green-300' 
                             : 'bg-red-100 text-red-700 border border-red-300'
@@ -1623,16 +1653,16 @@ const Dashboard = () => {
                 </>
               ) : (
                 <>
-                  <p className="text-sm font-bold text-[#800000] mb-1">Assessment</p>
-                  <p className="text-xs text-gray-600 mb-3">Start your wellness journey</p>
+                  <p className="text-xs sm:text-sm font-bold text-[#800000] mb-1">Assessment</p>
+                  <p className="text-xs text-gray-600 mb-2 sm:mb-3 leading-tight">Start your wellness journey</p>
                   <motion.button 
                     onClick={goToAssessment}
-                    className="w-full bg-gradient-to-r from-[#800000] to-[#a00000] text-white text-xs px-3 py-2 rounded-lg hover:from-[#660000] hover:to-[#800000] transition-all duration-200 font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                    className="w-full bg-gradient-to-r from-[#800000] to-[#a00000] text-white text-xs px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg hover:from-[#660000] hover:to-[#800000] transition-all duration-200 font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-1 sm:gap-2"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <FaChartLine className="text-xs" />
-                    Take Assessment
+                    <span className="truncate">Take Assessment</span>
                   </motion.button>
                 </>
               )}
@@ -1659,62 +1689,62 @@ const Dashboard = () => {
               Today's Activities
             </motion.h3>
             
-            <div className="space-y-3">
+            <div className="space-y-3 w-full">
               <motion.div 
-                className="bg-white rounded-xl p-4 shadow-md border border-gray-200 flex items-center justify-between"
+                className="bg-white rounded-xl p-3 sm:p-4 shadow-md border border-gray-200 flex items-center justify-between w-full"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: 0.2 }}
                 whileHover={{ x: 5, backgroundColor: "#f9fafb" }}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <FaCheck className="text-green-600 text-sm" />
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <FaCheck className="text-green-600 text-xs sm:text-sm" />
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-800 text-sm">Morning Meditation</p>
-                    <p className="text-xs text-gray-500">5 minutes completed</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-gray-800 text-sm truncate">Morning Meditation</p>
+                    <p className="text-xs text-gray-500 truncate">5 minutes completed</p>
                   </div>
                 </div>
                 <FaSmile className="text-green-500" />
               </motion.div>
 
               <motion.div 
-                className="bg-white rounded-xl p-4 shadow-md border border-gray-200 flex items-center justify-between"
+                className="bg-white rounded-xl p-3 sm:p-4 shadow-md border border-gray-200 flex items-center justify-between w-full"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: 0.3 }}
                 whileHover={{ x: 5, backgroundColor: "#f9fafb" }}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-[#800000]/10 rounded-full flex items-center justify-center">
-                    <FaPlay className="text-[#800000] text-sm" />
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#800000]/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <FaPlay className="text-[#800000] text-xs sm:text-sm" />
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-800 text-sm">Anxiety Video</p>
-                    <p className="text-xs text-gray-500">Watch "Managing Daily Stress"</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-gray-800 text-sm truncate">Anxiety Video</p>
+                    <p className="text-xs text-gray-500 truncate">Watch "Managing Daily Stress"</p>
                   </div>
                 </div>
-                <FaChevronRight className="text-gray-400" />
+                <FaChevronRight className="text-gray-400 flex-shrink-0" />
               </motion.div>
 
               <motion.div 
-                className="bg-white rounded-xl p-4 shadow-md border border-gray-200 flex items-center justify-between"
+                className="bg-white rounded-xl p-3 sm:p-4 shadow-md border border-gray-200 flex items-center justify-between w-full"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: 0.4 }}
                 whileHover={{ x: 5, backgroundColor: "#f9fafb" }}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-[#800000]/10 rounded-full flex items-center justify-center">
-                    <FaBrain className="text-[#800000] text-sm" />
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#800000]/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <FaBrain className="text-[#800000] text-xs sm:text-sm" />
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-800 text-sm">CBT Exercise</p>
-                    <p className="text-xs text-gray-500">Thought challenging worksheet</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-gray-800 text-sm truncate">CBT Exercise</p>
+                    <p className="text-xs text-gray-500 truncate">Thought challenging worksheet</p>
                   </div>
                 </div>
-                <FaChevronRight className="text-gray-400" />
+                <FaChevronRight className="text-gray-400 flex-shrink-0" />
               </motion.div>
             </div>
           </div>
@@ -1730,11 +1760,11 @@ const Dashboard = () => {
               Achievements
             </motion.h3>
             
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 w-full">
               {mockUserData.achievements.map((achievement, index) => (
                 <motion.div
                   key={achievement.id}
-                  className={`bg-white rounded-xl p-3 shadow-md border-2 text-center ${
+                  className={`bg-white rounded-xl p-2 sm:p-3 shadow-md border-2 text-center w-full ${
                     achievement.unlocked 
                       ? 'border-yellow-200 bg-gradient-to-br from-yellow-50 to-orange-50' 
                       : 'border-gray-200 opacity-50'
@@ -1744,8 +1774,8 @@ const Dashboard = () => {
                   transition={{ duration: 0.3, delay: 0.1 * index }}
                   whileHover={achievement.unlocked ? { y: -5, scale: 1.05 } : {}}
                 >
-                  <div className="text-2xl mb-1">{achievement.icon}</div>
-                  <p className="text-xs font-medium text-gray-700">{achievement.name}</p>
+                  <div className="text-xl sm:text-2xl mb-1">{achievement.icon}</div>
+                  <p className="text-xs font-medium text-gray-700 leading-tight">{achievement.name}</p>
                   {achievement.unlocked && (
                     <FaCheck className="text-green-500 text-xs mx-auto mt-1" />
                   )}
@@ -1758,22 +1788,22 @@ const Dashboard = () => {
         {/* Mood Tracker */}
         <ScrollReveal delay={0.5} direction="right">
           <motion.div 
-            className="bg-[#800000]/5 rounded-2xl p-4 border-2 border-[#800000]/30"
+            className="bg-[#800000]/5 rounded-2xl p-3 sm:p-4 border-2 border-[#800000]/30 w-full"
             whileInView={{ 
               boxShadow: ["0px 0px 0px rgba(0,0,0,0)", "0px 10px 20px rgba(0,0,0,0.1)", "0px 0px 0px rgba(0,0,0,0)"]
             }}
             transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
           >
-            <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <FaHeart className="text-pink-500" />
-              How are you feeling right now?
+            <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2 text-sm sm:text-base">
+              <FaHeart className="text-pink-500 flex-shrink-0" />
+              <span className="truncate">How are you feeling right now?</span>
             </h3>
             
-            <div className="flex justify-between">
+            <div className="flex justify-between gap-1 sm:gap-2 w-full">
               {['😢', '😟', '😐', '😊', '😄'].map((emoji, index) => (
                 <motion.button
                   key={index}
-                  className="w-12 h-12 text-2xl bg-white rounded-full shadow-md hover:shadow-lg hover:scale-110 transition-all duration-200 border-2 border-transparent hover:border-pink-300"
+                  className="w-10 h-10 sm:w-12 sm:h-12 text-xl sm:text-2xl bg-white rounded-full shadow-md hover:shadow-lg hover:scale-110 transition-all duration-200 border-2 border-transparent hover:border-pink-300 flex-shrink-0"
                   onClick={() => alert(`Mood recorded: ${emoji}`)}
                   whileHover={{ scale: 1.15, rotate: 5 }}
                   whileTap={{ scale: 0.95 }}
@@ -1790,7 +1820,7 @@ const Dashboard = () => {
 
         {/* Scroll-up button */}
         <motion.div
-          className="fixed bottom-20 right-4 bg-[#800000] text-white p-3 rounded-full shadow-lg cursor-pointer z-10"
+          className="fixed bottom-16 sm:bottom-20 right-3 sm:right-4 bg-[#800000] text-white p-2.5 sm:p-3 rounded-full shadow-lg cursor-pointer z-10"
           onClick={scrollToTop}
           style={{
             opacity: scrollButtonOpacity,
@@ -1799,18 +1829,18 @@ const Dashboard = () => {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
-          <FaArrowUp />
+          <FaArrowUp className="text-sm sm:text-base" />
         </motion.div>
       </div>
 
       {/* Bottom Navigation */}
       <motion.div 
-        className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t border-gray-200 z-50"
+        className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t border-gray-200 z-50 w-full"
         initial={{ y: 50 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="flex justify-around py-2">
+        <div className="flex justify-around py-1.5 sm:py-2 px-2 w-full max-w-full">
           {[
             { id: 'home', icon: FaHeart, label: 'Home', color: 'text-pink-500', action: () => setSelectedTab('home') },
             { id: 'brain', icon: FaBrain, label: 'Assessment', color: 'text-[#800000]', action: goToAssessment },
@@ -1820,15 +1850,15 @@ const Dashboard = () => {
           ].map((tab) => (
             <motion.button
               key={tab.id}
-              className={`flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-200 ${
+              className={`flex flex-col items-center py-1.5 sm:py-2 px-1 sm:px-2 rounded-lg transition-all duration-200 min-w-0 flex-1 ${
                 selectedTab === tab.id ? 'bg-[#800000]/10 transform scale-105' : ''
               }`}
               onClick={tab.action}
               whileHover={{ y: -3 }}
               whileTap={{ scale: 0.9 }}
             >
-              <tab.icon className={`text-lg ${selectedTab === tab.id ? tab.color : 'text-gray-400'}`} />
-              <span className={`text-xs mt-1 ${selectedTab === tab.id ? tab.color : 'text-gray-400'}`}>
+              <tab.icon className={`text-base sm:text-lg ${selectedTab === tab.id ? tab.color : 'text-gray-400'}`} />
+              <span className={`text-xs mt-0.5 sm:mt-1 truncate ${selectedTab === tab.id ? tab.color : 'text-gray-400'}`}>
                 {tab.label}
               </span>
               {selectedTab === tab.id && (
