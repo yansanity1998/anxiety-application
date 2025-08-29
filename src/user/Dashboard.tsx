@@ -260,20 +260,11 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
   };
 
   const scrollCarousel = (direction: 'left' | 'right') => {
-    if (carouselRef.current) {
-      const { scrollWidth, clientWidth } = carouselRef.current;
-      const maxScroll = scrollWidth - clientWidth;
-      
-      let newIndex;
-      if (direction === 'right') {
-        newIndex = Math.min(activeIndex + 1, 2);
-      } else {
-        newIndex = Math.max(activeIndex - 1, 0);
-      }
-      
-      scrollToIndex(newIndex);
-    }
+    if (!carouselRef.current) return;
+    const newIndex = direction === 'right' ? Math.min(activeIndex + 1, 2) : Math.max(activeIndex - 1, 0);
+    scrollToIndex(newIndex);
   };
+
 
   const scrollToIndex = (index: number) => {
     if (carouselRef.current) {
