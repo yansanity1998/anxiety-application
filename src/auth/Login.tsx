@@ -253,7 +253,40 @@
               text: 'Your peaceful space awaits',
               timer: 1000
             });
-            navigate('/assessment');
+
+            // Check latest assessment to enforce once-per-week rule
+            try {
+              const profileId = (userProfile as any)?.id;
+              if (profileId) {
+                const { data: lastAssessments, error: lastAssessmentError } = await supabase
+                  .from('anxiety_assessments')
+                  .select('created_at')
+                  .eq('profile_id', profileId)
+                  .order('created_at', { ascending: false })
+                  .limit(1);
+
+                if (lastAssessmentError) {
+                  console.error('Error checking last assessment:', lastAssessmentError);
+                  // If we cannot check, default to assessment to avoid blocking
+                  navigate('/assessment');
+                } else {
+                  let shouldGoToAssessment = true;
+                  if (lastAssessments && lastAssessments.length > 0) {
+                    const lastDate = new Date(lastAssessments[0].created_at as string);
+                    const diffDays = (Date.now() - lastDate.getTime()) / (1000 * 60 * 60 * 24);
+                    shouldGoToAssessment = diffDays >= 7;
+                  }
+
+                  navigate(shouldGoToAssessment ? '/assessment' : '/dashboard');
+                }
+              } else {
+                // No profile id found, fallback to assessment
+                navigate('/assessment');
+              }
+            } catch (navErr) {
+              console.error('Unexpected error while deciding navigation:', navErr);
+              navigate('/assessment');
+            }
           }
         } else {
           throw new Error('Failed to retrieve or create user profile');

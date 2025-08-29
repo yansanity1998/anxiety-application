@@ -209,6 +209,7 @@ export default function AnxietyAssessment({ onComplete }: AssessmentProps) {
   const [answers, setAnswers] = useState<number[]>(new Array(questions.length).fill(-1));
   const [isComplete, setIsComplete] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true);
   const navigate = useNavigate();
 
   // Guard: prevent archived users from accessing assessment
@@ -228,13 +229,289 @@ export default function AnxietyAssessment({ onComplete }: AssessmentProps) {
           title: 'Account Archived',
           text: 'Your account is archived. Please contact the administrator.',
           confirmButtonColor: '#800000',
-          width: 320
+          width: '90%',
+          padding: '1.5rem',
+          position: 'center',
+          customClass: {
+            popup: 'swal2-responsive-popup',
+            title: 'swal2-responsive-title',
+            htmlContainer: 'swal2-responsive-text',
+            confirmButton: 'swal2-responsive-button'
+          },
+          didOpen: () => {
+            const style = document.createElement('style');
+            style.textContent = `
+              .swal2-container {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                min-height: 100vh !important;
+                padding: 1rem !important;
+              }
+              .swal2-responsive-popup {
+                max-width: 350px !important;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+                border-radius: 1rem !important;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+                margin: 0 !important;
+                position: relative !important;
+                top: auto !important;
+                left: auto !important;
+                transform: none !important;
+              }
+              .swal2-responsive-title {
+                font-weight: 700 !important;
+                color: #1f2937 !important;
+                margin-bottom: 0.75rem !important;
+                font-size: 1.25rem !important;
+              }
+              .swal2-responsive-text {
+                color: #374151 !important;
+                line-height: 1.6 !important;
+              }
+              .swal2-responsive-button {
+                border-radius: 0.75rem !important;
+                font-weight: 600 !important;
+                transition: all 0.2s ease !important;
+                border: none !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+              }
+              .swal2-responsive-button:hover {
+                transform: translateY(-1px) !important;
+                box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15) !important;
+              }
+              @media (max-width: 640px) {
+                .swal2-container {
+                  padding: 1rem !important;
+                }
+                .swal2-responsive-popup {
+                  width: calc(100% - 2rem) !important;
+                  max-width: 320px !important;
+                  padding: 1rem 0.75rem !important;
+                }
+                .swal2-responsive-title {
+                  font-size: 1rem !important;
+                  line-height: 1.3 !important;
+                  margin-bottom: 0.5rem !important;
+                }
+                .swal2-responsive-text {
+                  font-size: 0.8rem !important;
+                }
+                .swal2-responsive-button {
+                  padding: 0.625rem 1.25rem !important;
+                  font-size: 0.8rem !important;
+                  width: 100% !important;
+                }
+              }
+              @media (max-width: 480px) {
+                .swal2-responsive-popup {
+                  width: calc(100% - 1.5rem) !important;
+                  max-width: 280px !important;
+                }
+              }
+              @media (max-width: 360px) {
+                .swal2-responsive-popup {
+                  width: calc(100% - 1rem) !important;
+                  max-width: 260px !important;
+                }
+              }
+            `;
+            document.head.appendChild(style);
+          }
         });
         navigate('/');
       }
     };
     guardArchived();
   }, []);
+
+  // Guard: allow assessment only once per 7 days
+  useEffect(() => {
+    const enforceWeeklyRule = async () => {
+      setIsCheckingAccess(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setIsCheckingAccess(false);
+          return;
+        }
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', session.user.id)
+          .single();
+        const profileId = (profile as any)?.id;
+        if (!profileId) {
+          setIsCheckingAccess(false);
+          return;
+        }
+
+        const { data: lastAssessments, error } = await supabase
+          .from('anxiety_assessments')
+          .select('created_at')
+          .eq('profile_id', profileId)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (error) {
+          console.error('Error checking last assessment on assessment page:', error);
+          setIsCheckingAccess(false);
+          return;
+        }
+
+        if (lastAssessments && lastAssessments.length > 0) {
+          const lastDate = new Date(lastAssessments[0].created_at as string);
+          const diffDays = (Date.now() - lastDate.getTime()) / (1000 * 60 * 60 * 24);
+          if (diffDays < 7) {
+            const daysLeft = Math.ceil(7 - diffDays);
+            await Swal.fire({
+              icon: 'info',
+              title: 'Assessment Recently Completed',
+              html: `
+                <div style="text-align: center; line-height: 1.6;">
+                  <p style="margin-bottom: 1rem; font-size: 0.95rem;">
+                    You can retake the assessment once per week to track your progress effectively.
+                  </p>
+                  <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 0.75rem; padding: 1rem; margin: 1rem 0;">
+                    <p style="margin: 0; font-weight: 600; color: #0369a1;">
+                      Next assessment available in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <p style="margin: 0; font-size: 0.9rem; color: #64748b;">
+                    Redirecting to your dashboard...
+                  </p>
+                </div>
+              `,
+              confirmButtonColor: '#800000',
+              confirmButtonText: 'Go to Dashboard',
+              width: '90%',
+              padding: '1.5rem 1rem',
+              timer: 4000,
+              timerProgressBar: true,
+              showConfirmButton: true,
+              allowOutsideClick: false,
+              allowEscapeKey: false,
+              position: 'center',
+              customClass: {
+                popup: 'swal2-responsive-popup',
+                title: 'swal2-responsive-title text-lg sm:text-xl',
+                htmlContainer: 'swal2-responsive-text text-sm sm:text-base',
+                confirmButton: 'swal2-responsive-button px-6 py-2 text-sm sm:text-base',
+                timerProgressBar: 'swal2-responsive-progress'
+              },
+              didOpen: () => {
+                // Add responsive styles
+                const style = document.createElement('style');
+                style.textContent = `
+                  .swal2-container {
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    min-height: 100vh !important;
+                    padding: 1rem !important;
+                  }
+                  .swal2-responsive-popup {
+                    max-width: 380px !important;
+                    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+                    border-radius: 1rem !important;
+                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+                    margin: 0 !important;
+                    position: relative !important;
+                    top: auto !important;
+                    left: auto !important;
+                    transform: none !important;
+                  }
+                  .swal2-responsive-title {
+                    font-weight: 700 !important;
+                    color: #1f2937 !important;
+                    margin-bottom: 0.75rem !important;
+                    font-size: 1.25rem !important;
+                  }
+                  .swal2-responsive-text {
+                    color: #374151 !important;
+                    line-height: 1.6 !important;
+                  }
+                  .swal2-responsive-button {
+                    border-radius: 0.75rem !important;
+                    font-weight: 600 !important;
+                    transition: all 0.2s ease !important;
+                    border: none !important;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+                  }
+                  .swal2-responsive-button:hover {
+                    transform: translateY(-1px) !important;
+                    box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15) !important;
+                  }
+                  .swal2-responsive-progress {
+                    background: rgba(128, 0, 0, 0.2) !important;
+                  }
+                  .swal2-timer-progress-bar {
+                    background: #800000 !important;
+                  }
+                  @media (max-width: 640px) {
+                    .swal2-container {
+                      padding: 1rem !important;
+                    }
+                    .swal2-responsive-popup {
+                      width: calc(100% - 2rem) !important;
+                      max-width: 320px !important;
+                      padding: 1rem 0.75rem !important;
+                    }
+                    .swal2-responsive-title {
+                      font-size: 1rem !important;
+                      line-height: 1.3 !important;
+                      margin-bottom: 0.5rem !important;
+                    }
+                    .swal2-responsive-text {
+                      font-size: 0.8rem !important;
+                    }
+                    .swal2-responsive-button {
+                      padding: 0.625rem 1.25rem !important;
+                      font-size: 0.8rem !important;
+                      width: 100% !important;
+                    }
+                  }
+                  @media (max-width: 480px) {
+                    .swal2-responsive-popup {
+                      width: calc(100% - 1.5rem) !important;
+                      max-width: 280px !important;
+                    }
+                  }
+                  @media (max-width: 360px) {
+                    .swal2-responsive-popup {
+                      width: calc(100% - 1rem) !important;
+                      max-width: 260px !important;
+                    }
+                  }
+                `;
+                document.head.appendChild(style);
+              }
+            });
+            navigate('/dashboard');
+            return;
+          }
+        }
+        setIsCheckingAccess(false);
+      } catch (err) {
+        console.error('Unexpected error enforcing weekly rule:', err);
+        setIsCheckingAccess(false);
+      }
+    };
+    enforceWeeklyRule();
+  }, []);
+
+  // Show loading screen while checking access
+  if (isCheckingAccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#800000]/5">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#800000]/20 border-t-[#800000] rounded-full animate-spin mb-4 mx-auto"></div>
+          <p className="text-gray-600 text-lg font-medium">Checking access...</p>
+          <p className="text-gray-500 text-sm mt-2">Please wait while we verify your assessment status</p>
+        </div>
+      </div>
+    );
+  }
 
   const progress = ((currentQuestion + 1) / questions.length) * 100;
   const totalScore = answers.reduce((sum, answer) => sum + (answer >= 0 ? answer : 0), 0);
@@ -256,16 +533,82 @@ export default function AnxietyAssessment({ onComplete }: AssessmentProps) {
       cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, exit',
       cancelButtonText: 'Cancel',
-      width: 320,
+      width: '90%',
       padding: '1.5em',
       customClass: {
-        popup: 'swal2-mobile-popup',
-        title: 'swal2-mobile-title',
-        htmlContainer: 'swal2-mobile-text',
-        actions: 'swal2-mobile-actions',
-        confirmButton: 'swal2-mobile-confirm',
-        cancelButton: 'swal2-mobile-cancel',
+        popup: 'swal2-responsive-popup',
+        title: 'swal2-responsive-title',
+        htmlContainer: 'swal2-responsive-text',
+        actions: 'swal2-responsive-actions',
+        confirmButton: 'swal2-responsive-confirm',
+        cancelButton: 'swal2-responsive-cancel',
       },
+      didOpen: () => {
+        const style = document.createElement('style');
+        style.textContent = `
+          .swal2-responsive-popup {
+            max-width: 360px !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+            border-radius: 1rem !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+          }
+          .swal2-responsive-title {
+            font-weight: 700 !important;
+            color: #1f2937 !important;
+            margin-bottom: 0.75rem !important;
+            font-size: 1.25rem !important;
+          }
+          .swal2-responsive-text {
+            color: #374151 !important;
+            line-height: 1.6 !important;
+          }
+          .swal2-responsive-confirm,
+          .swal2-responsive-cancel {
+            border-radius: 0.75rem !important;
+            font-weight: 600 !important;
+            transition: all 0.2s ease !important;
+            border: none !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+            padding: 0.75rem 1.5rem !important;
+          }
+          .swal2-responsive-confirm:hover,
+          .swal2-responsive-cancel:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15) !important;
+          }
+          @media (max-width: 640px) {
+            .swal2-responsive-popup {
+              margin: 1.5rem auto !important;
+              width: calc(100% - 3rem) !important;
+              max-width: 300px !important;
+              padding: 1rem 0.75rem !important;
+              position: fixed !important;
+              top: 50% !important;
+              left: 50% !important;
+              transform: translate(-50%, -50%) !important;
+            }
+            .swal2-responsive-title {
+              font-size: 1rem !important;
+              line-height: 1.3 !important;
+              margin-bottom: 0.5rem !important;
+            }
+            .swal2-responsive-text {
+              font-size: 0.8rem !important;
+            }
+            .swal2-responsive-actions {
+              flex-direction: column !important;
+              gap: 0.5rem !important;
+            }
+            .swal2-responsive-confirm,
+            .swal2-responsive-cancel {
+              width: 100% !important;
+              font-size: 0.8rem !important;
+              padding: 0.625rem 1.25rem !important;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
     });
     if (result.isConfirmed) {
       navigate('/');
