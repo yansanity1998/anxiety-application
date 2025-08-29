@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaBrain, FaPlus, FaEdit, FaTrash, FaCheck, FaPlay, FaSort, FaSortUp, FaSortDown, FaFilter, FaSearch, FaTrophy, FaBookOpen, FaUsers, FaClock, FaChartLine, FaLayerGroup } from 'react-icons/fa';
+import { FaBrain, FaPlus, FaEdit, FaTrash, FaCheck, FaPlay, FaSearch, FaTrophy, FaBookOpen, FaClock, FaTimes, FaSpinner } from 'react-icons/fa';
 import { cbtModuleService } from '../../lib/cbtModuleService';
 import type { CBTModule, CreateCBTModuleData } from '../../lib/cbtModuleService';
 import { supabase } from '../../lib/supabase';
@@ -26,9 +26,12 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [sortField, setSortField] = useState<'title' | 'status' | 'created_at' | 'user'>('created_at');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [showFilters, setShowFilters] = useState(false);
+
+  // New: image upload state
+  const [newImageFile, setNewImageFile] = useState<File | null>(null);
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   // Form state
   const [formData, setFormData] = useState<CreateCBTModuleData>({
@@ -57,7 +60,8 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Failed to load CBT modules and users'
+        text: 'Failed to load CBT modules and users',
+        confirmButtonColor: '#800000'
       });
     } finally {
       setLoading(false);
@@ -80,35 +84,78 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
     }
   };
 
+  // New: helper to upload image to Supabase Storage and return public URL
+  const uploadModuleImage = async (file: File, profileId: number): Promise<string> => {
+    const fileExt = file.name.split('.').pop() || 'jpg';
+    const sanitizedExt = fileExt.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${sanitizedExt}`;
+    const filePath = `${profileId}/${fileName}`;
+
+    const { error: uploadError } = await supabase
+      .storage
+      .from('cbt-modules')
+      .upload(filePath, file, { upsert: false, contentType: file.type });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      throw new Error(uploadError.message || 'Failed to upload image');
+    }
+
+    const { data } = supabase
+      .storage
+      .from('cbt-modules')
+      .getPublicUrl(filePath);
+
+    if (!data?.publicUrl) {
+      throw new Error('Could not get public URL for uploaded image');
+    }
+
+    return data.publicUrl;
+  };
+
   const handleAddModule = async () => {
     if (!formData.profile_id || !formData.module_title || !formData.module_description) {
       Swal.fire({
         icon: 'warning',
         title: 'Missing Information',
-        text: 'Please fill in all required fields'
+        text: 'Please fill in all required fields',
+        confirmButtonColor: '#800000'
       });
       return;
     }
 
     try {
-      const newModule = await cbtModuleService.createModule(formData);
+      let uploadedUrl = formData.module_image;
+      if (newImageFile) {
+        setIsUploading(true);
+        uploadedUrl = await uploadModuleImage(newImageFile, formData.profile_id);
+      }
+
+      const newModule = await cbtModuleService.createModule({
+        ...formData,
+        module_image: uploadedUrl || undefined
+      });
       setModules(prev => [newModule, ...prev]);
       setShowAddModal(false);
       resetForm();
+      setNewImageFile(null);
       Swal.fire({
         icon: 'success',
-        title: 'Success',
+        title: 'Success!',
         text: 'CBT module created successfully',
         timer: 2000,
         showConfirmButton: false
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating module:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Failed to create CBT module'
+        text: error?.message || 'Failed to create CBT module',
+        confirmButtonColor: '#800000'
       });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -117,34 +164,46 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
       Swal.fire({
         icon: 'warning',
         title: 'Missing Information',
-        text: 'Please fill in all required fields'
+        text: 'Please fill in all required fields',
+        confirmButtonColor: '#800000'
       });
       return;
     }
 
     try {
+      let uploadedUrl = formData.module_image;
+      if (editImageFile) {
+        setIsUploading(true);
+        uploadedUrl = await uploadModuleImage(editImageFile, formData.profile_id);
+      }
+
       const updatedModule = await cbtModuleService.updateModule({
         id: selectedModule.id,
-        ...formData
+        ...formData,
+        module_image: uploadedUrl || undefined
       });
       setModules(prev => prev.map(m => m.id === selectedModule.id ? updatedModule : m));
       setShowEditModal(false);
       setSelectedModule(null);
       resetForm();
+      setEditImageFile(null);
       Swal.fire({
         icon: 'success',
-        title: 'Success',
+        title: 'Success!',
         text: 'CBT module updated successfully',
         timer: 2000,
         showConfirmButton: false
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating module:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Failed to update CBT module'
+        text: error?.message || 'Failed to update CBT module',
+        confirmButtonColor: '#800000'
       });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -156,7 +215,8 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
       showCancelButton: true,
       confirmButtonText: 'Delete',
       cancelButtonText: 'Cancel',
-      confirmButtonColor: '#ef4444'
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280'
     });
 
     if (result.isConfirmed) {
@@ -165,7 +225,7 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
         setModules(prev => prev.filter(m => m.id !== module.id));
         Swal.fire({
           icon: 'success',
-          title: 'Deleted',
+          title: 'Deleted!',
           text: 'CBT module deleted successfully',
           timer: 2000,
           showConfirmButton: false
@@ -175,7 +235,8 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'Failed to delete CBT module'
+          text: 'Failed to delete CBT module',
+          confirmButtonColor: '#800000'
         });
       }
     }
@@ -197,7 +258,8 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Failed to update module status'
+        text: 'Failed to update module status',
+        confirmButtonColor: '#800000'
       });
     }
   };
@@ -211,6 +273,7 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
       module_image: module.module_image || '',
       module_status: module.module_status
     });
+    setEditImageFile(null);
     setShowEditModal(true);
   };
 
@@ -224,33 +287,34 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
     });
   };
 
-
-
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'in_progress': return <FaPlay />;
-      case 'completed': return <FaCheck />;
-      default: return <FaBookOpen />;
+      case 'in_progress': return <FaPlay className="text-xs" />;
+      case 'completed': return <FaCheck className="text-xs" />;
+      default: return <FaBookOpen className="text-xs" />;
     }
   };
 
-  // Sorting and filtering logic
-
-
-  const getSortIcon = (field: typeof sortField) => {
-    if (sortField !== field) return <FaSort className="text-gray-400" />;
-    return sortDirection === 'asc' ? <FaSortUp className="text-blue-500" /> : <FaSortDown className="text-blue-500" />;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': 
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      default: 
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
   };
+
+  function getUserName(profileId: number) {
+    const user = users.find(u => u.id === profileId);
+    return user ? user.full_name : 'Unknown User';
+  }
 
   const filteredAndSortedModules = modules
     .filter(module => {
-      // Status filter
       if (filterStatus !== 'all' && module.module_status !== filterStatus) return false;
-      
-      // User filter
       if (selectedUserId && module.profile_id !== selectedUserId) return false;
-      
-      // Search filter
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
         const titleMatch = module.module_title.toLowerCase().includes(searchLower);
@@ -258,7 +322,6 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
         const userMatch = getUserName(module.profile_id).toLowerCase().includes(searchLower);
         return titleMatch || descMatch || userMatch;
       }
-      
       return true;
     })
     .sort((a, b) => {
@@ -284,15 +347,10 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
           break;
       }
       
-      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      if (aValue < bValue) return -1;
+      if (aValue > bValue) return 1;
       return 0;
     });
-
-  const getUserName = (profileId: number) => {
-    const user = users.find(u => u.id === profileId);
-    return user ? user.full_name : 'Unknown User';
-  };
 
   const getProgressStats = () => {
     const total = modules.length;
@@ -306,11 +364,13 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
 
   if (loading) {
     return (
-      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow p-6`}>
+      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-8`}>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#800000] mx-auto mb-4"></div>
-            <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Loading CBT modules...</p>
+            <FaSpinner className="animate-spin text-4xl text-[#800000] mx-auto mb-4" />
+            <p className={`text-lg font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+              Loading CBT modules...
+            </p>
           </div>
         </div>
       </div>
@@ -318,422 +378,401 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
   }
 
   return (
-    <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow p-6`}>
-      {/* Enhanced Header */}
-      <div className="flex items-center justify-between mb-6">
+    <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6`}>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div className="flex items-center">
-          <FaBrain className={`mr-3 text-2xl ${darkMode ? 'text-green-400' : 'text-green-500'}`} />
+          <div className={`p-3 rounded-xl ${darkMode ? 'bg-green-600/20' : 'bg-green-100'} mr-4`}>
+            <FaBrain className={`text-2xl ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
+          </div>
           <div>
-            <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>CBT Modules</h2>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Manage learning modules for students</p>
+            <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              CBT Modules
+            </h2>
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Manage cognitive behavioral therapy modules for students
+            </p>
           </div>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className={`flex items-center px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 ${
-            darkMode 
-              ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg' 
-              : 'bg-red-900 hover:bg-red-700 text-white shadow-lg'
-          }`}
+          className="flex items-center px-4 py-2.5 bg-[#800000] hover:bg-[#b56576] text-white rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
         >
           <FaPlus className="mr-2" />
           Add Module
         </button>
       </div>
 
-      {/* Enhanced Progress Stats with Icons - Single Line */}
-      <div className="flex gap-6 mb-8">
-        <div className={`${darkMode ? 'bg-gradient-to-br from-blue-600 to-blue-700' : 'bg-gradient-to-br from-blue-50 to-blue-100'} rounded-2xl p-4 flex items-center justify-center gap-3 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex-1`}>
-          <div className={`p-2 rounded-full ${darkMode ? 'bg-blue-500/30' : 'bg-blue-200/50'}`}>
-            <FaLayerGroup className={`text-lg ${darkMode ? 'text-blue-200' : 'text-blue-600'}`} />
-          </div>
-          <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-blue-900'}`}>{stats.total}</div>
-          <div className={`text-sm font-semibold ${darkMode ? 'text-blue-200' : 'text-blue-700'}`}>Total Modules</div>
-        </div>
-        <div className={`${darkMode ? 'bg-gradient-to-br from-amber-600 to-orange-600' : 'bg-gradient-to-br from-amber-50 to-orange-100'} rounded-2xl p-4 flex items-center justify-center gap-3 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex-1`}>
-          <div className={`p-2 rounded-full ${darkMode ? 'bg-amber-500/30' : 'bg-amber-200/50'}`}>
-            <FaClock className={`text-lg ${darkMode ? 'text-amber-200' : 'text-amber-600'}`} />
-          </div>
-          <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-amber-900'}`}>{stats.inProgress}</div>
-          <div className={`text-sm font-semibold ${darkMode ? 'text-amber-200' : 'text-amber-700'}`}>In Progress</div>
-        </div>
-        <div className={`${darkMode ? 'bg-gradient-to-br from-green-600 to-emerald-600' : 'bg-gradient-to-br from-green-50 to-emerald-100'} rounded-2xl p-4 flex items-center justify-center gap-3 border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex-1`}>
-          <div className={`p-2 rounded-full ${darkMode ? 'bg-green-500/30' : 'bg-green-200/50'}`}>
-            <FaTrophy className={`text-lg ${darkMode ? 'text-green-200' : 'text-green-600'}`} />
-          </div>
-          <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-green-900'}`}>{stats.completed}</div>
-          <div className={`text-sm font-semibold ${darkMode ? 'text-green-200' : 'text-green-700'}`}>Completed</div>
-        </div>
-      </div>
-
-      {/* Modern Filters and Search */}
-      <div className={`rounded-2xl p-3 mb-6 backdrop-blur-sm border ${
-        darkMode ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white/80 border-gray-200/50'
-      } shadow-lg`}>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-xl ${darkMode ? 'bg-blue-600/20' : 'bg-blue-100'}`}>
-              <FaFilter className={`text-lg ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
-            </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className={`p-4 rounded-xl border-2 ${darkMode ? 'bg-gray-700/50 border-blue-500/20' : 'bg-blue-50 border-blue-200'} transition-all duration-200 hover:shadow-lg`}>
+          <div className="flex items-center justify-between">
             <div>
-              <h3 className={`font-bold text-lg ${darkMode ? 'text-white' : 'text-gray-800'}`}>Filters & Search</h3>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Customize your module view</p>
+              <p className={`text-sm font-medium ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                Total Modules
+              </p>
+              <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-blue-900'}`}>
+                {stats.total}
+              </p>
             </div>
+            <FaBookOpen className={`text-2xl ${darkMode ? 'text-blue-400' : 'text-blue-500'}`} />
           </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`p-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
-              showFilters 
-                ? `${darkMode ? 'bg-gradient-to-r from-blue-600 to-blue-700' : 'bg-gradient-to-r from-blue-500 to-blue-600'} text-white shadow-lg` 
-                : `${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'} ${darkMode ? 'text-gray-300' : 'text-gray-600'}`
-            }`}
-          >
-            <FaFilter className="text-sm" />
-          </button>
         </div>
         
-        {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Enhanced Search */}
+        <div className={`p-4 rounded-xl border-2 ${darkMode ? 'bg-gray-700/50 border-amber-500/20' : 'bg-amber-50 border-amber-200'} transition-all duration-200 hover:shadow-lg`}>
+          <div className="flex items-center justify-between">
             <div>
-              <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                <FaSearch className="inline mr-2" />
-                Search Modules
-              </label>
-              <div className="relative">
-                <FaSearch className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-400'} text-sm`} />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search by title, description..."
-                  className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 transition-all duration-300 ${
-                    darkMode 
-                      ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:border-blue-400 focus:bg-gray-700' 
-                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:bg-blue-50/30'
-                  } focus:outline-none focus:ring-4 focus:ring-blue-500/10 hover:shadow-md`}
-                />
-              </div>
+              <p className={`text-sm font-medium ${darkMode ? 'text-amber-400' : 'text-amber-600'}`}>
+                In Progress
+              </p>
+              <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-amber-900'}`}>
+                {stats.inProgress}
+              </p>
             </div>
-
-            {/* Enhanced Status Filter */}
-            <div>
-              <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                <FaChartLine className="inline mr-2" />
-                Filter by Status
-              </label>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-300 ${
-                  darkMode 
-                    ? 'bg-gray-700/50 border-gray-600 text-white focus:border-blue-400 focus:bg-gray-700' 
-                    : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500 focus:bg-blue-50/30'
-                } focus:outline-none focus:ring-4 focus:ring-blue-500/10 hover:shadow-md cursor-pointer`}
-              >
-                <option value="all">🔍 All Status ({stats.total})</option>
-                <option value="in_progress">⏳ In Progress ({stats.inProgress})</option>
-                <option value="completed">✅ Completed ({stats.completed})</option>
-              </select>
-            </div>
-
-            {/* Enhanced User Filter */}
-            <div>
-              <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                <FaUsers className="inline mr-2" />
-                Filter by User
-              </label>
-              <select
-                value={selectedUserId || ''}
-                onChange={(e) => setSelectedUserId(e.target.value ? Number(e.target.value) : null)}
-                className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-300 ${
-                  darkMode 
-                    ? 'bg-gray-700/50 border-gray-600 text-white focus:border-blue-400 focus:bg-gray-700' 
-                    : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500 focus:bg-blue-50/30'
-                } focus:outline-none focus:ring-4 focus:ring-blue-500/10 hover:shadow-md cursor-pointer`}
-              >
-                <option value="">👥 All Users ({users.length})</option>
-                {users.map(user => (
-                  <option key={user.id} value={user.id}>👤 {user.full_name}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Enhanced Sort */}
-            <div>
-              <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                <FaSort className="inline mr-2" />
-                Sort Modules
-              </label>
-              <select
-                value={sortField}
-                onChange={(e) => setSortField(e.target.value as typeof sortField)}
-                className={`w-full px-4 py-3 rounded-xl border-2 transition-all duration-300 ${
-                  darkMode 
-                    ? 'bg-gray-700/50 border-gray-600 text-white focus:border-blue-400 focus:bg-gray-700' 
-                    : 'bg-white border-gray-200 text-gray-900 focus:border-blue-500 focus:bg-blue-50/30'
-                } focus:outline-none focus:ring-4 focus:ring-blue-500/10 hover:shadow-md cursor-pointer`}
-              >
-                <option value="created_at">📅 Date Created</option>
-                <option value="title">📝 Title</option>
-                <option value="status">📊 Status</option>
-                <option value="user">👤 User</option>
-              </select>
-            </div>
+            <FaClock className={`text-2xl ${darkMode ? 'text-amber-400' : 'text-amber-500'}`} />
           </div>
-        )}
-
-        {/* Sort Direction Toggle */}
-        <div className="flex items-center justify-between mt-4">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
-              className={`flex items-center gap-2 px-3 py-1 rounded-lg transition-colors ${
-                darkMode 
-                  ? 'bg-gray-600 hover:bg-gray-500 text-white' 
-                  : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'
-              }`}
-            >
-              {getSortIcon(sortField)}
-              <span className="text-sm">
-                {sortDirection === 'asc' ? 'Ascending' : 'Descending'}
-              </span>
-            </button>
-          </div>
-          
-          <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            Showing {filteredAndSortedModules.length} of {modules.length} modules
+        </div>
+        
+        <div className={`p-4 rounded-xl border-2 ${darkMode ? 'bg-gray-700/50 border-green-500/20' : 'bg-green-50 border-green-200'} transition-all duration-200 hover:shadow-lg`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className={`text-sm font-medium ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                Completed
+              </p>
+              <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-green-700'}`}>
+                {stats.completed}
+              </p>
+            </div>
+            <FaTrophy className={`text-2xl ${darkMode ? 'text-green-400' : 'text-green-500'}`} />
           </div>
         </div>
       </div>
 
-      {/* Modern Modules Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredAndSortedModules.map((module) => (
-          <div
-            key={module.id}
-            className={`rounded-2xl border-0 p-6 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl ${
-              darkMode 
-                ? 'bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl hover:from-gray-700 hover:to-gray-800' 
-                : 'bg-gradient-to-br from-white to-gray-50 shadow-lg hover:from-gray-50 hover:to-white'
-            } backdrop-blur-sm`}
-          >
-            {/* Enhanced Module Image */}
-            {module.module_image ? (
-              <div className="mb-6 relative overflow-hidden rounded-xl">
-                <img
-                  src={module.module_image}
-                  alt={module.module_title}
-                  className="w-full h-40 object-cover transition-transform duration-300 hover:scale-110"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-              </div>
-            ) : (
-              <div className={`mb-6 h-40 rounded-xl flex items-center justify-center ${
-                darkMode ? 'bg-gradient-to-br from-blue-600/20 to-purple-600/20' : 'bg-gradient-to-br from-blue-100 to-purple-100'
-              }`}>
-                <FaBrain className={`text-4xl ${darkMode ? 'text-blue-400' : 'text-blue-500'} opacity-50`} />
-              </div>
-            )}
-
-            {/* Enhanced Module Content */}
-            <div className="mb-6">
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <FaBookOpen className={`text-sm ${darkMode ? 'text-blue-400' : 'text-blue-500'}`} />
-                  <span className={`text-xs font-semibold uppercase tracking-wide ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Module Title</span>
-                </div>
-                <h3 className={`font-bold text-lg line-clamp-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                  {module.module_title}
-                </h3>
-              </div>
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <FaEdit className={`text-sm ${darkMode ? 'text-green-400' : 'text-green-500'}`} />
-                  <span className={`text-xs font-semibold uppercase tracking-wide ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Description</span>
-                </div>
-                <p className={`text-sm line-clamp-3 leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  {module.module_description}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 p-3 rounded-xl ${darkMode ? 'bg-gray-700/50' : 'bg-gray-100/50'}">
-                <FaUsers className={`text-sm ${darkMode ? 'text-purple-400' : 'text-purple-500'}`} />
-                <span className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Assigned to: <span className="font-semibold">{getUserName(module.profile_id)}</span>
-                </span>
-              </div>
-            </div>
-
-            {/* Enhanced Status Badge */}
-            <div className="flex items-center justify-center mb-6">
-              <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-bold border-2 transition-all duration-300 hover:scale-105 ${
-                module.module_status === 'completed' 
-                  ? 'text-green-700 bg-gradient-to-r from-green-100 to-green-200 border-green-300 shadow-green-200/50' 
-                  : module.module_status === 'in_progress'
-                  ? 'text-blue-700 bg-gradient-to-r from-blue-100 to-blue-200 border-blue-300 shadow-blue-200/50'
-                  : 'text-gray-700 bg-gradient-to-r from-gray-100 to-gray-200 border-gray-300 shadow-gray-200/50'
-              } shadow-lg`}>
-                <div className="mr-2 p-1 rounded-full bg-white/50">
-                  {getStatusIcon(module.module_status)}
-                </div>
-                <span className="capitalize">{module.module_status.replace('_', ' ')}</span>
-              </span>
-            </div>
-
-            {/* Modern Action Buttons */}
-            <div className="flex gap-3 mb-4">
-              <button
-                onClick={() => openEditModal(module)}
-                className="flex-1 flex items-center justify-center px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl hover:shadow-blue-500/25"
-              >
-                <FaEdit className="mr-2" />
-                Edit Module
-              </button>
-              <button
-                onClick={() => handleDeleteModule(module)}
-                className="flex-1 flex items-center justify-center px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl hover:shadow-red-500/25"
-              >
-                <FaTrash className="mr-2" />
-                Delete
-              </button>
-            </div>
-
-            {/* Enhanced Status Change Buttons */}
-            <div className="flex gap-3">
-              {module.module_status !== 'in_progress' && (
-                <button
-                  onClick={() => handleStatusChange(module, 'in_progress')}
-                  className="flex-1 px-4 py-2.5 text-sm bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl hover:shadow-indigo-500/25"
-                >
-                  <FaPlay className="inline mr-2" />
-                  Start Module
-                </button>
-              )}
-              {module.module_status !== 'completed' && (
-                <button
-                  onClick={() => handleStatusChange(module, 'completed')}
-                  className="flex-1 px-4 py-2.5 text-sm bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl hover:shadow-emerald-500/25"
-                >
-                  <FaCheck className="inline mr-2" />
-                  Mark Complete
-                </button>
-              )}
+      {/* Filters and Search */}
+      <div className={`mb-6 p-3 rounded-lg border ${darkMode ? 'bg-gray-700/30 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+        <div className="flex flex-col lg:flex-row gap-3">
+          {/* Search */}
+          <div className="flex-1">
+            <div className="relative">
+              <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search modules, descriptions, or users..."
+                className={`w-full pl-10 pr-4 py-2 rounded-lg border transition-colors ${
+                  darkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#800000]' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[#800000]'
+                } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+              />
             </div>
           </div>
-        ))}
+
+          {/* Status Filter */}
+          <div className="lg:w-44">
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className={`w-full px-3 py-2 rounded-lg border transition-colors ${
+                darkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white focus:border-[#800000]' 
+                  : 'bg-white border-gray-300 text-gray-900 focus:border-[#800000]'
+              } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+            >
+              <option value="all">All Status ({stats.total})</option>
+              <option value="in_progress">In Progress ({stats.inProgress})</option>
+              <option value="completed">Completed ({stats.completed})</option>
+            </select>
+          </div>
+
+          {/* User Filter */}
+          <div className="lg:w-44">
+            <select
+              value={selectedUserId || ''}
+              onChange={(e) => setSelectedUserId(e.target.value ? Number(e.target.value) : null)}
+              className={`w-full px-3 py-2 rounded-lg border transition-colors ${
+                darkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white focus:border-[#800000]' 
+                  : 'bg-white border-gray-300 text-gray-900 focus:border-[#800000]'
+              } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+            >
+              <option value="">All Users ({users.length})</option>
+              {users.map(user => (
+                <option key={user.id} value={user.id}>{user.full_name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sort */}
+          <div className="lg:w-44">
+            <select
+              value={sortField}
+              onChange={(e) => setSortField(e.target.value as typeof sortField)}
+              className={`w-full px-3 py-2 rounded-lg border transition-colors ${
+                darkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white focus:border-[#800000]' 
+                  : 'bg-white border-gray-300 text-gray-900 focus:border-[#800000]'
+              } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+            >
+              <option value="created_at">Sort by Date</option>
+              <option value="title">Sort by Title</option>
+              <option value="status">Sort by Status</option>
+              <option value="user">Sort by User</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Results count */}
+        <div className="mt-2 text-right">
+          <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            Showing {filteredAndSortedModules.length} of {modules.length} modules
+          </span>
+        </div>
       </div>
 
-      {filteredAndSortedModules.length === 0 && (
+      {/* Modules Grid */}
+      {filteredAndSortedModules.length === 0 ? (
         <div className={`text-center py-12 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-          <FaBrain className="text-4xl mx-auto mb-4 opacity-50" />
-          <p>No CBT modules found</p>
+          <FaBrain className="text-6xl mx-auto mb-4 opacity-30" />
+          <h3 className="text-xl font-semibold mb-2">No modules found</h3>
+          <p>Try adjusting your search or filters, or add a new module.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {filteredAndSortedModules.map((module) => (
+            <div
+              key={module.id}
+              className={`rounded-lg border p-4 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 ${
+                darkMode 
+                  ? 'bg-gray-700/50 border-gray-600 hover:border-gray-500' 
+                  : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-xl'
+              }`}
+            >
+              {/* Module Image */}
+              {module.module_image ? (
+                <div className="mb-3 relative overflow-hidden rounded-md">
+                  <img
+                    src={module.module_image}
+                    alt={module.module_title}
+                    className="w-full h-24 object-cover transition-transform duration-300 hover:scale-110"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className={`mb-3 h-24 rounded-md flex items-center justify-center ${
+                  darkMode ? 'bg-gray-600/50' : 'bg-gray-100'
+                }`}>
+                  <FaBrain className={`text-xl ${darkMode ? 'text-gray-400' : 'text-gray-400'} opacity-50`} />
+                </div>
+              )}
+
+              {/* Module Content */}
+              <div className="mb-3">
+                <h3 className={`font-semibold text-sm mb-1 line-clamp-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {module.module_title}
+                </h3>
+                <p className={`text-xs line-clamp-2 mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {module.module_description}
+                </p>
+                
+                <div className="flex items-center justify-between mb-3">
+                  <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <span className="font-medium">{getUserName(module.profile_id)}</span>
+                  </span>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(module.module_status)}`}>
+                    {getStatusIcon(module.module_status)}
+                    <span className="ml-1 capitalize">{module.module_status.replace('_', ' ')}</span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-1.5">
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => openEditModal(module)}
+                    className="flex-1 flex items-center justify-center px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-medium transition-colors"
+                  >
+                    <FaEdit className="mr-1" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteModule(module)}
+                    className="flex-1 flex items-center justify-center px-2 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs font-medium transition-colors"
+                  >
+                    <FaTrash className="mr-1" />
+                    Delete
+                  </button>
+                </div>
+                
+                {/* Status Change Buttons */}
+                <div className="flex gap-1.5">
+                  {module.module_status !== 'in_progress' && (
+                    <button
+                      onClick={() => handleStatusChange(module, 'in_progress')}
+                      className="flex-1 px-2 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-xs font-medium transition-colors"
+                    >
+                      <FaPlay className="inline mr-1" />
+                      In Progress
+                    </button>
+                  )}
+                  {module.module_status !== 'completed' && (
+                    <button
+                      onClick={() => handleStatusChange(module, 'completed')}
+                      className="flex-1 px-2 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-xs font-medium transition-colors"
+                    >
+                      <FaCheck className="inline mr-1" />
+                      Complete
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
       {/* Add Module Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 w-full max-w-md mx-4`}>
-            <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              Add CBT Module
-            </h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Assign to User *
-                </label>
-                <select
-                  value={formData.profile_id}
-                  onChange={(e) => setFormData(prev => ({ ...prev, profile_id: Number(e.target.value) }))}
-                  className={`w-full px-3 py-2 rounded-lg border ${
-                    darkMode 
-                      ? 'bg-gray-700 border-gray-600 text-white' 
-                      : 'bg-white border-gray-300 text-gray-900'
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-y-auto`}>
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Add New CBT Module
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowAddModal(false);
+                    resetForm();
+                    setNewImageFile(null);
+                  }}
+                  className={`p-1.5 rounded-lg transition-colors ${
+                    darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                   }`}
                 >
-                  <option value={0}>Select a user</option>
-                  {users.map(user => (
-                    <option key={user.id} value={user.id}>{user.full_name}</option>
-                  ))}
-                </select>
+                  <FaTimes className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Assign to User <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.profile_id}
+                    onChange={(e) => setFormData(prev => ({ ...prev, profile_id: Number(e.target.value) }))}
+                    className={`w-full px-3 py-2 rounded-lg border transition-colors ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white focus:border-[#800000]' 
+                        : 'bg-white border-gray-300 text-gray-900 focus:border-[#800000]'
+                    } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+                  >
+                    <option value={0}>Select a user</option>
+                    {users.map(user => (
+                      <option key={user.id} value={user.id}>{user.full_name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Module Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.module_title}
+                    onChange={(e) => setFormData(prev => ({ ...prev, module_title: e.target.value }))}
+                    className={`w-full px-3 py-2 rounded-lg border transition-colors ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#800000]' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[#800000]'
+                    } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+                    placeholder="Enter module title"
+                  />
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Description <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={formData.module_description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, module_description: e.target.value }))}
+                    rows={3}
+                    className={`w-full px-3 py-2 rounded-lg border transition-colors resize-none ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#800000]' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[#800000]'
+                    } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+                    placeholder="Enter module description"
+                  />
+                </div>
+
+                {/* New: Image upload input with preview */}
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Upload Image (optional)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setNewImageFile(file);
+                    }}
+                    className={`w-full px-3 py-2 rounded-lg border transition-colors ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white focus:border-[#800000]' 
+                        : 'bg-white border-gray-300 text-gray-900 focus:border-[#800000]'
+                    } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+                  />
+                  {newImageFile && (
+                    <div className="mt-2">
+                      <img
+                        src={URL.createObjectURL(newImageFile)}
+                        alt="Preview"
+                        className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setNewImageFile(null)}
+                        className={`mt-1 px-2 py-1 text-xs rounded-lg border ${darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                      >
+                        Remove Image
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Module Title *
-                </label>
-                <input
-                  type="text"
-                  value={formData.module_title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, module_title: e.target.value }))}
-                  className={`w-full px-3 py-2 rounded-lg border ${
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => {
+                    setShowAddModal(false);
+                    resetForm();
+                    setNewImageFile(null);
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg border transition-colors font-medium ${
                     darkMode 
-                      ? 'bg-gray-700 border-gray-600 text-white' 
-                      : 'bg-white border-gray-300 text-gray-900'
+                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
-                  placeholder="Enter module title"
-                />
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddModule}
+                  disabled={isUploading}
+                  className={`flex-1 px-4 py-2 rounded-lg transition-colors font-medium text-white ${isUploading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#800000] hover:bg-[#b56576]'} `}
+                >
+                  {isUploading ? 'Uploading...' : 'Add Module'}
+                </button>
               </div>
-
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Description *
-                </label>
-                <textarea
-                  value={formData.module_description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, module_description: e.target.value }))}
-                  rows={3}
-                  className={`w-full px-3 py-2 rounded-lg border ${
-                    darkMode 
-                      ? 'bg-gray-700 border-gray-600 text-white' 
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
-                  placeholder="Enter module description"
-                />
-              </div>
-
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Image URL (Optional)
-                </label>
-                <input
-                  type="url"
-                  value={formData.module_image}
-                  onChange={(e) => setFormData(prev => ({ ...prev, module_image: e.target.value }))}
-                  className={`w-full px-3 py-2 rounded-lg border ${
-                    darkMode 
-                      ? 'bg-gray-700 border-gray-600 text-white' 
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
-                  placeholder="https://example.com/image.jpg"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowAddModal(false);
-                  resetForm();
-                }}
-                className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                  darkMode 
-                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddModule}
-                className="flex-1 px-4 py-2 bg-red-900 hover:bg-red-700 text-white rounded-lg transition-colors"
-              >
-                Add Module
-              </button>
             </div>
           </div>
         </div>
@@ -741,105 +780,154 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
 
       {/* Edit Module Modal */}
       {showEditModal && selectedModule && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 w-full max-w-md mx-4`}>
-            <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              Edit CBT Module
-            </h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Assign to User *
-                </label>
-                <select
-                  value={formData.profile_id}
-                  onChange={(e) => setFormData(prev => ({ ...prev, profile_id: Number(e.target.value) }))}
-                  className={`w-full px-3 py-2 rounded-lg border ${
-                    darkMode 
-                      ? 'bg-gray-700 border-gray-600 text-white' 
-                      : 'bg-white border-gray-300 text-gray-900'
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-y-auto`}>
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Edit CBT Module
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setSelectedModule(null);
+                    resetForm();
+                    setEditImageFile(null);
+                  }}
+                  className={`p-1.5 rounded-lg transition-colors ${
+                    darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                   }`}
                 >
-                  {users.map(user => (
-                    <option key={user.id} value={user.id}>{user.full_name}</option>
-                  ))}
-                </select>
+                  <FaTimes className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Assign to User <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.profile_id}
+                    onChange={(e) => setFormData(prev => ({ ...prev, profile_id: Number(e.target.value) }))}
+                    className={`w-full px-3 py-2 rounded-lg border transition-colors ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white focus:border-[#800000]' 
+                        : 'bg-white border-gray-300 text-gray-900 focus:border-[#800000]'
+                    } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+                  >
+                    {users.map(user => (
+                      <option key={user.id} value={user.id}>{user.full_name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Module Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.module_title}
+                    onChange={(e) => setFormData(prev => ({ ...prev, module_title: e.target.value }))}
+                    className={`w-full px-3 py-2 rounded-lg border transition-colors ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#800000]' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[#800000]'
+                    } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+                    placeholder="Enter module title"
+                  />
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Description <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={formData.module_description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, module_description: e.target.value }))}
+                    rows={3}
+                    className={`w-full px-3 py-2 rounded-lg border transition-colors resize-none ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#800000]' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[#800000]'
+                    } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+                    placeholder="Enter module description"
+                  />
+                </div>
+
+                {/* New: Image upload input with preview and current image */}
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Module Image
+                  </label>
+                  {formData.module_image && !editImageFile && (
+                    <div className="mb-2">
+                      <img
+                        src={formData.module_image}
+                        alt="Current"
+                        className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                      />
+                    </div>
+                  )}
+                  {editImageFile && (
+                    <div className="mb-2">
+                      <img
+                        src={URL.createObjectURL(editImageFile)}
+                        alt="Preview"
+                        className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                      />
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setEditImageFile(file);
+                    }}
+                    className={`w-full px-3 py-2 rounded-lg border transition-colors ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white focus:border-[#800000]' 
+                        : 'bg-white border-gray-300 text-gray-900 focus:border-[#800000]'
+                    } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+                  />
+                  {editImageFile && (
+                    <button
+                      type="button"
+                      onClick={() => setEditImageFile(null)}
+                      className={`mt-1 px-2 py-1 text-xs rounded-lg border ${darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      Remove Selected Image
+                    </button>
+                  )}
+                </div>
               </div>
 
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Module Title *
-                </label>
-                <input
-                  type="text"
-                  value={formData.module_title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, module_title: e.target.value }))}
-                  className={`w-full px-3 py-2 rounded-lg border ${
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setSelectedModule(null);
+                    resetForm();
+                    setEditImageFile(null);
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg border transition-colors font-medium ${
                     darkMode 
-                      ? 'bg-gray-700 border-gray-600 text-white' 
-                      : 'bg-white border-gray-300 text-gray-900'
+                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
-                  placeholder="Enter module title"
-                />
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleEditModule}
+                  disabled={isUploading}
+                  className={`flex-1 px-4 py-2 rounded-lg transition-colors font-medium text-white ${isUploading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} `}
+                >
+                  {isUploading ? 'Uploading...' : 'Update Module'}
+                </button>
               </div>
-
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Description *
-                </label>
-                <textarea
-                  value={formData.module_description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, module_description: e.target.value }))}
-                  rows={3}
-                  className={`w-full px-3 py-2 rounded-lg border ${
-                    darkMode 
-                      ? 'bg-gray-700 border-gray-600 text-white' 
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
-                  placeholder="Enter module description"
-                />
-              </div>
-
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Image URL (Optional)
-                </label>
-                <input
-                  type="url"
-                  value={formData.module_image}
-                  onChange={(e) => setFormData(prev => ({ ...prev, module_image: e.target.value }))}
-                  className={`w-full px-3 py-2 rounded-lg border ${
-                    darkMode 
-                      ? 'bg-gray-700 border-gray-600 text-white' 
-                      : 'bg-white border-gray-300 text-gray-900'
-                  }`}
-                  placeholder="https://example.com/image.jpg"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setSelectedModule(null);
-                  resetForm();
-                }}
-                className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
-                  darkMode 
-                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
-                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleEditModule}
-                className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
-              >
-                Update Module
-              </button>
             </div>
           </div>
         </div>

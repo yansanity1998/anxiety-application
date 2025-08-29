@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import lotus from '../../../public/lotus.png';
 import { FaCalendarAlt, FaUser, FaClock, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaSpinner, FaChevronDown, FaEye, FaTrash, FaPrint, FaDownload, FaCalendarTimes, FaUserTimes } from 'react-icons/fa';
 import { getAllAppointments, updateAppointment, deleteAppointment } from '../../lib/appointmentService';
 import type { Appointment } from '../../lib/appointmentService';
@@ -607,7 +606,7 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
       }`}
       style={{ minHeight: '60vh' }}
     >
-      <img src={lotus} alt="Lotus" className="absolute top-4 right-6 w-14 h-14 opacity-20 pointer-events-none select-none" />
+      <img src="/lotus.png" alt="Lotus" className="absolute top-4 right-6 w-14 h-14 opacity-20 pointer-events-none select-none" />
       {/* Enhanced Header with Actions */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
         <div className="flex items-center">

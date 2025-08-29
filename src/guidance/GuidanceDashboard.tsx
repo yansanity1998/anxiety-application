@@ -992,9 +992,9 @@ export default function GuidanceDashboard() {
       <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b shadow-sm`}>
         <div className="max-w-10xl mx-auto px-6 sm:px-12 lg:px-16">
           <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-3">
-              <div className="bg-red-900 p-3 rounded-full">
-                <FaUser className="text-white text-2xl" />
+                          <div className="flex items-center space-x-3">
+              <div className="rounded-full">
+                <img src="/spc-guidance.png" alt="Guidance Service Center" className="h-15 w-15 object-contain" />
               </div>
               <div>
                 <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-red-900'}`}>Guidance Dashboard</h1>

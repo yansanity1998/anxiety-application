@@ -30,6 +30,7 @@ import {
   FaCheckCircle,
   FaHome
 } from 'react-icons/fa';
+
 import { motion, AnimatePresence, useInView, useScroll, useTransform } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -60,23 +61,40 @@ const mockUserData = {
 type ProgressRingProps = {
   progress: number;
   size?: number;
-  strokeWidth?: number;
 };
 
-const ProgressRing = ({ progress, size = 60, strokeWidth = 4 }: ProgressRingProps) => {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (progress / 100) * circumference;
+const ProgressRing = ({ progress, size = 60 }: ProgressRingProps) => {
 
-  // Determine color based on progress (lower is better for anxiety)
-  const getGradientColors = () => {
-    if (progress < 25) return { start: "#10B981", end: "#34D399" }; // Green - Low anxiety
-    if (progress < 50) return { start: "#3B82F6", end: "#60A5FA" }; // Blue - Mild anxiety
-    if (progress < 75) return { start: "#F59E0B", end: "#FBBF24" }; // Yellow - Moderate anxiety
-    return { start: "#EF4444", end: "#F87171" }; // Red - High anxiety
+  // Determine color and icon based on progress (lower is better for anxiety)
+  const getProgressInfo = () => {
+    if (progress < 25) return { 
+      color: "text-green-500", 
+      bgColor: "bg-green-100", 
+      icon: FaSmile,
+      borderColor: "border-green-300"
+    }; // Green - Low anxiety
+    if (progress < 50) return { 
+      color: "text-blue-500", 
+      bgColor: "bg-blue-100", 
+      icon: FaHeart,
+      borderColor: "border-blue-300"
+    }; // Blue - Mild anxiety
+    if (progress < 75) return { 
+      color: "text-yellow-500", 
+      bgColor: "bg-yellow-100", 
+      icon: FaBrain,
+      borderColor: "border-yellow-300"
+    }; // Yellow - Moderate anxiety
+    return { 
+      color: "text-red-500", 
+      bgColor: "bg-red-100", 
+      icon: FaHeart,
+      borderColor: "border-red-300"
+    }; // Red - High anxiety
   };
 
-  const colors = getGradientColors();
+  const progressInfo = getProgressInfo();
+  const IconComponent = progressInfo.icon;
 
   return (
     <motion.div 
@@ -85,42 +103,14 @@ const ProgressRing = ({ progress, size = 60, strokeWidth = 4 }: ProgressRingProp
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <svg width={size} height={size} className="transform -rotate-90">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke="#e5e7eb"
-          strokeWidth={strokeWidth}
-          fill="none"
-        />
-        <motion.circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={`url(#gradient-${progress})`}
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset }}
-          transition={{ duration: 1, ease: "easeOut" }}
-        />
-        <defs>
-          <linearGradient id={`gradient-${progress}`} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={colors.start} />
-            <stop offset="100%" stopColor={colors.end} />
-          </linearGradient>
-        </defs>
-      </svg>
       <motion.div 
-        className="absolute inset-0 flex items-center justify-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
+        className={`w-${size/4} h-${size/4} rounded-full ${progressInfo.bgColor} ${progressInfo.borderColor} border-2 flex items-center justify-center relative`}
+        style={{ width: size, height: size }}
+        initial={{ opacity: 0, rotate: -180 }}
+        animate={{ opacity: 1, rotate: 0 }}
+        transition={{ duration: 1, ease: "easeOut" }}
       >
-        <span className="text-xs font-bold text-gray-700">{Math.round(progress)}%</span>
+        <IconComponent className={`${progressInfo.color} text-lg`} />
       </motion.div>
     </motion.div>
   );
@@ -647,16 +637,6 @@ const Dashboard = () => {
     return "Good Evening";
   };
 
-  const getMotivationalQuote = () => {
-    const quotes = [
-      "You are stronger than you think 💪",
-      "Every small step counts 🌟",
-      "Breathe in peace, breathe out stress 🌸",
-      "Progress, not perfection 🎯",
-      "You've got this! 💙"
-    ];
-    return quotes[Math.floor(Math.random() * quotes.length)];
-  };
 
   const BreathingExercise = () => {
     const [phase, setPhase] = useState('inhale');
@@ -920,90 +900,505 @@ const Dashboard = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Inline notification preview (Facebook-style popover)
+  const [activeNotification, setActiveNotification] = useState<any | null>(null);
+  const openNotificationPopover = (appt: any) => setActiveNotification(appt);
+  const closeNotificationPopover = () => setActiveNotification(null);
+
   return (
     <div className="min-h-screen bg-[#800000]/5">
       {/* Header with scroll effect */}
       <motion.div 
         ref={headerRef}
-        className="bg-gradient-to-r from-[#4a0e0e] to-[#660000] backdrop-blur-sm border-b border-[#800000]/30 sticky top-0 z-50 shadow-lg"
+        className="relative bg-gradient-to-br from-[#4a0e0e] via-[#660000] to-[#800000] backdrop-blur-md border-b border-white/10 sticky top-0 z-50 shadow-2xl overflow-hidden"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="px-4 py-4">
+        
+        {/* Animated Background Layers */}
+        <div className="absolute inset-0">
+          {/* Primary gradient overlay */}
+          <motion.div 
+            className="absolute inset-0 bg-gradient-to-r from-purple-900/20 via-transparent to-pink-900/20"
+            animate={{ 
+              background: [
+                'linear-gradient(to right, rgba(88, 28, 135, 0.2), transparent, rgba(157, 23, 77, 0.2))',
+                'linear-gradient(to right, rgba(157, 23, 77, 0.2), transparent, rgba(88, 28, 135, 0.2))',
+                'linear-gradient(to right, rgba(88, 28, 135, 0.2), transparent, rgba(157, 23, 77, 0.2))'
+              ]
+            }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+          
+          {/* Floating geometric shapes */}
+          <motion.div 
+            className="absolute top-2 left-4 w-16 h-16 bg-white/5 rounded-full blur-sm"
+            animate={{ 
+              y: [0, -10, 0],
+              scale: [1, 1.1, 1],
+              opacity: [0.3, 0.5, 0.3]
+            }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute top-6 right-8 w-8 h-8 bg-white/10 rounded-lg rotate-45"
+            animate={{ 
+              rotate: [45, 135, 45],
+              scale: [1, 1.2, 1]
+            }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute bottom-2 left-1/3 w-12 h-12 bg-gradient-to-br from-white/5 to-white/10 rounded-full"
+            animate={{ 
+              x: [0, 20, 0],
+              opacity: [0.2, 0.4, 0.2]
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          />
+          
+          {/* Dynamic mesh gradient */}
+          <div className="absolute inset-0 opacity-20">
+            <motion.div 
+              className="w-full h-full"
+              style={{
+                background: 'radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 0%, transparent 50%)',
+              }}
+              animate={{
+                background: [
+                  'radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 0%, transparent 50%)',
+                  'radial-gradient(circle at 60% 20%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 40% 80%, rgba(255,255,255,0.05) 0%, transparent 50%)',
+                  'radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 0%, transparent 50%)'
+                ]
+              }}
+              transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
+          
+          {/* Subtle pattern overlay */}
+          <div className="absolute inset-0 opacity-[0.03]">
+            <div className="w-full h-full bg-white" style={{
+              backgroundImage: `
+                radial-gradient(circle at 25% 25%, white 1px, transparent 1px),
+                radial-gradient(circle at 75% 75%, white 1px, transparent 1px),
+                linear-gradient(45deg, transparent 48%, white 49%, white 51%, transparent 52%)
+              `,
+              backgroundSize: '24px 24px, 24px 24px, 48px 48px'
+            }}></div>
+          </div>
+          
+          {/* Top highlight line */}
+          <motion.div 
+            className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"
+            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
+        
+        <div className="relative px-3 sm:px-4 md:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-white drop-shadow-md">
-                {getGreeting()}, {loadingUser ? '...' : userData?.full_name || userData?.name || mockUserData.name}! 👋
-              </h1>
-              <p className="text-sm text-white/80">{getMotivationalQuote()}</p>
+            {/* Left: Greeting Section */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                {/* Enhanced Lotus Icon with Multiple Effects */}
+                <motion.div
+                  className="relative"
+                  animate={{ 
+                    rotate: [0, 5, 0, -5, 0],
+                    y: [0, -2, 0, -1, 0]
+                  }}
+                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                >
+                  {/* Outer glow ring */}
+                  <motion.div 
+                    className="absolute inset-0 w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-gradient-to-r from-pink-400/30 via-purple-400/30 to-cyan-400/30 rounded-full blur-lg -z-20"
+                    animate={{ 
+                      scale: [1, 1.2, 1],
+                      opacity: [0.3, 0.6, 0.3]
+                    }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  
+                  {/* Inner glow */}
+                  <motion.div 
+                    className="absolute inset-0 w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 bg-white/30 rounded-full blur-md -z-10"
+                    animate={{ 
+                      scale: [1, 1.1, 1],
+                      opacity: [0.4, 0.7, 0.4]
+                    }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  
+                  {/* Sparkle effects */}
+                  <motion.div 
+                    className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white/60 rounded-full"
+                    animate={{ 
+                      scale: [0, 1, 0],
+                      opacity: [0, 1, 0]
+                    }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                  />
+                  <motion.div 
+                    className="absolute -bottom-1 -left-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-cyan-300/60 rounded-full"
+                    animate={{ 
+                      scale: [0, 1, 0],
+                      opacity: [0, 1, 0]
+                    }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                  />
+                  
+                  {/* Main lotus image */}
+                  <motion.img 
+                    src="/lotus.png" 
+                    alt="Lotus" 
+                    className="relative z-10 h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-18 lg:w-18 drop-shadow-2xl filter brightness-125 contrast-110" 
+                    animate={{ 
+                      filter: [
+                        'brightness(125%) contrast(110%) saturate(120%)',
+                        'brightness(135%) contrast(120%) saturate(130%)',
+                        'brightness(125%) contrast(110%) saturate(120%)'
+                      ]
+                    }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                </motion.div>
+                
+                {/* Enhanced Greeting Text */}
+                <div className="flex-1 min-w-0">
+                  <motion.h1 
+                    className="relative text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white truncate"
+                    style={{ 
+                      textShadow: '0 2px 8px rgba(0,0,0,0.4), 0 0 30px rgba(255,255,255,0.15), 0 0 60px rgba(255,255,255,0.05)'
+                    }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2, duration: 0.6 }}
+                  >
+                    {/* Animated text background */}
+                    <motion.div 
+                      className="absolute inset-0 bg-gradient-to-r from-white/5 via-white/10 to-white/5 rounded-lg blur-sm -z-10"
+                      animate={{ 
+                        opacity: [0, 0.3, 0],
+                        scale: [0.95, 1.05, 0.95]
+                      }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <span className="block sm:inline">
+                      {getGreeting()}
+                    </span>
+                    <span className="hidden xs:inline sm:inline">, </span>
+                    <span className="block xs:inline sm:inline text-base sm:text-lg md:text-xl lg:text-2xl font-medium text-white/90 truncate">
+                      {loadingUser ? (
+                        <span className="inline-flex items-center">
+                          <span className="w-4 h-4 bg-white/30 rounded-full animate-pulse mr-1"></span>
+                          Loading...
+                        </span>
+                      ) : (
+                        `${(userData?.full_name || userData?.name || mockUserData.name || 'User').split(' ')[0]}!`
+                      )}
+                    </span>
+                  </motion.h1>
+                  
+                  {/* Time indicator - now visible on small screens with larger text */}
+                  <motion.p 
+                    className="hidden xs:block text-sm sm:text-base md:text-lg text-white/80 font-medium mt-1"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4, duration: 0.6 }}
+                  >
+                    {currentTime.toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      month: 'short', 
+                      day: 'numeric' 
+                    })}
+                  </motion.p>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
+
+            {/* Right: Enhanced Action Buttons */}
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              {/* Enhanced Notification Button */}
               <motion.button 
-                className="relative p-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30"
-                whileTap={{ scale: 0.9 }}
-                whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.3)" }}
-                onClick={() => setShowNotifications((prev) => !prev)}
+                className="relative group p-2 sm:p-2.5 bg-gradient-to-br from-white/15 via-white/20 to-white/15 hover:from-white/25 hover:via-white/30 hover:to-white/25 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-white/30 shadow-lg hover:shadow-2xl transition-all duration-300"
+                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.05, y: -2 }}
+                onClick={() => {
+                                     if (notifications && notifications.length > 0) {
+                     openNotificationPopover(notifications[0]);
+                   } else {
+                     setShowNotifications((prev) => !prev);
+                   }
+                }}
                 aria-label="Show notifications"
               >
-                <FaBell className="text-white" />
+                {/* Button glow effect */}
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-br from-cyan-400/20 to-purple-400/20 rounded-xl sm:rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  animate={{ 
+                    scale: [1, 1.1, 1],
+                  }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                />
+                
+                <motion.div
+                  animate={{ 
+                    rotate: [0, 15, 0, -15, 0]
+                  }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <FaBell className="relative z-10 text-white text-sm sm:text-base drop-shadow-lg" />
+                </motion.div>
+                
                 {notifications.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-400 text-white text-xs rounded-full px-1.5 py-0.5 font-bold animate-pulse shadow-lg">
-                    {notifications.length}
-                  </span>
+                  <motion.span 
+                    className="absolute -top-1 -right-1 bg-gradient-to-r from-red-400 via-red-500 to-pink-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center font-bold shadow-xl border-2 border-white/30"
+                    initial={{ scale: 0 }}
+                    animate={{ 
+                      scale: 1,
+                      boxShadow: [
+                        '0 0 0 0 rgba(239, 68, 68, 0.7)',
+                        '0 0 0 10px rgba(239, 68, 68, 0)',
+                        '0 0 0 0 rgba(239, 68, 68, 0)'
+                      ]
+                    }}
+                    transition={{ 
+                      scale: { type: "spring", stiffness: 300, damping: 20 },
+                      boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                    }}
+                  >
+                    {notifications.length > 9 ? '9+' : notifications.length}
+                  </motion.span>
                 )}
               </motion.button>
-              {/* Notification dropdown/modal */}
-              {showNotifications && (
-                <div className="absolute right-4 top-14 bg-white border border-gray-200 rounded-xl shadow-lg z-50 w-80">
-                  <div className="p-4">
-                    <h3 className="font-bold text-[#800000] mb-2 text-lg flex items-center">
-                      <FaBell className="mr-2" /> Notifications
-                    </h3>
-                    {notifications.length === 0 ? (
-                      <p className="text-gray-500 text-sm">No upcoming appointments.</p>
-                    ) : (
-                      <ul className="space-y-3">
-                        {notifications.map((appt) => (
-                          <li key={appt.id} className="bg-[#800000]/5 rounded-lg p-3 border border-[#800000]/10">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <span className="font-semibold text-[#800000]">Appointment Scheduled</span>
-                                <div className="text-xs text-gray-700 mt-1">
-                                  {new Date(appt.appointment_date).toLocaleDateString()} at {appt.appointment_time}
-                                </div>
-                                <div className="text-xs text-gray-500">Status: {appt.status}</div>
-                              </div>
-                              <FaCalendarAlt className="text-[#800000] text-lg" />
-                            </div>
-                            {appt.notes && (
-                              <div className="text-xs text-gray-600 mt-2">Notes: {appt.notes}</div>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                  <div className="border-t px-4 py-2 text-right">
-                    <button
-                      className="text-[#800000] font-semibold hover:underline text-sm"
-                      onClick={() => setShowNotifications(false)}
-                    >Close</button>
-                  </div>
-                </div>
-              )}
+
+              {/* Enhanced Profile Button */}
               <motion.div 
-                className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center cursor-pointer border border-white/30"
-                whileHover={{ scale: 1.1, rotate: 5, backgroundColor: "rgba(255,255,255,0.3)" }}
-                whileTap={{ scale: 0.9 }}
+                className="relative group w-9 h-9 sm:w-11 sm:h-11 bg-gradient-to-br from-white/15 via-white/20 to-white/15 hover:from-white/25 hover:via-white/30 hover:to-white/25 backdrop-blur-sm rounded-xl sm:rounded-2xl flex items-center justify-center cursor-pointer border border-white/30 shadow-lg hover:shadow-2xl transition-all duration-300"
+                whileHover={{ scale: 1.05, rotate: 5, y: -2 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={goToProfile}
               >
-                <FaUser className="text-white text-sm" />
+                {/* Profile button glow */}
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-xl sm:rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  animate={{ 
+                    scale: [1, 1.05, 1],
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                />
+                
+                {/* Animated border */}
+                <motion.div 
+                  className="absolute inset-0 rounded-xl sm:rounded-2xl border border-white/20"
+                  animate={{ 
+                    borderColor: [
+                      'rgba(255,255,255,0.2)',
+                      'rgba(255,255,255,0.4)',
+                      'rgba(255,255,255,0.2)'
+                    ]
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                />
+                
+                <FaUser className="relative z-10 text-white text-sm sm:text-base drop-shadow-lg" />
               </motion.div>
             </div>
           </div>
+
+          {/* Enhanced Notification Panel */}
+          {showNotifications && (
+            <motion.div 
+              className="absolute right-3 sm:right-4 md:right-6 top-full mt-2 bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-2xl z-50 w-[calc(100vw-24px)] sm:w-80 md:w-96 max-w-md"
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+            >
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-[#800000] text-lg flex items-center">
+                    <FaBell className="mr-2" /> 
+                    Notifications
+                  </h3>
+                  <motion.button
+                    className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                    onClick={() => setShowNotifications(false)}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <span className="text-gray-400 text-xl">×</span>
+                  </motion.button>
+                </div>
+                
+                {notifications.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <FaBell className="text-gray-400 text-xl" />
+                    </div>
+                    <p className="text-gray-500 text-sm">No upcoming appointments.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 max-h-64 overflow-y-auto">
+                    {notifications.map((appt, index) => (
+                      <motion.div 
+                        key={appt.id} 
+                        className="cursor-pointer bg-gradient-to-r from-[#800000]/5 to-[#800000]/10 rounded-xl p-3 border border-[#800000]/10 hover:border-[#800000]/20 transition-all duration-200"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        onClick={() => openNotificationPopover(appt)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold text-[#800000] text-sm">Appointment Scheduled</span>
+                              <span className="text-[10px] text-gray-500 ml-2">{new Date(appt.appointment_date).toLocaleDateString()}</span>
+                            </div>
+                            <div className="text-xs text-gray-700 mt-1">
+                              <div className="flex items-center">
+                                <FaCalendarAlt className="mr-1 text-[#800000]" />
+                                {appt.appointment_time} • Status: {appt.status}
+                              </div>
+                            </div>
+                            {appt.notes && (
+                              <div className="text-xs text-gray-600 mt-2 p-2 bg-white/60 rounded-lg">
+                                Notes: {appt.notes}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
         </div>
       </motion.div>
+
+      {/* Enhanced Notification Modal - Positioned outside header for proper layering */}
+      <AnimatePresence>
+        {activeNotification && (
+          <>
+            {/* Backdrop */}
+            <motion.div 
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[9998]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeNotificationPopover}
+            />
+            
+            {/* Modal positioned below notification button - Fully responsive */}
+            <motion.div 
+              className="fixed right-2 sm:right-3 md:right-4 lg:right-6 top-14 sm:top-16 md:top-16 bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 w-[calc(100vw-16px)] xs:w-[calc(100vw-20px)] sm:w-80 md:w-96 lg:w-[400px] max-w-[95vw] sm:max-w-md overflow-hidden z-[9999]"
+              initial={{ scale: 0.9, opacity: 0, y: -10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: -10 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header - Mobile responsive */}
+              <div className="bg-gradient-to-r from-[#800000] to-[#a00000] p-3 sm:p-4 text-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                      <FaCalendarAlt className="text-white text-sm sm:text-lg" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-bold text-base sm:text-lg truncate">Appointment Details</h3>
+                      <p className="text-white/80 text-xs sm:text-sm truncate">Your scheduled appointment</p>
+                    </div>
+                  </div>
+                  <motion.button 
+                    onClick={closeNotificationPopover}
+                    className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors flex-shrink-0 ml-2"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <span className="text-white text-base sm:text-lg">×</span>
+                  </motion.button>
+                </div>
+              </div>
+
+              {/* Content - Mobile responsive */}
+              <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4">
+                {/* Date & Time Section */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-blue-200">
+                  <h4 className="font-semibold text-blue-800 mb-2 sm:mb-3 flex items-center text-sm sm:text-base">
+                    <FaCalendarAlt className="mr-1 sm:mr-2 text-xs sm:text-sm" />
+                    Date & Time
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex items-start sm:items-center justify-between gap-2">
+                      <span className="text-gray-600 font-medium text-xs sm:text-sm flex-shrink-0">Date:</span>
+                      <span className="font-semibold text-gray-900 text-xs sm:text-sm text-right">
+                        {new Date(activeNotification.appointment_date).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-gray-600 font-medium text-xs sm:text-sm flex-shrink-0">Time:</span>
+                      <span className="font-semibold text-gray-900 text-xs sm:text-sm">{activeNotification.appointment_time}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status Section */}
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-green-200">
+                  <h4 className="font-semibold text-green-800 mb-2 flex items-center text-sm sm:text-base">
+                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-full mr-1 sm:mr-2"></div>
+                    Status
+                  </h4>
+                  <div className="flex items-start sm:items-center justify-between gap-2">
+                    <span className="text-gray-600 font-medium text-xs sm:text-sm flex-shrink-0">Current Status:</span>
+                    <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold ${
+                      activeNotification.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
+                      activeNotification.status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
+                      activeNotification.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {activeNotification.status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Notes Section */}
+                {activeNotification.notes && (
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-purple-200">
+                    <h4 className="font-semibold text-purple-800 mb-2 flex items-center text-sm sm:text-base">
+                      <FaBell className="mr-1 sm:mr-2 text-xs sm:text-sm" />
+                      Additional Notes
+                    </h4>
+                    <div className="bg-white/60 rounded-lg p-2 sm:p-3 border border-purple-100">
+                      <p className="text-gray-700 leading-relaxed text-xs sm:text-sm">{activeNotification.notes}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="pt-1 sm:pt-2 flex gap-2 sm:gap-3">
+                  <motion.button
+                    onClick={closeNotificationPopover}
+                    className="flex-1 bg-gradient-to-r from-[#800000] to-[#a00000] hover:from-[#660000] hover:to-[#800000] text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Got it
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
       <div className="px-4 py-6 pb-20">
@@ -1141,7 +1536,7 @@ const Dashboard = () => {
                     transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
                   >
                     <div className="relative">
-                      <ProgressRing progress={recentAssessment.percentage} size={45} strokeWidth={4} />
+                      <ProgressRing progress={recentAssessment.percentage} size={45} />
                       {/* Glow effect */}
                       <div className={`absolute inset-0 rounded-full blur-md opacity-20 ${
                         recentAssessment.percentage < 25 ? 'bg-green-400' :

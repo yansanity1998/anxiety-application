@@ -11,7 +11,7 @@ import {
 } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
 import { useState, useMemo } from 'react';
-import { FaChevronLeft, FaChevronRight, FaInfoCircle } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaInfoCircle, FaCalendarAlt, FaUsers, FaHeart, FaChartLine, FaCircle, FaCalendarCheck, FaExclamationTriangle } from 'react-icons/fa';
 import 'chart.js/auto';
 
 ChartJS.register(
@@ -347,15 +347,15 @@ const AppointmentCalendar = ({ appointments, darkMode }: { appointments?: Appoin
       )}
       <div className="flex items-center justify-center mt-4 space-x-4 text-xs">
         <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
-          <div className="w-3 h-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full shadow-sm"></div>
+          <FaCircle className={`w-3 h-3 ${darkMode ? 'text-green-400' : 'text-green-500'} shadow-sm`} />
           <span className={`font-medium ${darkMode ? 'text-green-300' : 'text-green-700'}`}>1-2 appointments</span>
         </div>
         <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30">
-          <div className="w-3 h-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full shadow-sm"></div>
+          <FaCalendarCheck className={`w-3 h-3 ${darkMode ? 'text-yellow-400' : 'text-yellow-500'} shadow-sm`} />
           <span className={`font-medium ${darkMode ? 'text-yellow-300' : 'text-yellow-700'}`}>3-4 appointments</span>
         </div>
         <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/30">
-          <div className="w-3 h-3 bg-gradient-to-r from-red-500 to-red-600 rounded-full shadow-sm"></div>
+          <FaExclamationTriangle className={`w-3 h-3 ${darkMode ? 'text-red-400' : 'text-red-500'} shadow-sm`} />
           <span className={`font-medium ${darkMode ? 'text-red-300' : 'text-red-700'}`}>5+ appointments</span>
         </div>
       </div>
@@ -603,7 +603,7 @@ return (
       {/* Appointment Calendar */}
       <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-4 rounded-xl shadow-lg border-0 min-w-0 w-full backdrop-blur-sm`}>
         <div className="flex items-center space-x-3 mb-4">
-          <div className={`w-4 h-4 rounded-full bg-gradient-to-r ${darkMode ? 'from-indigo-400 to-purple-400' : 'from-indigo-500 to-purple-500'}`}></div>
+          <FaCalendarAlt className={`w-4 h-4 ${darkMode ? 'text-indigo-400' : 'text-indigo-500'}`} />
           <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-indigo-400 to-purple-400' : 'from-indigo-600 to-purple-600'} bg-clip-text text-transparent`}>Appointment Calendar</h2>
         </div>
         <AppointmentCalendar appointments={appointments} darkMode={darkMode} />
@@ -613,7 +613,7 @@ return (
       <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-4 rounded-xl shadow-lg border-0 min-w-0 w-full relative backdrop-blur-sm`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
-            <div className={`w-4 h-4 rounded-full bg-gradient-to-r ${darkMode ? 'from-pink-400 to-blue-400' : 'from-pink-500 to-blue-500'}`}></div>
+            <FaUsers className={`w-4 h-4 ${darkMode ? 'text-pink-400' : 'text-pink-500'}`} />
             <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-pink-400 to-blue-400' : 'from-pink-600 to-blue-600'} bg-clip-text text-transparent`}>Gender Distribution</h2>
           </div>
           <div className="flex items-center gap-2">
@@ -705,7 +705,7 @@ return (
       <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-4 rounded-xl shadow-lg border-0 min-w-0 w-full relative backdrop-blur-sm`}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
-            <div className={`w-4 h-4 rounded-full bg-gradient-to-r ${darkMode ? 'from-green-400 to-red-400' : 'from-green-500 to-red-500'}`}></div>
+            <FaHeart className={`w-4 h-4 ${darkMode ? 'text-red-400' : 'text-red-500'}`} />
             <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-green-400 to-red-400' : 'from-green-600 to-red-600'} bg-clip-text text-transparent`}>Anxiety Level Distribution</h2>
           </div>
           <div className="flex items-center gap-2">
@@ -815,7 +815,7 @@ return (
       <div className={`lg:col-span-3 ${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-6 rounded-2xl shadow-xl border-0 min-w-0 w-full backdrop-blur-sm`}>
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-3">
-            <div className={`w-4 h-4 rounded-full bg-gradient-to-r ${darkMode ? 'from-indigo-400 to-emerald-400' : 'from-indigo-500 to-emerald-500'}`}></div>
+            <FaChartLine className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-500'}`} />
             <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-indigo-400 to-emerald-400' : 'from-indigo-600 to-emerald-600'} bg-clip-text text-transparent`}>Anxiety Level History</h2>
             <div className="group relative">
               <FaInfoCircle className={`w-3 h-3 cursor-help ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'}`} />
