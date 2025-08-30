@@ -14,7 +14,7 @@ import { archiveUser, unarchiveUser, isArchived } from './services/archiveServic
 import { createAppointment, getAllAppointments, updateAppointment } from '../lib/appointmentService';
 import CBTModules from './components/CBTModules';
 import AnxietyVideos from './components/AnxietyVideos';
-import RelaxationTools from './components/RelaxationTools';
+import TodoList from '../admin/components/TodoList';
 import Referral from './components/Referral';
 import Schedule from './components/Schedule';
 import Gamification from './components/Gamification';
@@ -1689,7 +1689,7 @@ export default function GuidanceDashboard() {
 
         {activeView === 'cbt-modules' && <CBTModules darkMode={darkMode} />}
         {activeView === 'anxiety-videos' && <AnxietyVideos darkMode={darkMode} />}
-        {activeView === 'relaxation-tools' && <RelaxationTools darkMode={darkMode} />}
+                    {(activeView === 'todo-list' || activeView === 'relaxation-tools') && <TodoList darkMode={darkMode} />}
         {activeView === 'referral' && <Referral darkMode={darkMode} />}
         {activeView === 'schedule' && <Schedule darkMode={darkMode} />}
         {activeView === 'gamification' && <Gamification darkMode={darkMode} />}

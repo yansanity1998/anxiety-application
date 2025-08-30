@@ -228,31 +228,94 @@
           
           // Allow admin/guidance login if email matches OR if profile role matches
           if (isAdminAttempt || userProfile.role === 'admin') {
-            await Toast.fire({
-              icon: 'success',
-              iconColor: '#10b981',
-              title: 'Welcome Admin!',
-              text: 'Accessing admin dashboard',
-              timer: 1000
-            });
+            // Modern simple alert for admin
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'fixed top-4 right-4 z-50 bg-white border-l-4 border-emerald-500 rounded-lg shadow-lg p-4 max-w-sm transform transition-all duration-300 ease-in-out';
+            alertDiv.innerHTML = `
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-gray-900">Welcome Admin!</p>
+                  <p class="text-xs text-gray-500 mt-1">Accessing admin dashboard</p>
+                </div>
+                <div class="ml-auto pl-3">
+                  <div class="-mx-1.5 -my-1.5">
+                    <button type="button" class="inline-flex bg-white rounded-md p-1.5 text-gray-400 hover:text-gray-500 focus:outline-none" onclick="this.closest('div').remove()">
+                      <span class="sr-only">Dismiss</span>
+                      <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 3000);
             navigate('/admin');
           } else if (isGuidanceAttempt || userProfile.role === 'guidance') {
-            await Toast.fire({
-              icon: 'success',
-              iconColor: '#10b981',
-              title: 'Welcome Guidance Counselor!',
-              text: 'Accessing guidance dashboard',
-              timer: 1000
-            });
+            // Modern simple alert for guidance
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'fixed top-4 right-4 z-50 bg-white border-l-4 border-blue-500 rounded-lg shadow-lg p-4 max-w-sm transform transition-all duration-300 ease-in-out';
+            alertDiv.innerHTML = `
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-gray-900">Welcome Guidance Counselor!</p>
+                  <p class="text-xs text-gray-500 mt-1">Accessing guidance dashboard</p>
+                </div>
+                <div class="ml-auto pl-3">
+                  <div class="-mx-1.5 -my-1.5">
+                    <button type="button" class="inline-flex bg-white rounded-md p-1.5 text-gray-400 hover:text-gray-500 focus:outline-none" onclick="this.closest('div').remove()">
+                      <span class="sr-only">Dismiss</span>
+                      <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 3000);
             navigate('/guidance');
           } else {
-            await Toast.fire({
-              icon: 'success',
-              iconColor: '#10b981',
-              title: 'Welcome back!',
-              text: 'Your peaceful space awaits',
-              timer: 1000
-            });
+            // Modern simple alert for student
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'fixed top-4 right-4 z-50 bg-white border-l-4 border-[#800000] rounded-lg shadow-lg p-4 max-w-sm transform transition-all duration-300 ease-in-out';
+            alertDiv.innerHTML = `
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <svg class="h-5 w-5 text-[#800000]" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <div class="ml-3">
+                  <p class="text-sm font-medium text-gray-900">Welcome back!</p>
+                  <p class="text-xs text-gray-500 mt-1">Your peaceful space awaits</p>
+                </div>
+                <div class="ml-auto pl-3">
+                  <div class="-mx-1.5 -my-1.5">
+                    <button type="button" class="inline-flex bg-white rounded-md p-1.5 text-gray-400 hover:text-gray-500 focus:outline-none" onclick="this.closest('div').remove()">
+                      <span class="sr-only">Dismiss</span>
+                      <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 3000);
 
             // Check latest assessment to enforce once-per-week rule
             try {

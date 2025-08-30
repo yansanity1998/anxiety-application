@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FaBars, FaTimes, FaTachometerAlt, FaUsers } from 'react-icons/fa';
-import { FaArchive, FaBrain, FaVideo, FaSpa, FaHandshake, FaCalendarAlt, FaGamepad } from 'react-icons/fa';
+import { FaArchive, FaBrain, FaVideo, FaTasks, FaHandshake, FaCalendarAlt, FaGamepad } from 'react-icons/fa';
 
 interface AdminNavbarProps {
   activeView: string;
@@ -19,7 +19,7 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
     { id: 'schedule', label: 'Schedule', icon: <FaCalendarAlt />, color: 'text-indigo-500' },
     { id: 'cbt-modules', label: 'CBT Modules', icon: <FaBrain />, color: 'text-green-500' },
     { id: 'anxiety-videos', label: 'Anxiety Videos', icon: <FaVideo />, color: 'text-orange-500' },
-    { id: 'relaxation-tools', label: 'Relaxation Tools', icon: <FaSpa />, color: 'text-teal-500' },
+    { id: 'todo-list', label: 'To-Do List', icon: <FaTasks />, color: 'text-teal-500' },
     { id: 'referral', label: 'Referral', icon: <FaHandshake />, color: 'text-yellow-500' },
     { id: 'gamification', label: 'Gamification', icon: <FaGamepad />, color: 'text-pink-500' },
   ];

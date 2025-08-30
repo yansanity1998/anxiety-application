@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaUser, 
   FaEnvelope, 
-  FaSchool, 
   FaGraduationCap, 
-  FaPhone, 
-  FaHome, 
+  FaPhone,  
   FaUserFriends, 
   FaSave, 
   FaArrowLeft, 
   FaChevronDown, 
   FaSpinner,
   FaSignOutAlt,
-  FaFire
+  FaFire,
+  FaEdit,
+  FaCamera,
+  FaTrophy,
+  FaCalendar
 } from 'react-icons/fa';
-import Swal from 'sweetalert2';
 
 const genders = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
 const yearLevelMap: { [key: string]: number } = {
@@ -47,6 +48,7 @@ const ProfilePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false);
   
   // Form state
   const [fullName, setFullName] = useState('');
@@ -65,28 +67,44 @@ const ProfilePage: React.FC = () => {
   const [showGenderDropdown, setShowGenderDropdown] = useState(false);
   const [showYearLevelDropdown, setShowYearLevelDropdown] = useState(false);
 
-  // Toast notification setup
-  const Toast = Swal.mixin({
-    toast: true,
-    position: 'top',
-    showConfirmButton: false,
-    timer: 2000,
-    timerProgressBar: true,
-    width: '300px',
-    padding: '1rem',
-    background: '#f8fafc',
-    backdrop: false,
-    customClass: {
-      popup: 'shadow-none border border-gray-200',
-      title: 'text-sm font-medium',
-      htmlContainer: 'text-xs',
-      timerProgressBar: 'bg-[#800000]'
-    },
-    didOpen: (toast) => {
-      toast.addEventListener('mouseenter', Swal.stopTimer)
-      toast.addEventListener('mouseleave', Swal.resumeTimer)
-    }
-  });
+  // Modern alert function
+  const showAlert = (type: 'success' | 'error' | 'warning', title: string, message: string) => {
+    const colors = {
+      success: { border: 'border-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700', icon: 'text-emerald-500' },
+      error: { border: 'border-red-500', bg: 'bg-red-50', text: 'text-red-700', icon: 'text-red-500' },
+      warning: { border: 'border-yellow-500', bg: 'bg-yellow-50', text: 'text-yellow-700', icon: 'text-yellow-500' }
+    };
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `fixed top-4 right-4 z-50 bg-white border-l-4 ${colors[type].border} rounded-lg shadow-lg p-4 max-w-sm transform transition-all duration-300 ease-in-out`;
+    alertDiv.innerHTML = `
+      <div class="flex items-start">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 ${colors[type].icon}" fill="currentColor" viewBox="0 0 20 20">
+            ${type === 'success' ? 
+              '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>' :
+              type === 'error' ?
+              '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>' :
+              '<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>'
+            }
+          </svg>
+        </div>
+        <div class="ml-3 flex-1">
+          <p class="text-sm font-medium text-gray-900">${title}</p>
+          <p class="text-xs text-gray-500 mt-1">${message}</p>
+        </div>
+        <div class="ml-auto pl-3">
+          <button type="button" class="inline-flex bg-white rounded-md p-1.5 text-gray-400 hover:text-gray-500 focus:outline-none" onclick="this.closest('div').remove()">
+            <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => alertDiv.remove(), 4000);
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -107,12 +125,7 @@ const ProfilePage: React.FC = () => {
           
         if (error) {
           console.error('Error fetching profile:', error);
-          Toast.fire({
-            icon: 'error',
-            iconColor: '#ef4444',
-            title: 'Error',
-            text: 'Failed to load profile data',
-          });
+          showAlert('error', 'Error', 'Failed to load profile data');
           navigate('/');
           return;
         }
@@ -135,12 +148,7 @@ const ProfilePage: React.FC = () => {
         
       } catch (err) {
         console.error('Unexpected error fetching user data:', err);
-        Toast.fire({
-          icon: 'error',
-          iconColor: '#ef4444',
-          title: 'Error',
-          text: 'An unexpected error occurred',
-        });
+        showAlert('error', 'Error', 'An unexpected error occurred');
       } finally {
         setIsLoading(false);
       }
@@ -184,28 +192,9 @@ const ProfilePage: React.FC = () => {
       
       if (metadataError) {
         console.error('Error updating user metadata:', metadataError);
-        Toast.fire({
-          icon: 'error',
-          iconColor: '#ef4444',
-          title: 'Update Failed',
-          text: metadataError.message,
-        });
+        showAlert('error', 'Update Failed', metadataError.message);
         return;
       }
-      
-      // Use the update_profile_by_id RPC function instead of directly updating the profiles table
-      console.log('Updating profile with ID:', userData.id, {
-        fullName,
-        age: age && age !== '' ? parseInt(age) : null,
-        gender,
-        school,
-        course,
-        yearLevel: yearLevelNumber,
-        phoneNumber,
-        guardianName,
-        guardianPhoneNumber,
-        address
-      });
       
       // Directly update the profiles table
       const { error } = await supabase
@@ -226,12 +215,7 @@ const ProfilePage: React.FC = () => {
         
       if (error) {
         console.error('Error updating profile:', error);
-        Toast.fire({
-          icon: 'error',
-          iconColor: '#ef4444',
-          title: 'Update Failed',
-          text: error.message,
-        });
+        showAlert('error', 'Update Failed', error.message);
         return;
       }
       
@@ -248,30 +232,15 @@ const ProfilePage: React.FC = () => {
         console.error('Error fetching updated profile:', fetchError);
       } else {
         console.log('Fetched updated profile:', updatedProfile);
-        // Update local state with the fresh data
         setUserData(updatedProfile);
       }
       
-      Toast.fire({
-        icon: 'success',
-        iconColor: '#10b981',
-        title: 'Profile Updated',
-        text: 'Your profile has been successfully updated',
-      });
-      
-      // Redirect to dashboard to see changes
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
+      showAlert('success', 'Profile Updated', 'Your profile has been successfully updated');
+      setIsEditing(false);
       
     } catch (err) {
       console.error('Unexpected error updating profile:', err);
-      Toast.fire({
-        icon: 'error',
-        iconColor: '#ef4444',
-        title: 'Error',
-        text: 'An unexpected error occurred',
-      });
+      showAlert('error', 'Error', 'An unexpected error occurred');
     } finally {
       setIsSaving(false);
     }
@@ -281,387 +250,481 @@ const ProfilePage: React.FC = () => {
     navigate(-1);
   };
 
-  // Sign out handler
+  // Sign out handler with modern confirmation
   const handleSignOut = async () => {
-    const result = await Swal.fire({
-      title: 'Sign Out?',
-      text: 'Are you sure you want to sign out?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, sign out',
-      cancelButtonText: 'Cancel',
-      reverseButtons: true,
-      background: '#f8fafc',
-      width: '320px',
-      customClass: {
-        popup: 'rounded-xl',
-        title: 'text-base font-semibold',
-        htmlContainer: 'text-xs',
-        confirmButton: 'bg-red-500 text-white rounded-lg px-4 py-2 text-sm',
-        cancelButton: 'bg-gray-200 text-gray-700 rounded-lg px-4 py-2 text-sm',
-      },
-    });
-    if (result.isConfirmed) {
+    const confirmDiv = document.createElement('div');
+    confirmDiv.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    confirmDiv.innerHTML = `
+      <div class="bg-white rounded-2xl p-6 max-w-sm mx-4 shadow-2xl">
+        <div class="text-center">
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+            <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Sign Out?</h3>
+          <p class="text-sm text-gray-500 mb-6">Are you sure you want to sign out of your account?</p>
+          <div class="flex space-x-3">
+            <button id="cancelBtn" class="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-medium hover:bg-gray-200 transition-colors">Cancel</button>
+            <button id="confirmBtn" class="flex-1 bg-red-500 text-white px-4 py-2 rounded-xl font-medium hover:bg-red-600 transition-colors">Sign Out</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(confirmDiv);
+    
+    const cancelBtn = confirmDiv.querySelector('#cancelBtn');
+    const confirmBtn = confirmDiv.querySelector('#confirmBtn');
+    
+    cancelBtn?.addEventListener('click', () => confirmDiv.remove());
+    confirmBtn?.addEventListener('click', async () => {
       try {
         await supabase.auth.signOut();
-        navigate('/login');
+        navigate('/');
       } catch (err) {
         console.error('Error signing out:', err);
-        Toast.fire({
-          icon: 'error',
-          iconColor: '#ef4444',
-          title: 'Sign Out Failed',
-          text: 'Could not sign out. Please try again.',
-        });
+        showAlert('error', 'Sign Out Failed', 'Could not sign out. Please try again.');
       }
-    }
+      confirmDiv.remove();
+    });
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#800000]/5">
-        <div className="flex flex-col items-center">
-          <FaSpinner className="animate-spin text-3xl text-[#800000] mb-4" />
-          <p className="text-gray-600">Loading profile...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-16 h-16 border-4 border-[#800000] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-600 font-medium">Loading your profile...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#800000]/5 pb-20">
-      {/* Header */}
+    <div className="min-h-screen pb-20">
+      {/* Modern Header */}
       <motion.div 
-        className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10"
+        className="bg-white/90 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-10"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
         <div className="px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
+          <div className="flex items-center justify-between max-w-6xl mx-auto">
+            <div className="flex items-center space-x-4">
               <button 
                 onClick={goBack}
-                className="mr-4 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
               >
                 <FaArrowLeft className="text-gray-600" />
               </button>
-              <h1 className="text-xl font-bold text-[#800000]">
-                Your Profile
-              </h1>
+              <div>
+                <h1 className="text-xl font-bold text-[#800000]">Profile Settings</h1>
+                <p className="text-sm text-gray-500">Manage your personal information</p>
+              </div>
             </div>
-            <button
-              onClick={handleSignOut}
-              className="ml-4 p-2 rounded-full hover:bg-red-50 transition-colors border border-red-200 text-red-500 flex items-center gap-2"
-              title="Sign Out"
-            >
-              <FaSignOutAlt className="text-lg" />
-              <span className="hidden sm:inline text-sm font-medium">Sign Out</span>
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className={`px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center space-x-2 ${
+                  isEditing 
+                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
+                    : 'bg-[#800000] text-white hover:bg-[#660000]'
+                }`}
+              >
+                <FaEdit className="text-sm" />
+                <span>{isEditing ? 'Cancel' : 'Edit Profile'}</span>
+              </button>
+              <button
+                onClick={handleSignOut}
+                className="p-2 rounded-xl hover:bg-red-50 transition-colors border border-red-200 text-red-500"
+                title="Sign Out"
+              >
+                <FaSignOutAlt className="text-lg" />
+              </button>
+            </div>
           </div>
         </div>
       </motion.div>
 
       {/* Main Content */}
-      <div className="px-4 py-6">
-        <motion.div
-          className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="flex justify-center mb-6">
-            <div className="w-24 h-24 bg-[#800000] rounded-full flex items-center justify-center text-white text-4xl">
-              {fullName ? fullName.charAt(0).toUpperCase() : <FaUser />}
-            </div>
-          </div>
+      <div className="px-4 py-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Profile Card */}
+          <motion.div
+            className="lg:col-span-1"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 sticky top-24">
+              {/* Profile Picture */}
+              <div className="text-center mb-6">
+                <div className="relative inline-block">
+                  <div className="w-24 h-24 bg-gradient-to-br from-[#800000] to-[#a00000] rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+                    {fullName ? fullName.charAt(0).toUpperCase() : <FaUser />}
+                  </div>
+                  <button className="absolute -bottom-1 -right-1 bg-white rounded-full p-2 shadow-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                    <FaCamera className="text-gray-500 text-sm" />
+                  </button>
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 mt-4">{fullName || 'Your Name'}</h2>
+                <p className="text-gray-500 text-sm">{email}</p>
+              </div>
 
-          {userData && (
-            <div className="flex justify-center mb-6">
-              <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3">
-                <FaFire className={`${getFireColor(userData.streak || 0)} text-2xl`} title={
-                  userData.streak >= 100 ? '🔥 100+ Day Streak! Legendary!' :
-                  userData.streak >= 60 ? '🔥 60+ Day Streak! Incredible!' :
-                  userData.streak >= 50 ? '🔥 50+ Day Streak! Amazing!' :
-                  userData.streak >= 30 ? '🔥 30+ Day Streak! Awesome!' :
-                  userData.streak >= 20 ? '🔥 20+ Day Streak! Great job!' :
-                  userData.streak >= 10 ? '🔥 10+ Day Streak! Keep going!' :
-                  '🔥 Keep your streak alive!'
-                } />
-                <span className="font-bold text-lg">Streak:</span>
-                <span className={`text-2xl font-extrabold ${getFireColor(userData.streak || 0)}`}>{userData.streak || 0} days</span>
+              {/* Streak Display */}
+              {userData && (
+                <div className="bg-gradient-to-r from-orange-400 to-pink-500 rounded-xl p-4 mb-6 text-white">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm opacity-90">Current Streak</p>
+                      <p className="text-2xl font-bold">{userData.streak || 0} days</p>
+                    </div>
+                    <FaFire className={`text-3xl ${getFireColor(userData.streak || 0)}`} />
+                  </div>
+                </div>
+              )}
+
+              {/* Quick Stats */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  <div className="flex items-center space-x-2">
+                    <FaCalendar className="text-[#800000]" />
+                    <span className="text-sm font-medium">Member Since</span>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {userData?.created_at ? new Date(userData.created_at).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  <div className="flex items-center space-x-2">
+                    <FaTrophy className="text-[#800000]" />
+                    <span className="text-sm font-medium">Role</span>
+                  </div>
+                  <span className="text-xs text-gray-500 capitalize">{userData?.role || 'Student'}</span>
+                </div>
               </div>
             </div>
-          )}
+          </motion.div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Personal Information */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
-                Personal Information
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Full Name */}
-                <div>
-                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaUser className="inline mr-2 text-[#800000]" />
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    id="fullName"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
-                    placeholder="Your full name"
-                    required
-                  />
-                </div>
-
-                {/* Email (read-only) */}
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaEnvelope className="inline mr-2 text-[#800000]" />
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm bg-gray-100 text-gray-500"
-                    readOnly
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
-                </div>
+          {/* Form Section */}
+          <motion.div
+            className="lg:col-span-2"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100">
+              <form onSubmit={handleSubmit} className="p-6">
                 
-                {/* Age */}
-                <div>
-                  <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">
-                    Age
-                  </label>
-                  <input
-                    type="number"
-                    id="age"
-                    value={age}
-                    onChange={(e) => setAge(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
-                    placeholder="Your age"
-                    min="1"
-                  />
-                </div>
-
-                {/* Gender */}
-                <div className="relative">
-                  <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
-                    Gender
-                  </label>
-                  <div
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm cursor-pointer flex justify-between items-center"
-                    onClick={() => setShowGenderDropdown(!showGenderDropdown)}
-                  >
-                    {gender || 'Select gender'}
-                    <FaChevronDown className="text-gray-400 text-xs" />
-                  </div>
-                  {showGenderDropdown && (
-                    <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg">
-                      {genders.map((g) => (
-                        <div
-                          key={g}
-                          className="px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm"
-                          onClick={() => {
-                            setGender(g);
-                            setShowGenderDropdown(false);
-                          }}
-                        >
-                          {g}
-                        </div>
-                      ))}
+                {/* Personal Information */}
+                <div className="mb-8">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <div className="p-2 bg-[#800000]/10 rounded-lg">
+                      <FaUser className="text-[#800000]" />
                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Academic Information */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
-                Academic Information
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* School */}
-                <div>
-                  <label htmlFor="school" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaSchool className="inline mr-2 text-[#800000]" />
-                    School
-                  </label>
-                  <input
-                    type="text"
-                    id="school"
-                    value={school}
-                    onChange={(e) => setSchool(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
-                    placeholder="Your school/university"
-                  />
-                </div>
-
-                {/* Course */}
-                <div>
-                  <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaGraduationCap className="inline mr-2 text-[#800000]" />
-                    Course
-                  </label>
-                  <input
-                    type="text"
-                    id="course"
-                    value={course}
-                    onChange={(e) => setCourse(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
-                    placeholder="Your course"
-                  />
-                </div>
-
-                {/* Year Level */}
-                <div className="relative">
-                  <label htmlFor="yearLevel" className="block text-sm font-medium text-gray-700 mb-1">
-                    Year Level
-                  </label>
-                  <div
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm cursor-pointer flex justify-between items-center"
-                    onClick={() => setShowYearLevelDropdown(!showYearLevelDropdown)}
-                  >
-                    {yearLevel || 'Select year level'}
-                    <FaChevronDown className="text-gray-400 text-xs" />
+                    <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
                   </div>
-                  {showYearLevelDropdown && (
-                    <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg">
-                      {Object.keys(yearLevelMap).map((level) => (
-                        <div
-                          key={level}
-                          className="px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm"
-                          onClick={() => {
-                            setYearLevel(level);
-                            setShowYearLevelDropdown(false);
-                          }}
-                        >
-                          {level}
-                        </div>
-                      ))}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Full Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                      <input
+                        type="text"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        disabled={!isEditing}
+                        className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all ${
+                          !isEditing ? 'bg-gray-50 text-gray-600' : 'bg-white'
+                        }`}
+                        placeholder="Enter your full name"
+                      />
                     </div>
+
+                    {/* Email (read-only) */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                      <div className="relative">
+                        <input
+                          type="email"
+                          value={email}
+                          className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-600"
+                          readOnly
+                        />
+                        <div className="absolute right-3 top-3">
+                          <FaEnvelope className="text-gray-400" />
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                    </div>
+                    
+                    {/* Age */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
+                      <input
+                        type="number"
+                        value={age}
+                        onChange={(e) => setAge(e.target.value)}
+                        disabled={!isEditing}
+                        className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all ${
+                          !isEditing ? 'bg-gray-50 text-gray-600' : 'bg-white'
+                        }`}
+                        placeholder="Enter your age"
+                        min="1"
+                      />
+                    </div>
+
+                    {/* Gender */}
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                      <div
+                        className={`w-full px-4 py-3 border border-gray-200 rounded-xl cursor-pointer flex justify-between items-center transition-all ${
+                          !isEditing 
+                            ? 'bg-gray-50 text-gray-600 cursor-not-allowed' 
+                            : 'bg-white hover:border-[#800000] focus:ring-2 focus:ring-[#800000]/20'
+                        }`}
+                        onClick={() => isEditing && setShowGenderDropdown(!showGenderDropdown)}
+                      >
+                        <span>{gender || 'Select gender'}</span>
+                        <FaChevronDown className={`text-gray-400 transition-transform ${showGenderDropdown ? 'rotate-180' : ''}`} />
+                      </div>
+                      <AnimatePresence>
+                        {showGenderDropdown && isEditing && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
+                          >
+                            {genders.map((g) => (
+                              <div
+                                key={g}
+                                className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                                onClick={() => {
+                                  setGender(g);
+                                  setShowGenderDropdown(false);
+                                }}
+                              >
+                                {g}
+                              </div>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Academic Information */}
+                <div className="mb-8">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <div className="p-2 bg-[#800000]/10 rounded-lg">
+                      <FaGraduationCap className="text-[#800000]" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">Academic Information</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* School */}
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">School/University</label>
+                      <input
+                        type="text"
+                        value={school}
+                        onChange={(e) => setSchool(e.target.value)}
+                        disabled={!isEditing}
+                        className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all ${
+                          !isEditing ? 'bg-gray-50 text-gray-600' : 'bg-white'
+                        }`}
+                        placeholder="Enter your school or university"
+                      />
+                    </div>
+
+                    {/* Course */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Course/Program</label>
+                      <input
+                        type="text"
+                        value={course}
+                        onChange={(e) => setCourse(e.target.value)}
+                        disabled={!isEditing}
+                        className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all ${
+                          !isEditing ? 'bg-gray-50 text-gray-600' : 'bg-white'
+                        }`}
+                        placeholder="Enter your course"
+                      />
+                    </div>
+
+                    {/* Year Level */}
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Year Level</label>
+                      <div
+                        className={`w-full px-4 py-3 border border-gray-200 rounded-xl cursor-pointer flex justify-between items-center transition-all ${
+                          !isEditing 
+                            ? 'bg-gray-50 text-gray-600 cursor-not-allowed' 
+                            : 'bg-white hover:border-[#800000] focus:ring-2 focus:ring-[#800000]/20'
+                        }`}
+                        onClick={() => isEditing && setShowYearLevelDropdown(!showYearLevelDropdown)}
+                      >
+                        <span>{yearLevel || 'Select year level'}</span>
+                        <FaChevronDown className={`text-gray-400 transition-transform ${showYearLevelDropdown ? 'rotate-180' : ''}`} />
+                      </div>
+                      <AnimatePresence>
+                        {showYearLevelDropdown && isEditing && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
+                          >
+                            {Object.keys(yearLevelMap).map((level) => (
+                              <div
+                                key={level}
+                                className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0"
+                                onClick={() => {
+                                  setYearLevel(level);
+                                  setShowYearLevelDropdown(false);
+                                }}
+                              >
+                                {level}
+                              </div>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact Information */}
+                <div className="mb-8">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <div className="p-2 bg-[#800000]/10 rounded-lg">
+                      <FaPhone className="text-[#800000]" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Phone Number */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                      <input
+                        type="tel"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        disabled={!isEditing}
+                        className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all ${
+                          !isEditing ? 'bg-gray-50 text-gray-600' : 'bg-white'
+                        }`}
+                        placeholder="Enter your phone number"
+                      />
+                    </div>
+
+                    {/* Address */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                      <input
+                        type="text"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        disabled={!isEditing}
+                        className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all ${
+                          !isEditing ? 'bg-gray-50 text-gray-600' : 'bg-white'
+                        }`}
+                        placeholder="Enter your address"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Guardian Information */}
+                <div className="mb-8">
+                  <div className="flex items-center space-x-2 mb-6">
+                    <div className="p-2 bg-[#800000]/10 rounded-lg">
+                      <FaUserFriends className="text-[#800000]" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">Guardian Information</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Guardian Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Guardian Name</label>
+                      <input
+                        type="text"
+                        value={guardianName}
+                        onChange={(e) => setGuardianName(e.target.value)}
+                        disabled={!isEditing}
+                        className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all ${
+                          !isEditing ? 'bg-gray-50 text-gray-600' : 'bg-white'
+                        }`}
+                        placeholder="Enter guardian's name"
+                      />
+                    </div>
+
+                    {/* Guardian Phone Number */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Guardian Phone</label>
+                      <input
+                        type="tel"
+                        value={guardianPhoneNumber}
+                        onChange={(e) => setGuardianPhoneNumber(e.target.value)}
+                        disabled={!isEditing}
+                        className={`w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all ${
+                          !isEditing ? 'bg-gray-50 text-gray-600' : 'bg-white'
+                        }`}
+                        placeholder="Enter guardian's phone"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <AnimatePresence>
+                  {isEditing && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                      className="flex justify-end space-x-3"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                        className="px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <motion.button
+                        type="submit"
+                        disabled={isSaving}
+                        className="flex items-center space-x-2 px-6 py-3 bg-[#800000] text-white font-medium rounded-xl shadow-lg hover:bg-[#660000] transition-all duration-200 disabled:opacity-70"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {isSaving ? (
+                          <>
+                            <FaSpinner className="animate-spin" />
+                            <span>Saving...</span>
+                          </>
+                        ) : (
+                          <>
+                            <FaSave />
+                            <span>Save Changes</span>
+                          </>
+                        )}
+                      </motion.button>
+                    </motion.div>
                   )}
-                </div>
-              </div>
+                </AnimatePresence>
+              </form>
             </div>
-
-            {/* Contact Information */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
-                Contact Information
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Phone Number */}
-                <div>
-                  <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaPhone className="inline mr-2 text-[#800000]" />
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    id="phoneNumber"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
-                    placeholder="Your phone number"
-                  />
-                </div>
-
-                {/* Address */}
-                <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaHome className="inline mr-2 text-[#800000]" />
-                    Address
-                  </label>
-                  <input
-                    type="text"
-                    id="address"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
-                    placeholder="Your address"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Guardian Information */}
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
-                Guardian Information
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Guardian Name */}
-                <div>
-                  <label htmlFor="guardianName" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaUserFriends className="inline mr-2 text-[#800000]" />
-                    Guardian Name
-                  </label>
-                  <input
-                    type="text"
-                    id="guardianName"
-                    value={guardianName}
-                    onChange={(e) => setGuardianName(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
-                    placeholder="Guardian's name"
-                  />
-                </div>
-
-                {/* Guardian Phone Number */}
-                <div>
-                  <label htmlFor="guardianPhoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                    <FaPhone className="inline mr-2 text-[#800000]" />
-                    Guardian Phone
-                  </label>
-                  <input
-                    type="tel"
-                    id="guardianPhoneNumber"
-                    value={guardianPhoneNumber}
-                    onChange={(e) => setGuardianPhoneNumber(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-1 focus:ring-[#800000] focus:border-transparent transition duration-200 bg-gray-50/50 backdrop-blur-sm"
-                    placeholder="Guardian's phone number"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="flex justify-center">
-              <motion.button
-                type="submit"
-                disabled={isSaving}
-                className="flex items-center justify-center px-6 py-3 bg-[#800000] text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-70 hover:bg-[#660000]"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {isSaving ? (
-                  <>
-                    <FaSpinner className="animate-spin mr-2" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <FaSave className="mr-2" />
-                    Save Changes
-                  </>
-                )}
-              </motion.button>
-            </div>
-          </form>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

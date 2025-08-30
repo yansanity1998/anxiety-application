@@ -9,6 +9,8 @@ import UserDashboard from './user/Dashboard';
 import ProfilePage from './user/ProfilePage';
 import CBTModules from './user/components/CBTModules';
 import AnxietyVideos from './user/components/AnxietyVideos';
+import TodoListPage from './user/TodoListPage';
+import RelaxationPage from './user/RelaxationPage';
 import { supabase } from './lib/supabase';
 import './App.css';
 
@@ -185,6 +187,22 @@ function App() {
             element={
               <AuthRoute>
                 <AnxietyVideos />
+              </AuthRoute>
+            } 
+          />
+          <Route 
+            path="/todo-list" 
+            element={
+              <AuthRoute>
+                <TodoListPage />
+              </AuthRoute>
+            } 
+          />
+          <Route 
+            path="/relaxation" 
+            element={
+              <AuthRoute>
+                <RelaxationPage />
               </AuthRoute>
             } 
           />

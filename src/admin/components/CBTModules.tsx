@@ -3,7 +3,7 @@ import { FaBrain, FaPlus, FaEdit, FaTrash, FaCheck, FaPlay, FaSearch, FaTrophy, 
 import { cbtModuleService } from '../../lib/cbtModuleService';
 import type { CBTModule, CreateCBTModuleData } from '../../lib/cbtModuleService';
 import { supabase } from '../../lib/supabase';
-import Swal from 'sweetalert2';
+// Removed SweetAlert2 - using modern alerts instead
 
 interface CBTModulesProps {
   darkMode: boolean;
@@ -42,6 +42,84 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
     module_status: 'in_progress'
   });
 
+  // Modern alert function
+  const showAlert = (type: 'success' | 'error' | 'warning', title: string, message: string) => {
+    const colors = {
+      success: { border: 'border-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700', icon: 'text-emerald-500' },
+      error: { border: 'border-red-500', bg: 'bg-red-50', text: 'text-red-700', icon: 'text-red-500' },
+      warning: { border: 'border-yellow-500', bg: 'bg-yellow-50', text: 'text-yellow-700', icon: 'text-yellow-500' }
+    };
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `fixed top-4 right-4 z-50 bg-white border-l-4 ${colors[type].border} rounded-lg shadow-lg p-4 max-w-sm transform transition-all duration-300 ease-in-out`;
+    alertDiv.innerHTML = `
+      <div class="flex items-start">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 ${colors[type].icon}" fill="currentColor" viewBox="0 0 20 20">
+            ${type === 'success' ? 
+              '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>' :
+              type === 'error' ?
+              '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>' :
+              '<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>'
+            }
+          </svg>
+        </div>
+        <div class="ml-3 flex-1">
+          <p class="text-sm font-medium text-gray-900">${title}</p>
+          <p class="text-xs text-gray-500 mt-1">${message}</p>
+        </div>
+        <div class="ml-auto pl-3">
+          <button type="button" class="inline-flex bg-white rounded-md p-1.5 text-gray-400 hover:text-gray-500 focus:outline-none" onclick="this.closest('div').remove()">
+            <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => alertDiv.remove(), 4000);
+  };
+
+  // Modern confirmation dialog
+  const showConfirmDialog = (title: string, message: string, confirmText = 'Confirm', cancelText = 'Cancel'): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const confirmDiv = document.createElement('div');
+      confirmDiv.className = 'fixed inset-0 bg-white/20 backdrop-blur-md flex items-center justify-center z-50';
+      confirmDiv.innerHTML = `
+        <div class="bg-white rounded-2xl p-6 max-w-sm mx-4 shadow-2xl">
+          <div class="text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+              <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"/>
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">${title}</h3>
+            <p class="text-sm text-gray-500 mb-6">${message}</p>
+            <div class="flex space-x-3">
+              <button id="cancelBtn" class="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-medium hover:bg-gray-200 transition-colors">${cancelText}</button>
+              <button id="confirmBtn" class="flex-1 bg-red-500 text-white px-4 py-2 rounded-xl font-medium hover:bg-red-600 transition-colors">${confirmText}</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(confirmDiv);
+      
+      const cancelBtn = confirmDiv.querySelector('#cancelBtn');
+      const confirmBtn = confirmDiv.querySelector('#confirmBtn');
+      
+      cancelBtn?.addEventListener('click', () => {
+        confirmDiv.remove();
+        resolve(false);
+      });
+      confirmBtn?.addEventListener('click', () => {
+        confirmDiv.remove();
+        resolve(true);
+      });
+    });
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -57,12 +135,7 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
       setUsers(usersData);
     } catch (error) {
       console.error('Error fetching data:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to load CBT modules and users',
-        confirmButtonColor: '#800000'
-      });
+      showAlert('error', 'Error', 'Failed to load CBT modules and users');
     } finally {
       setLoading(false);
     }
@@ -115,12 +188,7 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
 
   const handleAddModule = async () => {
     if (!formData.profile_id || !formData.module_title || !formData.module_description) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Missing Information',
-        text: 'Please fill in all required fields',
-        confirmButtonColor: '#800000'
-      });
+      showAlert('warning', 'Missing Information', 'Please fill in all required fields');
       return;
     }
 
@@ -139,21 +207,10 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
       setShowAddModal(false);
       resetForm();
       setNewImageFile(null);
-      Swal.fire({
-        icon: 'success',
-        title: 'Success!',
-        text: 'CBT module created successfully',
-        timer: 2000,
-        showConfirmButton: false
-      });
+      showAlert('success', 'Success!', 'CBT module created successfully');
     } catch (error: any) {
       console.error('Error creating module:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error?.message || 'Failed to create CBT module',
-        confirmButtonColor: '#800000'
-      });
+      showAlert('error', 'Error', error?.message || 'Failed to create CBT module');
     } finally {
       setIsUploading(false);
     }
@@ -161,12 +218,7 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
 
   const handleEditModule = async () => {
     if (!selectedModule || !formData.module_title || !formData.module_description) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Missing Information',
-        text: 'Please fill in all required fields',
-        confirmButtonColor: '#800000'
-      });
+      showAlert('warning', 'Missing Information', 'Please fill in all required fields');
       return;
     }
 
@@ -187,57 +239,31 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
       setSelectedModule(null);
       resetForm();
       setEditImageFile(null);
-      Swal.fire({
-        icon: 'success',
-        title: 'Success!',
-        text: 'CBT module updated successfully',
-        timer: 2000,
-        showConfirmButton: false
-      });
+      showAlert('success', 'Success!', 'CBT module updated successfully');
     } catch (error: any) {
       console.error('Error updating module:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: error?.message || 'Failed to update CBT module',
-        confirmButtonColor: '#800000'
-      });
+      showAlert('error', 'Error', error?.message || 'Failed to update CBT module');
     } finally {
       setIsUploading(false);
     }
   };
 
   const handleDeleteModule = async (module: CBTModule) => {
-    const result = await Swal.fire({
-      icon: 'warning',
-      title: 'Delete Module',
-      text: `Are you sure you want to delete "${module.module_title}"?`,
-      showCancelButton: true,
-      confirmButtonText: 'Delete',
-      cancelButtonText: 'Cancel',
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#6b7280'
-    });
+    const confirmed = await showConfirmDialog(
+      'Delete Module',
+      `Are you sure you want to delete "${module.module_title}"?`,
+      'Delete',
+      'Cancel'
+    );
 
-    if (result.isConfirmed) {
+    if (confirmed) {
       try {
         await cbtModuleService.deleteModule(module.id);
         setModules(prev => prev.filter(m => m.id !== module.id));
-        Swal.fire({
-          icon: 'success',
-          title: 'Deleted!',
-          text: 'CBT module deleted successfully',
-          timer: 2000,
-          showConfirmButton: false
-        });
+        showAlert('success', 'Deleted!', 'CBT module deleted successfully');
       } catch (error) {
         console.error('Error deleting module:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to delete CBT module',
-          confirmButtonColor: '#800000'
-        });
+        showAlert('error', 'Error', 'Failed to delete CBT module');
       }
     }
   };
@@ -246,21 +272,10 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
     try {
       const updatedModule = await cbtModuleService.updateModuleStatus(module.id, newStatus);
       setModules(prev => prev.map(m => m.id === module.id ? updatedModule : m));
-      Swal.fire({
-        icon: 'success',
-        title: 'Status Updated',
-        text: `Module status changed to ${newStatus.replace('_', ' ')}`,
-        timer: 2000,
-        showConfirmButton: false
-      });
+      showAlert('success', 'Status Updated', `Module status changed to ${newStatus.replace('_', ' ')}`);
     } catch (error) {
       console.error('Error updating status:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to update module status',
-        confirmButtonColor: '#800000'
-      });
+      showAlert('error', 'Error', 'Failed to update module status');
     }
   };
 

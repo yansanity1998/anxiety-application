@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { FaCalendarAlt, FaUser, FaClock, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaSpinner, FaChevronDown, FaEye, FaTrash, FaPrint, FaDownload, FaCalendarTimes, FaUserTimes } from 'react-icons/fa';
 import { getAllAppointments, updateAppointment, deleteAppointment } from '../../lib/appointmentService';
 import type { Appointment } from '../../lib/appointmentService';
-import Swal from 'sweetalert2';
+// Removed SweetAlert2 - using modern alerts instead
 
 interface ScheduleProps {
   darkMode: boolean;
@@ -136,6 +136,45 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
 
+  // Modern alert function
+  const showAlert = (type: 'success' | 'error' | 'warning', title: string, message: string) => {
+    const colors = {
+      success: { border: 'border-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700', icon: 'text-emerald-500' },
+      error: { border: 'border-red-500', bg: 'bg-red-50', text: 'text-red-700', icon: 'text-red-500' },
+      warning: { border: 'border-yellow-500', bg: 'bg-yellow-50', text: 'text-yellow-700', icon: 'text-yellow-500' }
+    };
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `fixed top-4 right-4 z-50 bg-white border-l-4 ${colors[type].border} rounded-lg shadow-lg p-4 max-w-sm transform transition-all duration-300 ease-in-out`;
+    alertDiv.innerHTML = `
+      <div class="flex items-start">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 ${colors[type].icon}" fill="currentColor" viewBox="0 0 20 20">
+            ${type === 'success' ? 
+              '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>' :
+              type === 'error' ?
+              '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>' :
+              '<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>'
+            }
+          </svg>
+        </div>
+        <div class="ml-3 flex-1">
+          <p class="text-sm font-medium text-gray-900">${title}</p>
+          <p class="text-xs text-gray-500 mt-1">${message}</p>
+        </div>
+        <div class="ml-auto pl-3">
+          <button type="button" class="inline-flex bg-white rounded-md p-1.5 text-gray-400 hover:text-gray-500 focus:outline-none" onclick="this.closest('div').remove()">
+            <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => alertDiv.remove(), 4000);
+  };
+
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -181,19 +220,16 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
       setDropdownPosition(null);
     } catch (error) {
       console.error('Error updating appointment status:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to update appointment status',
-      });
+      showAlert('error', 'Error', 'Failed to update appointment status');
     }
   };
 
   const showStudentInfo = (appointment: Appointment) => {
-    Swal.fire({
-      title: 'Student Information',
-      html: `
-        <div class="text-left space-y-6">
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-white/20 backdrop-blur-md flex items-center justify-center z-50 p-4';
+    modal.innerHTML = `
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border-2 border-[#800000]/20">
+        <div class="p-6">
           <div class="text-center mb-6">
             <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#800000]/10 to-[#800000]/20 rounded-full mb-4 shadow-lg">
               <svg class="w-10 h-10 text-[#800000]" fill="currentColor" viewBox="0 0 20 20">
@@ -266,191 +302,211 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
               Print
             </button>
             <button 
-              onclick="this.closest('.swal2-popup').querySelector('.swal2-confirm').click()"
+              onclick="this.closest('.fixed').remove()"
               class="flex-1 bg-[#800000] hover:bg-[#660000] text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               Close
             </button>
           </div>
         </div>
-      `,
-      showConfirmButton: false,
-      showCancelButton: false,
-      width: '450px',
-      customClass: {
-        popup: 'rounded-2xl shadow-2xl border-2 border-[#800000]/20',
-        title: 'hidden',
-        htmlContainer: 'p-0',
-        icon: 'hidden'
-      }
+      </div>
+    `;
+    
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
     });
+    
+    document.body.appendChild(modal);
   };
 
   const handleDeleteAppointment = async (appointment: Appointment) => {
-    const result = await Swal.fire({
-      title: 'Delete Appointment',
-      html: `
-        <div class="text-center space-y-4">
-          <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-3">
-            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
+    const confirmed = await new Promise<boolean>((resolve) => {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-white/20 backdrop-blur-md flex items-center justify-center z-50 p-4';
+      modal.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 border border-red-200">
+          <div class="p-6">
+            <div class="text-center space-y-4">
+              <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-3">
+                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-bold text-gray-900">Delete Appointment?</h3>
+              <p class="text-gray-600">Are you sure you want to delete this appointment?</p>
+              <div class="bg-red-50 p-4 rounded-xl border border-red-200">
+                <p class="font-semibold text-red-800 text-lg">${appointment.student_name}</p>
+                <p class="text-sm text-red-600">${formatDate(appointment.appointment_date)} at ${appointment.appointment_time}</p>
+              </div>
+              <p class="text-sm text-gray-500">This action cannot be undone.</p>
+              <div class="flex space-x-3 mt-6">
+                <button id="cancelBtn" class="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-medium hover:bg-gray-200 transition-colors">Cancel</button>
+                <button id="confirmBtn" class="flex-1 bg-red-500 text-white px-4 py-2 rounded-xl font-medium hover:bg-red-600 transition-colors">Yes, delete it!</button>
+              </div>
+            </div>
           </div>
-          <h3 class="text-lg font-bold text-gray-900">Delete Appointment?</h3>
-          <p class="text-gray-600">Are you sure you want to delete this appointment?</p>
-          <div class="bg-red-50 p-4 rounded-xl border border-red-200">
-            <p class="font-semibold text-red-800 text-lg">${appointment.student_name}</p>
-            <p class="text-sm text-red-600">${formatDate(appointment.appointment_date)} at ${appointment.appointment_time}</p>
-          </div>
-          <p class="text-sm text-gray-500">This action cannot be undone.</p>
         </div>
-      `,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, delete it!',
-      cancelButtonText: 'Cancel',
-      width: '400px',
-      customClass: {
-        popup: 'rounded-2xl shadow-2xl border border-red-200',
-        title: 'hidden',
-        htmlContainer: 'p-0',
-        confirmButton: 'bg-red-500 hover:bg-red-600 text-white font-medium py-2.5 px-5 rounded-lg transition-colors shadow-lg hover:shadow-xl',
-        cancelButton: 'bg-gray-500 hover:bg-gray-600 text-white font-medium py-2.5 px-5 rounded-lg transition-colors shadow-lg hover:shadow-xl'
-      }
+      `;
+      
+      document.body.appendChild(modal);
+      
+      const cancelBtn = modal.querySelector('#cancelBtn');
+      const confirmBtn = modal.querySelector('#confirmBtn');
+      
+      cancelBtn?.addEventListener('click', () => {
+        modal.remove();
+        resolve(false);
+      });
+      confirmBtn?.addEventListener('click', () => {
+        modal.remove();
+        resolve(true);
+      });
+      
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.remove();
+          resolve(false);
+        }
+      });
     });
 
-    if (result.isConfirmed) {
+    if (confirmed) {
       try {
         await deleteAppointment(appointment.id);
         const data = await getAllAppointments();
         setAppointments(data);
-        Swal.fire({
-          icon: 'success',
-          title: 'Deleted!',
-          text: 'Appointment has been deleted successfully.',
-          timer: 1500,
-          showConfirmButton: false
-        });
+        showAlert('success', 'Deleted!', 'Appointment has been deleted successfully.');
       } catch (error) {
         console.error('Error deleting appointment:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Failed to delete appointment. Please try again.',
-        });
+        showAlert('error', 'Error', 'Failed to delete appointment. Please try again.');
       }
     }
   };
 
   const handleEditAppointment = async (appointment: Appointment) => {
     try {
-      const { value: formValues } = await Swal.fire({
-        title: 'Edit Appointment',
-        html: `
-          <div class="space-y-6">
-            <!-- User Info Header -->
-            <div class="text-center mb-6">
-              <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#800000]/10 to-[#800000]/20 rounded-full mb-4 shadow-lg">
-                <svg class="w-8 h-8 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 class="text-xl font-bold text-[#800000] mb-2">Edit Appointment</h3>
-              <div class="bg-[#800000]/5 px-4 py-2 rounded-lg border border-[#800000]/20">
-                <p class="text-sm font-semibold text-gray-800">${appointment.student_name}</p>
-                <p class="text-xs text-gray-600">Current: ${formatDate(appointment.appointment_date)} at ${appointment.appointment_time}</p>
-              </div>
-            </div>
-
-            <!-- Form Fields -->
-            <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200">
-              <!-- Date Selection -->
-              <div class="space-y-3 mb-5">
-                <label class="flex items-center text-sm font-bold text-gray-700 mb-2">
-                  <div class="w-8 h-8 bg-[#800000]/10 rounded-lg flex items-center justify-center mr-3">
-                    <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      const formValues = await new Promise<{date: string, time: string, notes: string} | null>((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-white/20 backdrop-blur-md flex items-center justify-center z-50 p-4';
+        modal.innerHTML = `
+          <div class="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border-2 border-[#800000]">
+            <div class="p-6">
+              <div class="space-y-6">
+                <!-- User Info Header -->
+                <div class="text-center mb-6">
+                  <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#800000]/10 to-[#800000]/20 rounded-full mb-4 shadow-lg">
+                    <svg class="w-8 h-8 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  New Appointment Date
-                </label>
-                <div class="relative">
-                  <input 
-                    type="date" 
-                    id="edit-date" 
-                    value="${appointment.appointment_date}"
-                    min="${new Date().toISOString().split('T')[0]}"
-                    class="w-full p-4 border-2 rounded-xl bg-white border-gray-300 text-gray-900 focus:ring-4 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-base font-medium shadow-sm hover:shadow-lg hover:border-[#800000]/50" 
-                  />
-                </div>
-              </div>
-
-              <!-- Time Selection -->
-              <div class="space-y-3 mb-5">
-                <label class="flex items-center text-sm font-bold text-gray-700 mb-2">
-                  <div class="w-8 h-8 bg-[#800000]/10 rounded-lg flex items-center justify-center mr-3">
-                    <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                  <h3 class="text-xl font-bold text-[#800000] mb-2">Edit Appointment</h3>
+                  <div class="bg-[#800000]/5 px-4 py-2 rounded-lg border border-[#800000]/20">
+                    <p class="text-sm font-semibold text-gray-800">${appointment.student_name}</p>
+                    <p class="text-xs text-gray-600">Current: ${formatDate(appointment.appointment_date)} at ${appointment.appointment_time}</p>
                   </div>
-                  New Appointment Time
-                </label>
-                <div class="relative">
-                  <input 
-                    type="time" 
-                    id="edit-time" 
-                    value="${appointment.appointment_time}"
-                    class="w-full p-4 border-2 rounded-xl bg-white border-gray-300 text-gray-900 focus:ring-4 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-base font-medium shadow-sm hover:shadow-lg hover:border-[#800000]/50" 
-                  />
                 </div>
-              </div>
 
-              <!-- Notes -->
-              <div class="space-y-3">
-                <label class="flex items-center text-sm font-bold text-gray-700 mb-2">
-                  <div class="w-8 h-8 bg-[#800000]/10 rounded-lg flex items-center justify-center mr-3">
-                    <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
+                <!-- Form Fields -->
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200">
+                  <!-- Date Selection -->
+                  <div class="space-y-3 mb-5">
+                    <label class="flex items-center text-sm font-bold text-gray-700 mb-2">
+                      <div class="w-8 h-8 bg-[#800000]/10 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      New Appointment Date
+                    </label>
+                    <div class="relative">
+                      <input 
+                        type="date" 
+                        id="edit-date" 
+                        value="${appointment.appointment_date}"
+                        min="${new Date().toISOString().split('T')[0]}"
+                        class="w-full p-4 border-2 rounded-xl bg-white border-gray-300 text-gray-900 focus:ring-4 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-base font-medium shadow-sm hover:shadow-lg hover:border-[#800000]/50" 
+                      />
+                    </div>
                   </div>
-                  Notes (Optional)
-                </label>
-                <textarea 
-                  id="edit-notes" 
-                  class="w-full p-4 border-2 rounded-xl bg-white border-gray-300 text-gray-900 focus:ring-4 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-base font-medium shadow-sm hover:shadow-lg hover:border-[#800000]/50 resize-none" 
-                  rows="3"
-                  placeholder="Add any additional notes or special instructions..."
-                >${appointment.notes || ''}</textarea>
+
+                  <!-- Time Selection -->
+                  <div class="space-y-3 mb-5">
+                    <label class="flex items-center text-sm font-bold text-gray-700 mb-2">
+                      <div class="w-8 h-8 bg-[#800000]/10 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      New Appointment Time
+                    </label>
+                    <div class="relative">
+                      <input 
+                        type="time" 
+                        id="edit-time" 
+                        value="${appointment.appointment_time}"
+                        class="w-full p-4 border-2 rounded-xl bg-white border-gray-300 text-gray-900 focus:ring-4 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-base font-medium shadow-sm hover:shadow-lg hover:border-[#800000]/50" 
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Notes -->
+                  <div class="space-y-3">
+                    <label class="flex items-center text-sm font-bold text-gray-700 mb-2">
+                      <div class="w-8 h-8 bg-[#800000]/10 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </div>
+                      Notes (Optional)
+                    </label>
+                    <textarea 
+                      id="edit-notes" 
+                      class="w-full p-4 border-2 rounded-xl bg-white border-gray-300 text-gray-900 focus:ring-4 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-base font-medium shadow-sm hover:shadow-lg hover:border-[#800000]/50 resize-none" 
+                      rows="3"
+                      placeholder="Add any additional notes or special instructions..."
+                    >${appointment.notes || ''}</textarea>
+                  </div>
+                </div>
+                
+                <div class="flex space-x-3">
+                  <button id="cancelBtn" class="flex-1 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 border-2 font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow hover:shadow-md">Cancel</button>
+                  <button id="confirmBtn" class="flex-1 bg-[#800000] hover:bg-[#660000] text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">Update Appointment</button>
+                </div>
               </div>
             </div>
           </div>
-        `,
-        showCancelButton: true,
-        confirmButtonText: 'Update Appointment',
-        confirmButtonColor: '#800000',
-        cancelButtonText: 'Cancel',
-        focusConfirm: false,
-        preConfirm: () => {
-          const date = (document.getElementById('edit-date') as HTMLInputElement)?.value;
-          const time = (document.getElementById('edit-time') as HTMLInputElement)?.value;
-          const notes = (document.getElementById('edit-notes') as HTMLTextAreaElement)?.value;
+        `;
+        
+        document.body.appendChild(modal);
+        
+        const cancelBtn = modal.querySelector('#cancelBtn');
+        const confirmBtn = modal.querySelector('#confirmBtn');
+        
+        cancelBtn?.addEventListener('click', () => {
+          modal.remove();
+          resolve(null);
+        });
+        
+        confirmBtn?.addEventListener('click', () => {
+          const date = (modal.querySelector('#edit-date') as HTMLInputElement)?.value;
+          const time = (modal.querySelector('#edit-time') as HTMLInputElement)?.value;
+          const notes = (modal.querySelector('#edit-notes') as HTMLTextAreaElement)?.value;
+          
           if (!date || !time) {
-            Swal.showValidationMessage('Please select both date and time');
-            return false;
+            showAlert('warning', 'Missing Information', 'Please select both date and time');
+            return;
           }
-          return { date, time, notes };
-        },
-        width: '400px',
-        customClass: {
-          popup: 'rounded-xl shadow-xl border-2 border-[#800000] bg-white',
-          title: 'text-lg font-bold text-[#800000] mb-3',
-          htmlContainer: 'text-gray-700',
-          confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105',
-          cancelButton: 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 border-2 font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow hover:shadow-md',
-          icon: 'hidden'
-        }
+          
+          modal.remove();
+          resolve({ date, time, notes });
+        });
+        
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) {
+            modal.remove();
+            resolve(null);
+          }
+        });
       });
 
       if (formValues) {
@@ -466,29 +522,15 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
           const data = await getAllAppointments();
           setAppointments(data);
 
-          Swal.fire({
-            icon: 'success',
-            title: 'Updated!',
-            text: 'Appointment has been updated successfully.',
-            timer: 1500,
-            showConfirmButton: false
-          });
+          showAlert('success', 'Updated!', 'Appointment has been updated successfully.');
         } catch (error) {
           console.error('Error updating appointment:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Failed to update appointment. Please try again.',
-          });
+          showAlert('error', 'Error', 'Failed to update appointment. Please try again.');
         }
       }
     } catch (error) {
       console.error('Error editing appointment:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Failed to edit appointment.',
-      });
+      showAlert('error', 'Error', 'Failed to edit appointment.');
     }
   };
 

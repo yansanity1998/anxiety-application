@@ -28,7 +28,8 @@ import {
   // FaPlus,
   FaArrowUp,
   FaCheckCircle,
-  FaHome
+  FaHome,
+  FaTasks
 } from 'react-icons/fa';
 
 import { motion, AnimatePresence, useInView, useScroll, useTransform } from 'framer-motion';
@@ -37,6 +38,7 @@ import { supabase } from '../lib/supabase';
 import { streakService } from '../lib/streakService';
 import { useNavigate } from 'react-router-dom';
 import { StreakPet } from './StreakPet';
+import QuickRelaxation from './components/QuickRelaxation';
 
 // Mock user data - in a real app, this would come from your backend
 const mockUserData = {
@@ -208,15 +210,26 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
       tags: ['Video Guides', 'Expert Led']
     },
     {
-      id: 'relaxation',
-      title: 'Relaxation',
-      subtitle: 'Breathing & meditation',
-      icon: FaLeaf,
+      id: 'todo-list',
+      title: 'To-Do List',
+      subtitle: 'Track your anxiety tasks',
+      icon: FaTasks,
       gradient: 'from-green-500 to-emerald-600',
       bgGradient: 'from-green-50 to-emerald-100',
       borderColor: 'border-green-200',
-      onClick: () => alert('Relaxation Tools - Opening!'),
-      tags: ['Mindfulness', 'Calming']
+      onClick: () => navigate('/todo-list'),
+      tags: ['Tasks', 'Progress']
+    },
+    {
+      id: 'relaxation',
+      title: 'Relaxation Tools',
+      subtitle: 'Calm your mind & body',
+      icon: FaLeaf,
+      gradient: 'from-teal-500 to-green-600',
+      bgGradient: 'from-teal-50 to-green-100',
+      borderColor: 'border-teal-200',
+      onClick: () => navigate('/relaxation'),
+      tags: ['Meditation', 'Breathing']
     },
     {
       id: 'activities',
@@ -245,14 +258,16 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
       const maxScroll = scrollWidth - clientWidth;
       const scrollPercentage = scrollLeft / maxScroll;
       
-      // Map to 3 positions: 0 (start), 1 (middle), 2 (end)
+      // Map to 4 positions: 0 (start), 1 (quarter), 2 (half), 3 (end)
       let currentIndex;
-      if (scrollPercentage < 0.25) {
+      if (scrollPercentage < 0.2) {
         currentIndex = 0;
-      } else if (scrollPercentage < 0.75) {
+      } else if (scrollPercentage < 0.5) {
         currentIndex = 1;
-      } else {
+      } else if (scrollPercentage < 0.8) {
         currentIndex = 2;
+      } else {
+        currentIndex = 3;
       }
       
       setActiveIndex(currentIndex);
@@ -261,7 +276,7 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
 
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (!carouselRef.current) return;
-    const newIndex = direction === 'right' ? Math.min(activeIndex + 1, 2) : Math.max(activeIndex - 1, 0);
+    const newIndex = direction === 'right' ? Math.min(activeIndex + 1, 3) : Math.max(activeIndex - 1, 0);
     scrollToIndex(newIndex);
   };
 
@@ -275,7 +290,9 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
       if (index === 0) {
         scrollLeft = 0;
       } else if (index === 1) {
-        scrollLeft = maxScroll * 0.5; // Middle position
+        scrollLeft = maxScroll * 0.33; // First third
+      } else if (index === 2) {
+        scrollLeft = maxScroll * 0.66; // Second third
       } else {
         scrollLeft = maxScroll; // End position
       }
@@ -386,7 +403,8 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
                     className={`text-xs px-2 py-1 rounded-full font-medium ${
                       item.id === 'cbt-modules' ? 'bg-blue-100 text-blue-800' :
                       item.id === 'anxiety-videos' ? 'bg-red-100 text-red-800' :
-                      item.id === 'relaxation' ? 'bg-green-100 text-green-800' :
+                      item.id === 'todo-list' ? 'bg-green-100 text-green-800' :
+                      item.id === 'relaxation' ? 'bg-teal-100 text-teal-800' :
                       'bg-orange-100 text-orange-800'
                     }`}
                   >
@@ -408,7 +426,7 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
         
         {/* Enhanced Scroll Indicator Dots */}
         <div className="flex justify-center gap-2 sm:gap-3 mt-4">
-          {[0, 1, 2].map((index) => (
+          {[0, 1, 2, 3].map((index) => (
             <motion.button
               key={index}
               className={`relative rounded-full transition-all duration-300 cursor-pointer ${
@@ -1670,8 +1688,15 @@ const Dashboard = () => {
           </div>
         </ScrollReveal>
 
+        {/* Quick Relaxation Tools with scroll reveal */}
+        <ScrollReveal delay={0.3} direction="left">
+          <div className="mb-6" data-relaxation-tools>
+            <QuickRelaxation />
+          </div>
+        </ScrollReveal>
+
         {/* Daily Activities with scroll reveal */}
-        <ScrollReveal delay={0.3}>
+        <ScrollReveal delay={0.4}>
           <div className="mb-6">
             <motion.h3 
               className="font-semibold text-gray-800 mb-4 flex items-center gap-2"
@@ -1742,7 +1767,7 @@ const Dashboard = () => {
         </ScrollReveal>
 
         {/* Achievements with scroll reveal */}
-        <ScrollReveal delay={0.4} direction="left">
+        <ScrollReveal delay={0.5} direction="left">
           <div className="mb-6">
             <motion.h3 
               className="font-semibold text-gray-800 mb-4 flex items-center gap-2"
@@ -1777,7 +1802,7 @@ const Dashboard = () => {
         </ScrollReveal>
 
         {/* Mood Tracker */}
-        <ScrollReveal delay={0.5} direction="right">
+        <ScrollReveal delay={0.6} direction="right">
           <motion.div 
             className="bg-[#800000]/5 rounded-2xl p-3 sm:p-4 border-2 border-[#800000]/30 w-full"
             whileInView={{ 
