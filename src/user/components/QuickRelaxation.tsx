@@ -99,16 +99,8 @@ const QuickRelaxation: React.FC<QuickRelaxationProps> = ({ className = '' }) => 
         transition={{ duration: 0.5 }}
         whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
       >
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5 rounded-2xl overflow-hidden">
-          <div className="w-full h-full bg-teal-500" style={{
-            backgroundImage: 'radial-gradient(circle at 20% 80%, currentColor 15%, transparent 16%), radial-gradient(circle at 80% 20%, currentColor 15%, transparent 16%)',
-            backgroundSize: '30px 30px'
-          }}></div>
-        </div>
-
+        {/* Header */}
         <div className="relative z-10">
-          {/* Header */}
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <div className="flex items-center gap-3">
               <motion.div
@@ -219,7 +211,7 @@ const QuickRelaxation: React.FC<QuickRelaxationProps> = ({ className = '' }) => 
               </motion.button>
             ))}
           </div>
-
+          
           {/* Call to Action */}
           <motion.div 
             className="mt-4 sm:mt-6 text-center"

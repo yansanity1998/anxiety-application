@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion} from 'framer-motion';
 import { 
   FaPlay, FaPause, FaStop, FaVolumeUp, FaVolumeMute, FaLeaf, FaWater, FaWind, 
-  FaFire, FaTree, FaCloud, FaMountain, FaBrain, FaEye, FaHandPaper, 
+  FaFire, FaDove, FaCloud, FaMountain, FaBrain, FaEye, FaHandPaper, 
   FaHome, FaExpand, FaCompress
 } from 'react-icons/fa';
 
@@ -87,7 +87,7 @@ const RelaxationTools: React.FC<RelaxationToolsProps> = ({ onClose }) => {
       duration: 'Continuous',
       description: 'Immerse yourself in calming nature sounds designed to reduce stress and promote relaxation.',
       sounds: [
-        { name: 'Rain Forest', icon: FaTree, sound: 'rain-forest' },
+        { name: 'Bird Chirp', icon: FaDove, sound: 'bird-chirp' },
         { name: 'Ocean Waves', icon: FaWater, sound: 'ocean-waves' },
         { name: 'Mountain Stream', icon: FaMountain, sound: 'mountain-stream' },
         { name: 'Gentle Rain', icon: FaCloud, sound: 'gentle-rain' },
@@ -149,13 +149,63 @@ const RelaxationTools: React.FC<RelaxationToolsProps> = ({ onClose }) => {
     return noise;
   };
 
+  // Subtle reverb impulse for a soothing tail
+  const createReverbImpulse = (ctx: AudioContext, duration = 2.8, decay = 2.2): AudioBuffer => {
+    const rate = ctx.sampleRate;
+    const length = Math.max(1, Math.floor(rate * duration));
+    const impulse = ctx.createBuffer(2, length, rate);
+    for (let ch = 0; ch < 2; ch++) {
+      const channelData = impulse.getChannelData(ch);
+      for (let i = 0; i < length; i++) {
+        const t = (length - i) / length;
+        channelData[i] = (Math.random() * 2 - 1) * Math.pow(t, decay);
+      }
+    }
+    return impulse;
+  };
+
   const startNatureSound = async (type: string) => {
     const ctx: AudioContext = await ensureAudio();
     stopNatureSound();
 
     const gain = ctx.createGain();
-    gain.gain.value = 0.8;
-    gain.connect(masterGainRef.current!);
+    gain.gain.value = 0.6;
+
+    // Gentle tone-shaping and subtle reverb send
+    const preHPF = ctx.createBiquadFilter();
+    preHPF.type = 'highpass';
+    preHPF.frequency.value = 120;
+
+    const lpTone = ctx.createBiquadFilter();
+    lpTone.type = 'lowpass';
+    lpTone.frequency.value = 6500;
+
+    const compressor = ctx.createDynamicsCompressor();
+    compressor.threshold.value = -32;
+    compressor.knee.value = 12;
+    compressor.ratio.value = 2;
+    compressor.attack.value = 0.01;
+    compressor.release.value = 0.3;
+
+    const dryGain = ctx.createGain();
+    dryGain.gain.value = 0.85;
+
+    const wetGain = ctx.createGain();
+    wetGain.gain.value = 0.25;
+
+    const convolver = ctx.createConvolver();
+    convolver.buffer = createReverbImpulse(ctx);
+
+    // route
+    gain.connect(preHPF);
+    preHPF.connect(lpTone);
+    lpTone.connect(compressor);
+    compressor.connect(dryGain);
+    dryGain.connect(masterGainRef.current!);
+
+    gain.connect(convolver);
+    convolver.connect(wetGain);
+    wetGain.connect(masterGainRef.current!);
 
     let cleanupFns: Array<() => void> = [];
 
@@ -181,52 +231,87 @@ const RelaxationTools: React.FC<RelaxationToolsProps> = ({ onClose }) => {
       const noise = createNoiseSource(ctx);
       const hp = ctx.createBiquadFilter();
       hp.type = 'highpass';
-      hp.frequency.value = 1200;
+      hp.frequency.value = 500;
+      const hs = ctx.createBiquadFilter();
+      hs.type = 'highshelf';
+      hs.frequency.value = 6000;
+      hs.gain.value = -8;
+
+      // Soft amplitude undulation
+      const ampLfo = ctx.createOscillator();
+      ampLfo.frequency.value = 0.08;
+      const ampLfoGain = ctx.createGain();
+      ampLfoGain.gain.value = 0.15;
+      ampLfo.connect(ampLfoGain);
+      ampLfoGain.connect(gain.gain);
+
       noise.connect(hp);
-      hp.connect(gain);
+      hp.connect(hs);
+      hs.connect(gain);
       noise.start();
+      ampLfo.start();
       cleanupFns.push(() => noise.stop());
+      cleanupFns.push(() => ampLfo.stop());
     } else if (type === 'mountain-stream') {
       const noise = createNoiseSource(ctx);
       const bp = ctx.createBiquadFilter();
       bp.type = 'bandpass';
-      bp.frequency.value = 2000;
-      bp.Q.value = 1;
+      bp.frequency.value = 1500;
+      bp.Q.value = 0.8;
+
+      // gentle flow modulation
       const lfo = ctx.createOscillator();
-      lfo.frequency.value = 0.2;
+      lfo.frequency.value = 0.15;
       const lfoGain = ctx.createGain();
-      lfoGain.gain.value = 300;
+      lfoGain.gain.value = 150;
       lfo.connect(lfoGain);
       lfoGain.connect(bp.frequency);
+
+      // slow stereo drift
+      const panner = ctx.createStereoPanner();
+      const panLfo = ctx.createOscillator();
+      panLfo.frequency.value = 0.05;
+      const panGain = ctx.createGain();
+      panGain.gain.value = 0.6;
+      panLfo.connect(panGain);
+      panGain.connect(panner.pan);
+
       noise.connect(bp);
-      bp.connect(gain);
+      bp.connect(panner);
+      panner.connect(gain);
       noise.start();
       lfo.start();
+      panLfo.start();
       cleanupFns.push(() => noise.stop());
       cleanupFns.push(() => lfo.stop());
-    } else if (type === 'rain-forest') {
-      const noise = createNoiseSource(ctx);
-      const hp = ctx.createBiquadFilter();
-      hp.type = 'highpass';
-      hp.frequency.value = 1500;
-      noise.connect(hp);
-      hp.connect(gain);
-      noise.start();
-      cleanupFns.push(() => noise.stop());
-      // Occasional bird chirps
+      cleanupFns.push(() => panLfo.stop());
+    } else if (type === 'bird-chirp') {
+      // Periodic, gentle bird chirps without constant noise bed
       const chirpInterval = setInterval(() => {
         const osc = ctx.createOscillator();
         const env = ctx.createGain();
+        const panner = ctx.createStereoPanner();
+        const now = ctx.currentTime;
+        const startFreq = 1800 + Math.random() * 2000;
+        const endFreq = 700 + Math.random() * 500;
+
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(2000 + Math.random() * 2000, ctx.currentTime);
-        env.gain.setValueAtTime(0, ctx.currentTime);
-        env.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.05);
-        env.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4);
+        osc.frequency.setValueAtTime(startFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.18);
+
+        env.gain.setValueAtTime(0.0, now);
+        env.gain.linearRampToValueAtTime(0.18, now + 0.03);
+        env.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+
+        panner.pan.setValueAtTime((Math.random() - 0.5) * 0.9, now);
+
         osc.connect(env);
-        env.connect(gain);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.45);
-      }, 2500);
+        env.connect(panner);
+        panner.connect(gain);
+
+        osc.start(now);
+        osc.stop(now + 0.45);
+      }, 1400 + Math.random() * 1300);
       cleanupFns.push(() => clearInterval(chirpInterval));
     } else if (type === 'wind-chimes') {
       const chimeInterval = setInterval(() => {
@@ -250,23 +335,31 @@ const RelaxationTools: React.FC<RelaxationToolsProps> = ({ onClose }) => {
       const noise = createNoiseSource(ctx);
       const bp = ctx.createBiquadFilter();
       bp.type = 'bandpass';
-      bp.frequency.value = 450;
-      bp.Q.value = 0.7;
+      bp.frequency.value = 600;
+      bp.Q.value = 0.9;
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 3500;
       noise.connect(bp);
-      bp.connect(gain);
+      bp.connect(lp);
+      lp.connect(gain);
       noise.start();
       cleanupFns.push(() => noise.stop());
       const crackleInterval = setInterval(() => {
         const env = ctx.createGain();
         env.gain.setValueAtTime(0, ctx.currentTime);
-        env.gain.linearRampToValueAtTime(0.6, ctx.currentTime + 0.02);
-        env.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.15);
+        env.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.02);
+        env.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.14);
         const burst = createNoiseSource(ctx);
-        burst.connect(env);
+        const tilt = ctx.createBiquadFilter();
+        tilt.type = 'highpass';
+        tilt.frequency.value = 500 + Math.random() * 300;
+        burst.connect(tilt);
+        tilt.connect(env);
         env.connect(gain);
         burst.start();
         burst.stop(ctx.currentTime + 0.16);
-      }, 300 + Math.random() * 200);
+      }, 550);
       cleanupFns.push(() => clearInterval(crackleInterval));
     }
 
@@ -277,7 +370,15 @@ const RelaxationTools: React.FC<RelaxationToolsProps> = ({ onClose }) => {
         });
       },
       cleanup: () => {
-        try { gain.disconnect(); } catch {}
+        try {
+          gain.disconnect();
+          preHPF.disconnect();
+          lpTone.disconnect();
+          compressor.disconnect();
+          dryGain.disconnect();
+          convolver.disconnect();
+          wetGain.disconnect();
+        } catch {}
       }
     };
   };
