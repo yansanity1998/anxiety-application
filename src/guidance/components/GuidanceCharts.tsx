@@ -9,8 +9,8 @@ import {
   LineElement,
   BarElement,
 } from 'chart.js';
-import { Pie, Bar } from 'react-chartjs-2';
-import { useState, useMemo } from 'react';
+import { Pie, Bar, Line } from 'react-chartjs-2';
+import { useState, useMemo, useEffect } from 'react';
 import { FaChevronLeft, FaChevronRight, FaInfoCircle, FaCalendarAlt, FaUsers, FaHeart, FaChartLine, FaCircle, FaCalendarCheck, FaExclamationTriangle } from 'react-icons/fa';
 import 'chart.js/auto';
 
@@ -335,12 +335,13 @@ const AppointmentCalendar = ({ appointments, darkMode }: { appointments?: Appoin
             
             {/* Modal Footer */}
             <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-              <button
-                className={`w-full py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 bg-gradient-to-r ${darkMode ? 'from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500' : 'from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600'} text-white shadow-lg hover:shadow-xl`}
-                onClick={() => setShowModal(false)}
-              >
-                Close
-              </button>
+            <button
+                className="w-full py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 bg-gradient-to-r from-[#800000] to-[#660000] text-white shadow-lg hover:shadow-xl"
+  onClick={() => setShowModal(false)}
+>
+      Close
+            </button>
+
             </div>
           </div>
         </div>
@@ -373,12 +374,12 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
   } = props;
 
     const [timeRange, setTimeRange] = useState('daily');
-    const [currentPage, setCurrentPage] = useState(timeRange === 'daily' ? 1 : 0);
+    const [currentPage, setCurrentPage] = useState(0);
 
-  // Reset to first page when time range changes
+  // Reset when time range changes (will jump to last page via effect)
   const handleTimeRangeChange = (newTimeRange: string) => {
     setTimeRange(newTimeRange);
-      setCurrentPage(newTimeRange === 'daily' ? 1 : 0);
+      setCurrentPage(0);
   };
 
   const getLocalDateKey = (dateInput: string | Date) => {
@@ -511,7 +512,7 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
     };
   }, [assessments]);
 
-  const { labels: anxietyLabels, datasets: anxietyDatasets, totalPages } = useMemo(() => {
+  const { labels: anxietyLabels, datasets: anxietyDatasets, totalPages, averagePercentageData } = useMemo(() => {
     const latestAssessments = Object.values(assessments)
       .map(userAssessments => {
         if (userAssessments.length > 0) {
@@ -559,14 +560,16 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
       const date = new Date(assessment.created_at);
       const key = dateToKey(date);
       if (!acc[key]) {
-        acc[key] = { minimal: 0, mild: 0, moderate: 0, severe: 0 };
+        acc[key] = { minimal: 0, mild: 0, moderate: 0, severe: 0, sumPercentage: 0, numAssessments: 0 };
       }
       const level = assessment.anxiety_level.toLowerCase();
-      if (level in acc[key]) {
-        acc[key][level as keyof typeof acc[string]]++;
+      if (level === 'minimal' || level === 'mild' || level === 'moderate' || level === 'severe') {
+        acc[key][level]++;
       }
+      acc[key].sumPercentage += assessment.percentage || 0;
+      acc[key].numAssessments += 1;
       return acc;
-    }, {} as Record<string, { minimal: number; mild: number; moderate: number; severe: number }>);
+    }, {} as Record<string, { minimal: number; mild: number; moderate: number; severe: number; sumPercentage: number; numAssessments: number }>);
 
     const sortedKeys = Object.keys(counts).sort();
     
@@ -578,9 +581,9 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
     const currentKeys = sortedKeys.slice(startIndex, endIndex);
     
     const labels = currentKeys.map(key => formatDateLabel(key, timeRange));
-    const anxietyLevels: Array<keyof typeof counts[string]> = ['minimal', 'mild', 'moderate', 'severe'];
+    const anxietyLevels: Array<'minimal' | 'mild' | 'moderate' | 'severe'> = ['minimal', 'mild', 'moderate', 'severe'];
 
-    const levelColors: Record<keyof typeof counts[string], string> = {
+    const levelColors: Record<'minimal' | 'mild' | 'moderate' | 'severe', string> = {
       minimal: 'rgba(34, 197, 94, 1)',
       mild: 'rgba(59, 130, 246, 1)',
       moderate: 'rgba(234, 179, 8, 1)',
@@ -595,8 +598,22 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
       borderWidth: 1,
     }));
 
-return { labels, datasets, totalPages };
+    const averagePercentageData = currentKeys.map(key => {
+      const entry = counts[key];
+      return entry.numAssessments > 0 ? Number((entry.sumPercentage / entry.numAssessments).toFixed(1)) : 0;
+    });
+
+return { labels, datasets, totalPages, averagePercentageData };
 }, [assessments, timeRange, currentPage]);
+
+// Ensure we always show the latest page by default (e.g., after login/logout)
+useEffect(() => {
+  if (totalPages && totalPages > 0) {
+    setCurrentPage(totalPages - 1);
+  } else {
+    setCurrentPage(0);
+  }
+}, [totalPages, timeRange]);
 
 return (
     <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 w-full px-0 md:px-0`}>
@@ -975,6 +992,100 @@ return (
               intersect: false,
               mode: 'index'
             }
+          }} />
+        </div>
+      </div>
+
+      {/* Anxiety History Line Chart (Average Percentage) */}
+      <div className={`lg:col-span-3 ${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-6 rounded-2xl shadow-xl border-0 min-w-0 w-full backdrop-blur-sm`}>
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center gap-3">
+            <FaChartLine className={`${darkMode ? 'text-blue-300' : 'text-blue-500'} w-4 h-4`} />
+            <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-blue-300 to-indigo-400' : 'from-blue-600 to-indigo-600'} bg-clip-text text-transparent`}>Average Anxiety Percentage</h2>
+            <div className="group relative">
+              <FaInfoCircle className={`w-3 h-3 cursor-help ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'}`} />
+              <div className={`absolute left-0 top-6 w-64 p-2 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-200'} border`}>
+                Shows the average assessment percentage over time using the same time range and pages.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className={`h-72 w-full min-w-0`}>
+          <Line data={{
+            labels: anxietyLabels,
+            datasets: [
+              {
+                label: 'Average %',
+                data: averagePercentageData,
+                borderColor: 'rgba(59, 130, 246, 1)',
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                pointBackgroundColor: darkMode ? '#93C5FD' : '#1D4ED8',
+                pointBorderColor: darkMode ? '#1F2937' : '#E5E7EB',
+                fill: true,
+                tension: 0.35,
+                borderWidth: 2,
+              }
+            ]
+          }} options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  padding: 8,
+                  font: { size: 10, weight: 'bold' },
+                  usePointStyle: true,
+                  pointStyle: 'line'
+                }
+              },
+              tooltip: {
+                enabled: true,
+                backgroundColor: darkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                titleColor: darkMode ? '#fff' : '#000',
+                bodyColor: darkMode ? '#fff' : '#000',
+                borderColor: darkMode ? '#6B7280' : '#D1D5DB',
+                borderWidth: 1,
+                cornerRadius: 8,
+                callbacks: {
+                  label: function(context: any) {
+                    const value = context.parsed.y;
+                    return `Average: ${value}%`;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: {
+                  color: darkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(229, 231, 235, 0.8)'
+                },
+                ticks: {
+                  color: darkMode ? '#D1D5DB' : '#6B7280',
+                  font: { size: 10 }
+                }
+              },
+              y: {
+                beginAtZero: true,
+                max: 100,
+                grid: {
+                  color: darkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(229, 231, 235, 0.8)'
+                },
+                ticks: {
+                  stepSize: 10,
+                  color: darkMode ? '#D1D5DB' : '#6B7280',
+                  font: { size: 10 },
+                  callback: function(value: number | string) { return `${value}%`; }
+                },
+                title: {
+                  display: true,
+                  text: 'Average %',
+                  color: darkMode ? '#D1D5DB' : '#6B7280',
+                  font: { size: 11, weight: 'bold' }
+                }
+              }
+            },
+            interaction: { intersect: false, mode: 'index' }
           }} />
         </div>
       </div>

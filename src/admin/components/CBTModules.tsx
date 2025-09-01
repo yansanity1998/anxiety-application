@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaBrain, FaPlus, FaEdit, FaTrash, FaCheck, FaPlay, FaSearch, FaTrophy, FaBookOpen, FaClock, FaTimes, FaSpinner } from 'react-icons/fa';
+import { FaBrain, FaPlus, FaEdit, FaTrash, FaCheck, FaPlay, FaSearch, FaTrophy, FaBookOpen, FaClock, FaTimes, FaSpinner, FaUser } from 'react-icons/fa';
 import { cbtModuleService } from '../../lib/cbtModuleService';
 import type { CBTModule, CreateCBTModuleData } from '../../lib/cbtModuleService';
 import { supabase } from '../../lib/supabase';
@@ -418,132 +418,129 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
         </button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className={`p-4 rounded-xl border-2 ${darkMode ? 'bg-gray-700/50 border-blue-500/20' : 'bg-blue-50 border-blue-200'} transition-all duration-200 hover:shadow-lg`}>
-          <div className="flex items-center justify-between">
+      {/* Status Overview Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+        <div className={`p-3 rounded-xl bg-gradient-to-br ${darkMode ? 'from-gray-700 to-gray-900' : 'from-gray-50 to-gray-100'} border border-blue-200 transition-all duration-300 hover:shadow-xl hover:scale-105 shadow-lg backdrop-blur-sm`}>
+          <div className="flex items-center justify-between mb-2">
             <div>
-              <p className={`text-sm font-medium ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                Total Modules
-              </p>
-              <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-blue-900'}`}>
-                {stats.total}
-              </p>
+              <p className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Total</p>
+              <h3 className={`text-xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.total}</h3>
             </div>
-            <FaBookOpen className={`text-2xl ${darkMode ? 'text-blue-400' : 'text-blue-500'}`} />
+            <div className="p-1.5 bg-blue-500 rounded-lg">
+              <FaBookOpen className="text-white text-sm" />
+            </div>
+          </div>
+          <div className="relative">
+            <div className="h-1 rounded-full bg-white/30 overflow-hidden">
+              <div className="h-full rounded-full bg-blue-400 transition-all duration-500 shadow-sm" style={{ width: '100%' }}></div>
+            </div>
           </div>
         </div>
-        
-        <div className={`p-4 rounded-xl border-2 ${darkMode ? 'bg-gray-700/50 border-amber-500/20' : 'bg-amber-50 border-amber-200'} transition-all duration-200 hover:shadow-lg`}>
-          <div className="flex items-center justify-between">
+
+        <div className={`p-3 rounded-xl bg-gradient-to-br ${darkMode ? 'from-gray-700 to-gray-900' : 'from-gray-50 to-gray-100'} border border-amber-200 transition-all duration-300 hover:shadow-xl hover:scale-105 shadow-lg backdrop-blur-sm`}>
+          <div className="flex items-center justify-between mb-2">
             <div>
-              <p className={`text-sm font-medium ${darkMode ? 'text-amber-400' : 'text-amber-600'}`}>
-                In Progress
-              </p>
-              <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-amber-900'}`}>
-                {stats.inProgress}
-              </p>
+              <p className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>In Progress</p>
+              <h3 className={`text-xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.inProgress}</h3>
             </div>
-            <FaClock className={`text-2xl ${darkMode ? 'text-amber-400' : 'text-amber-500'}`} />
+            <div className="p-1.5 bg-amber-500 rounded-lg">
+              <FaClock className="text-white text-sm" />
+            </div>
+          </div>
+          <div className="relative">
+            <div className="h-1 rounded-full bg-white/30 overflow-hidden">
+              <div className="h-full rounded-full bg-amber-400 transition-all duration-500 shadow-sm" style={{ width: `${(stats.inProgress / stats.total) * 100}%` }}></div>
+            </div>
           </div>
         </div>
-        
-        <div className={`p-4 rounded-xl border-2 ${darkMode ? 'bg-gray-700/50 border-green-500/20' : 'bg-green-50 border-green-200'} transition-all duration-200 hover:shadow-lg`}>
-          <div className="flex items-center justify-between">
+
+        <div className={`p-3 rounded-xl bg-gradient-to-br ${darkMode ? 'from-gray-700 to-gray-900' : 'from-gray-50 to-gray-100'} border border-emerald-200 transition-all duration-300 hover:shadow-xl hover:scale-105 shadow-lg backdrop-blur-sm`}>
+          <div className="flex items-center justify-between mb-2">
             <div>
-              <p className={`text-sm font-medium ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
-                Completed
-              </p>
-              <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-green-700'}`}>
-                {stats.completed}
-              </p>
+              <p className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Completed</p>
+              <h3 className={`text-xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.completed}</h3>
             </div>
-            <FaTrophy className={`text-2xl ${darkMode ? 'text-green-400' : 'text-green-500'}`} />
+            <div className="p-1.5 bg-emerald-500 rounded-lg">
+              <FaTrophy className="text-white text-sm" />
+            </div>
+          </div>
+          <div className="relative">
+            <div className="h-1 rounded-full bg-white/30 overflow-hidden">
+              <div className="h-full rounded-full bg-emerald-400 transition-all duration-500 shadow-sm" style={{ width: `${(stats.completed / stats.total) * 100}%` }}></div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Filters and Search */}
-      <div className={`mb-6 p-3 rounded-lg border ${darkMode ? 'bg-gray-700/30 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-        <div className="flex flex-col lg:flex-row gap-3">
-          {/* Search */}
-          <div className="flex-1">
-            <div className="relative">
-              <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search modules, descriptions, or users..."
-                className={`w-full pl-10 pr-4 py-2 rounded-lg border transition-colors ${
-                  darkMode 
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#800000]' 
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[#800000]'
-                } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
-              />
-            </div>
-          </div>
-
-          {/* Status Filter */}
-          <div className="lg:w-44">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className={`w-full px-3 py-2 rounded-lg border transition-colors ${
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="flex-1">
+          <div className="relative">
+            <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+            <input
+              type="text"
+              placeholder="Search modules or users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={`w-full pl-9 pr-4 py-2 text-sm border rounded-xl ${
                 darkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white focus:border-[#800000]' 
-                  : 'bg-white border-gray-300 text-gray-900 focus:border-[#800000]'
-              } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
-            >
-              <option value="all">All Status ({stats.total})</option>
-              <option value="in_progress">In Progress ({stats.inProgress})</option>
-              <option value="completed">Completed ({stats.completed})</option>
-            </select>
-          </div>
-
-          {/* User Filter */}
-          <div className="lg:w-44">
-            <select
-              value={selectedUserId || ''}
-              onChange={(e) => setSelectedUserId(e.target.value ? Number(e.target.value) : null)}
-              className={`w-full px-3 py-2 rounded-lg border transition-colors ${
-                darkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white focus:border-[#800000]' 
-                  : 'bg-white border-gray-300 text-gray-900 focus:border-[#800000]'
-              } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
-            >
-              <option value="">All Users ({users.length})</option>
-              {users.map(user => (
-                <option key={user.id} value={user.id}>{user.full_name}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Sort */}
-          <div className="lg:w-44">
-            <select
-              value={sortField}
-              onChange={(e) => setSortField(e.target.value as typeof sortField)}
-              className={`w-full px-3 py-2 rounded-lg border transition-colors ${
-                darkMode 
-                  ? 'bg-gray-700 border-gray-600 text-white focus:border-[#800000]' 
-                  : 'bg-white border-gray-300 text-gray-900 focus:border-[#800000]'
-              } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
-            >
-              <option value="created_at">Sort by Date</option>
-              <option value="title">Sort by Title</option>
-              <option value="status">Sort by Status</option>
-              <option value="user">Sort by User</option>
-            </select>
+                  ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400' 
+                  : 'bg-white border-gray-300 placeholder-gray-500'
+              } focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
+            />
           </div>
         </div>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className={`px-3 py-2 text-sm border rounded-xl whitespace-nowrap ${
+              darkMode 
+                ? 'bg-gray-700/50 border-gray-600 text-white' 
+                : 'bg-white border-gray-300'
+            } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+          >
+            <option value="all">All Status ({stats.total})</option>
+            <option value="in_progress">In Progress ({stats.inProgress})</option>
+            <option value="completed">Completed ({stats.completed})</option>
+          </select>
 
-        {/* Results count */}
-        <div className="mt-2 text-right">
-          <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Showing {filteredAndSortedModules.length} of {modules.length} modules
-          </span>
+          <select
+            value={selectedUserId || ''}
+            onChange={(e) => setSelectedUserId(e.target.value ? Number(e.target.value) : null)}
+            className={`px-3 py-2 text-sm border rounded-xl whitespace-nowrap ${
+              darkMode 
+                ? 'bg-gray-700/50 border-gray-600 text-white' 
+                : 'bg-white border-gray-300'
+            } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+          >
+            <option value="">All Users ({users.length})</option>
+            {users.map(user => (
+              <option key={user.id} value={user.id}>{user.full_name}</option>
+            ))}
+          </select>
+
+          <select
+            value={sortField}
+            onChange={(e) => setSortField(e.target.value as typeof sortField)}
+            className={`px-3 py-2 text-sm border rounded-xl whitespace-nowrap ${
+              darkMode 
+                ? 'bg-gray-700/50 border-gray-600 text-white' 
+                : 'bg-white border-gray-300'
+            } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+          >
+            <option value="created_at">Sort by Date</option>
+            <option value="title">Sort by Title</option>
+            <option value="status">Sort by Status</option>
+            <option value="user">Sort by User</option>
+          </select>
         </div>
+      </div>
+
+      {/* Results count */}
+      <div className="mb-6 text-right">
+        <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          Showing {filteredAndSortedModules.length} of {modules.length} modules
+        </span>
       </div>
 
       {/* Modules Grid */}
@@ -554,96 +551,112 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
           <p>Try adjusting your search or filters, or add a new module.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
           {filteredAndSortedModules.map((module) => (
             <div
               key={module.id}
-              className={`rounded-lg border p-4 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 ${
+              className={`group relative p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-1 overflow-hidden ${
                 darkMode 
-                  ? 'bg-gray-700/50 border-gray-600 hover:border-gray-500' 
-                  : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-xl'
+                  ? 'bg-gray-700/50 border-gray-600 hover:bg-gray-700' 
+                  : 'bg-white border-gray-200 hover:shadow-xl'
               }`}
             >
-              {/* Module Image */}
-              {module.module_image ? (
-                <div className="mb-3 relative overflow-hidden rounded-md">
+              {module.module_image && (
+                <div className="absolute inset-0 -z-10">
                   <img
                     src={module.module_image}
-                    alt={module.module_title}
-                    className="w-full h-24 object-cover transition-transform duration-300 hover:scale-110"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
+                    alt=""
+                    className="w-full h-full object-cover"
                   />
-                </div>
-              ) : (
-                <div className={`mb-3 h-24 rounded-md flex items-center justify-center ${
-                  darkMode ? 'bg-gray-600/50' : 'bg-gray-100'
-                }`}>
-                  <FaBrain className={`text-xl ${darkMode ? 'text-gray-400' : 'text-gray-400'} opacity-50`} />
+                  <div className={`absolute inset-0 backdrop-blur-[2px] ${darkMode ? 'bg-gray-900/40' : 'bg-white/40'}`}></div>
                 </div>
               )}
 
-              {/* Module Content */}
-              <div className="mb-3">
-                <h3 className={`font-semibold text-sm mb-1 line-clamp-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                  {module.module_title}
-                </h3>
-                <p className={`text-xs line-clamp-2 mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  {module.module_description}
-                </p>
-                
-                <div className="flex items-center justify-between mb-3">
-                  <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    <span className="font-medium">{getUserName(module.profile_id)}</span>
-                  </span>
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(module.module_status)}`}>
-                    {getStatusIcon(module.module_status)}
-                    <span className="ml-1 capitalize">{module.module_status.replace('_', ' ')}</span>
-                  </span>
+              <div className="flex items-start mb-3">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className={`p-2 rounded-lg ${darkMode ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
+                    <FaBrain className={`text-sm ${darkMode ? 'text-blue-400 group-hover:text-blue-300' : 'text-blue-500 group-hover:text-blue-600'}`} />
+                  </div>
+                  <h3 className={`font-semibold text-sm leading-tight truncate transition-colors ${
+                    darkMode ? 'text-white group-hover:text-white' : 'text-gray-900 group-hover:text-black'
+                  }`}>
+                    {module.module_title}
+                  </h3>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="space-y-1.5">
-                <div className="flex gap-1.5">
-                  <button
-                    onClick={() => openEditModal(module)}
-                    className="flex-1 flex items-center justify-center px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-medium transition-colors"
-                  >
-                    <FaEdit className="mr-1" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteModule(module)}
-                    className="flex-1 flex items-center justify-center px-2 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md text-xs font-medium transition-colors"
-                  >
-                    <FaTrash className="mr-1" />
-                    Delete
-                  </button>
+              <p className={`text-xs leading-relaxed mb-3 line-clamp-2 transition-colors ${
+                darkMode ? 'text-gray-300 group-hover:text-white' : 'text-gray-600 group-hover:text-black'
+              }`}>
+                {module.module_description}
+              </p>
+
+              <div className="flex items-center justify-between mb-3">
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors ${getStatusColor(module.module_status)} group-hover:bg-opacity-100`}>
+                  {getStatusIcon(module.module_status)}
+                  <span className="ml-1 capitalize">{module.module_status.replace('_', ' ')}</span>
+                </span>
+              </div>
+
+              <div className="space-y-2 pt-3 border-t border-gray-200/50">
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <FaUser className="text-xs" />
+                  <span className={`truncate font-bold transition-colors ${
+                    darkMode ? 'group-hover:text-white' : 'group-hover:text-black'
+                  }`}>{getUserName(module.profile_id)}</span>
                 </div>
-                
-                {/* Status Change Buttons */}
-                <div className="flex gap-1.5">
-                  {module.module_status !== 'in_progress' && (
-                    <button
-                      onClick={() => handleStatusChange(module, 'in_progress')}
-                      className="flex-1 px-2 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-xs font-medium transition-colors"
-                    >
-                      <FaPlay className="inline mr-1" />
-                      In Progress
-                    </button>
-                  )}
-                  {module.module_status !== 'completed' && (
-                    <button
-                      onClick={() => handleStatusChange(module, 'completed')}
-                      className="flex-1 px-2 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-xs font-medium transition-colors"
-                    >
-                      <FaCheck className="inline mr-1" />
-                      Complete
-                    </button>
-                  )}
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <FaClock className="text-xs" />
+                  <span className={`transition-colors ${
+                    darkMode ? 'group-hover:text-white' : 'group-hover:text-black'
+                  }`}>Created: {new Date(module.created_at!).toLocaleDateString()}</span>
                 </div>
+              </div>
+
+              <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <button
+                  onClick={() => openEditModal(module)}
+                  className={`p-1.5 rounded-lg text-xs transition-colors ${
+                    darkMode 
+                      ? 'text-blue-400 hover:bg-blue-900/50 hover:text-blue-300' 
+                      : 'text-blue-600 hover:bg-blue-50 hover:text-blue-700'
+                  }`}
+                  title="Edit module"
+                >
+                  <FaEdit />
+                </button>
+                <button
+                  onClick={() => handleDeleteModule(module)}
+                  className={`p-1.5 rounded-lg text-xs transition-colors ${
+                    darkMode 
+                      ? 'text-red-400 hover:bg-red-900/50 hover:text-red-300' 
+                      : 'text-red-600 hover:bg-red-50 hover:text-red-700'
+                  }`}
+                  title="Delete module"
+                >
+                  <FaTrash />
+                </button>
+              </div>
+
+              <div className="flex gap-1.5 mt-3">
+                {module.module_status !== 'in_progress' && (
+                  <button
+                    onClick={() => handleStatusChange(module, 'in_progress')}
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-medium transition-colors"
+                  >
+                    <FaPlay className="text-xs" />
+                    In Progress
+                  </button>
+                )}
+                {module.module_status !== 'completed' && (
+                  <button
+                    onClick={() => handleStatusChange(module, 'completed')}
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-medium transition-colors"
+                  >
+                    <FaCheck className="text-xs" />
+                    Complete
+                  </button>
+                )}
               </div>
             </div>
           ))}

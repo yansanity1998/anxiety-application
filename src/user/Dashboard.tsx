@@ -27,8 +27,6 @@ import {
   FaChevronLeft,
   // FaPlus,
   FaArrowUp,
-  FaCheckCircle,
-  FaHome,
   FaTasks
 } from 'react-icons/fa';
 
@@ -39,6 +37,7 @@ import { streakService } from '../lib/streakService';
 import { useNavigate } from 'react-router-dom';
 import { StreakPet } from './StreakPet';
 import QuickRelaxation from './components/QuickRelaxation';
+import BreathingExercise from './components/BreathingExercise';
 
 // Mock user data - in a real app, this would come from your backend
 const mockUserData = {
@@ -678,252 +677,6 @@ const Dashboard = () => {
   };
 
 
-  const BreathingExercise = () => {
-    const [phase, setPhase] = useState('inhale');
-    const [count, setCount] = useState(4);
-    const [sessionCount, setSessionCount] = useState(0);
-
-    useEffect(() => {
-      if (!breathingActive) return;
-
-      const timer = setInterval(() => {
-        setCount(prev => {
-          if (prev === 1) {
-            setPhase(current => {
-              if (current === 'inhale') return 'hold';
-              if (current === 'hold') return 'exhale';
-              if (current === 'exhale') {
-                setSessionCount(c => c + 1);
-              }
-              return 'inhale';
-            });
-            return 4;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }, [breathingActive, phase]);
-
-    const getPhaseConfig = () => {
-      switch (phase) {
-        case 'inhale':
-          return {
-            gradient: 'from-blue-500 to-cyan-500',
-            bgGradient: 'from-blue-50 to-cyan-100',
-            borderColor: 'border-blue-200',
-            icon: '🫁',
-            instruction: 'Breathe in slowly through your nose',
-            color: 'text-blue-700'
-          };
-        case 'hold':
-          return {
-            gradient: 'from-purple-500 to-indigo-500',
-            bgGradient: 'from-purple-50 to-indigo-100',
-            borderColor: 'border-purple-200',
-            icon: '⏸️',
-            instruction: 'Hold your breath gently',
-            color: 'text-purple-700'
-          };
-        case 'exhale':
-          return {
-            gradient: 'from-green-500 to-emerald-500',
-            bgGradient: 'from-green-50 to-emerald-100',
-            borderColor: 'border-green-200',
-            icon: '🌬️',
-            instruction: 'Breathe out slowly through your mouth',
-            color: 'text-green-700'
-          };
-        default:
-          return {
-            gradient: 'from-blue-500 to-cyan-500',
-            bgGradient: 'from-blue-50 to-cyan-100',
-            borderColor: 'border-blue-200',
-            icon: '🫁',
-            instruction: 'Breathe in slowly through your nose',
-            color: 'text-blue-700'
-          };
-      }
-    };
-
-    const phaseConfig = getPhaseConfig();
-
-    return (
-      <motion.div 
-        className={`relative overflow-hidden rounded-2xl p-6 shadow-lg border-2 ${
-          breathingActive ? `bg-gradient-to-br ${phaseConfig.bgGradient} ${phaseConfig.borderColor}` : 
-          'bg-gradient-to-br from-[#800000]/10 to-[#800000]/20 border-[#800000]/30'
-        }`}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
-      >
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className={`w-full h-full ${
-            breathingActive ? phaseConfig.color.replace('text-', 'bg-').replace('-700', '-500') : 'bg-[#800000]'
-          }`} style={{
-            backgroundImage: 'radial-gradient(circle at 20% 80%, currentColor 15%, transparent 16%), radial-gradient(circle at 80% 20%, currentColor 15%, transparent 16%), radial-gradient(circle at 40% 40%, currentColor 15%, transparent 16%)'
-          }}></div>
-        </div>
-
-        <div className="relative z-10">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <motion.div
-                className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${
-                  breathingActive ? `bg-gradient-to-r ${phaseConfig.gradient}` : 'bg-gradient-to-r from-[#800000] to-[#a00000]'
-                }`}
-                animate={{ 
-                  y: [0, -3, 0],
-                  rotate: [0, 5, 0]
-                }}
-                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-              >
-                <FaLeaf className="text-white text-lg drop-shadow-sm" />
-              </motion.div>
-              <div>
-                <h3 className="font-bold text-gray-800 text-lg">Breathing Exercise</h3>
-                <p className="text-xs text-gray-600">
-                  {breathingActive ? `Session: ${sessionCount + 1} cycles` : 'Find your calm'}
-                </p>
-              </div>
-            </div>
-            
-            {breathingActive && (
-              <motion.div 
-                className={`px-3 py-1 rounded-full text-xs font-bold ${phaseConfig.bgGradient} ${phaseConfig.borderColor} border`}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 260, damping: 20 }}
-              >
-                <span className={phaseConfig.color}>{sessionCount} cycles</span>
-              </motion.div>
-            )}
-          </div>
-        
-          <AnimatePresence mode="wait">
-            {!breathingActive ? (
-              <motion.div
-                key="start-section"
-                className="text-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <div className="mb-6">
-                  <div className="text-4xl mb-3">🧘‍♀️</div>
-                  <p className="text-gray-600 text-sm mb-4 leading-relaxed">
-                    Take a moment to center yourself with the 4-4-4 breathing technique.
-                    This exercise helps reduce anxiety and promote relaxation.
-                  </p>
-                </div>
-                
-                <motion.button
-                  onClick={() => {
-                    setBreathingActive(true);
-                    setSessionCount(0);
-                  }}
-                  className="w-full bg-gradient-to-r from-[#800000] to-[#a00000] hover:from-[#660000] hover:to-[#800000] text-white px-6 py-4 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-3"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <FaPlay className="text-sm" />
-                  Start Breathing Session
-                </motion.button>
-              </motion.div>
-            ) : (
-              <motion.div 
-                key="breathing-session"
-                className="text-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                {/* Breathing Circle */}
-                <div className="relative mb-6">
-                  <motion.div 
-                    className={`w-32 h-32 mx-auto rounded-full bg-gradient-to-r ${phaseConfig.gradient} shadow-2xl flex items-center justify-center relative overflow-hidden`}
-                    animate={{
-                      scale: phase === 'inhale' ? 1.2 : phase === 'hold' ? 1.2 : 0.9,
-                    }}
-                    transition={{ duration: 4, ease: "easeInOut" }}
-                  >
-                    {/* Pulse effect */}
-                    <div className={`absolute inset-0 rounded-full bg-gradient-to-r ${phaseConfig.gradient} animate-ping opacity-20`}></div>
-                    
-                    {/* Inner content */}
-                    <div className="relative z-10 text-center">
-                      <div className="text-2xl mb-1">{phaseConfig.icon}</div>
-                      <motion.div 
-                        className="text-2xl font-bold text-white drop-shadow-lg"
-                        key={`${phase}-${count}`}
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        {count}
-                      </motion.div>
-                    </div>
-                  </motion.div>
-                  
-                  {/* Glow effect */}
-                  <div className={`absolute inset-0 w-32 h-32 mx-auto rounded-full bg-gradient-to-r ${phaseConfig.gradient} blur-xl opacity-30 -z-10`}></div>
-                </div>
-                
-                {/* Phase Information */}
-                <motion.div 
-                  className="mb-6"
-                  key={phase}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                >
-                  <h4 className={`text-xl font-bold capitalize mb-2 ${phaseConfig.color}`}>
-                    {phase}
-                  </h4>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    {phaseConfig.instruction}
-                  </p>
-                </motion.div>
-                
-                {/* Controls */}
-                <div className="flex gap-3 justify-center">
-                  <motion.button
-                    onClick={() => {
-                      setBreathingActive(false);
-                      setPhase('inhale');
-                      setCount(4);
-                    }}
-                    className="px-4 py-2 bg-white/80 hover:bg-white text-gray-700 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <FaHome className="text-xs" />
-                    End Session
-                  </motion.button>
-                  
-                  {sessionCount >= 3 && (
-                    <motion.div
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium flex items-center gap-2"
-                    >
-                      <FaCheckCircle className="text-xs" />
-                      Great job!
-                    </motion.div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-    );
-  };
 
   // Function to handle navigation to assessment
   const goToAssessment = () => {
@@ -1684,7 +1437,10 @@ const Dashboard = () => {
         {/* Breathing Exercise with scroll reveal */}
         <ScrollReveal delay={0.2} direction="right">
           <div className="mb-6">
-            <BreathingExercise />
+            <BreathingExercise 
+              breathingActive={breathingActive}
+              setBreathingActive={setBreathingActive}
+            />
           </div>
         </ScrollReveal>
 

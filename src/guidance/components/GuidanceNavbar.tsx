@@ -26,7 +26,7 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
 
   // Desktop link styles
   const navLinkClasses = (view: string) =>
-    `group flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+    `group flex items-center gap-2 px-3 py-2 rounded-md text-sm md:text-base whitespace-nowrap font-medium transition-colors ${
       activeView === view
         ? 'bg-[#800000] text-white' // Active = Maroon
         : darkMode
@@ -36,7 +36,7 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
 
   // Mobile link styles
   const mobileNavLinkClasses = (view: string) =>
-    `group flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${
+    `group flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-sm whitespace-nowrap font-medium transition-colors ${
       activeView === view
         ? 'bg-[#800000] text-white'
         : darkMode

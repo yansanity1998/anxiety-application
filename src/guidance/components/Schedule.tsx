@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { FaCalendarAlt, FaUser, FaClock, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaSpinner, FaChevronDown, FaEye, FaTrash, FaPrint, FaDownload, FaCalendarTimes, FaUserTimes } from 'react-icons/fa';
+import { FaCalendarAlt, FaUser, FaClock, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaChevronDown, FaEye, FaTrash, FaCalendarTimes, FaUserTimes } from 'react-icons/fa';
 import { getAllAppointments, updateAppointment, deleteAppointment } from '../../lib/appointmentService';
 import type { Appointment } from '../../lib/appointmentService';
 // Removed SweetAlert2 - using modern alerts instead
@@ -130,8 +130,7 @@ const formatDate = (dateString: string): string => {
 
 const Schedule = ({ darkMode }: ScheduleProps) => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
   const [expandedAppointment, setExpandedAppointment] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -179,15 +178,11 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        setIsLoading(true);
         const data = await getAllAppointments();
         setAppointments(data);
-        setError(null);
       } catch (err) {
         console.error('Error fetching appointments:', err);
-        setError('Failed to load appointments');
-      } finally {
-        setIsLoading(false);
+        showAlert('error', 'Error', 'Failed to load appointments');
       }
     };
 
@@ -226,75 +221,82 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
 
   const showStudentInfo = (appointment: Appointment) => {
     const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-white/20 backdrop-blur-md flex items-center justify-center z-50 p-4';
+    modal.className = 'fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4';
     modal.innerHTML = `
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border-2 border-[#800000]/20">
-        <div class="p-6">
-          <div class="text-center mb-6">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#800000]/10 to-[#800000]/20 rounded-full mb-4 shadow-lg">
-              <svg class="w-10 h-10 text-[#800000]" fill="currentColor" viewBox="0 0 20 20">
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
+        <div class="p-5">
+          <div class="flex items-center gap-4 mb-5">
+            <div class="p-3 rounded-lg bg-gradient-to-br from-[#800000]/10 to-[#800000]/20">
+              <svg class="w-6 h-6 text-[#800000]" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
               </svg>
             </div>
-            <h3 class="text-xl font-bold text-[#800000] mb-2">${appointment.student_name}</h3>
-            <p class="text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-full inline-block">${appointment.student_email}</p>
-          </div>
-          <div class="bg-gradient-to-br from-[#800000]/5 to-[#800000]/10 p-6 rounded-2xl border border-[#800000]/20 shadow-inner">
-            <h4 class="font-bold text-[#800000] mb-4 flex items-center text-lg">
-              <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <div class="flex-1 min-w-0">
+              <h3 class="text-lg font-semibold text-gray-900 truncate">${appointment.student_name}</h3>
+              <p class="text-sm text-gray-500">${appointment.student_email}</p>
+            </div>
+            <button 
+              onclick="this.closest('.fixed').remove()"
+              class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
-              Appointment Details
-            </h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div class="bg-white/90 p-4 rounded-xl border border-[#800000]/10 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-center mb-2">
-                  <svg class="w-4 h-4 text-[#800000] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-3 rounded-lg bg-gray-50 border border-gray-100">
+                <div class="flex items-center gap-2 mb-1.5">
+                  <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <p class="text-xs font-bold text-gray-700 uppercase tracking-wide">Date</p>
+                  <span class="text-xs font-medium text-gray-600">Date</span>
                 </div>
-                <p class="text-base font-bold text-[#800000]">${formatDate(appointment.appointment_date)}</p>
+                <p class="text-sm font-semibold text-gray-900">${formatDate(appointment.appointment_date)}</p>
               </div>
-              <div class="bg-white/90 p-4 rounded-xl border border-[#800000]/10 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-center mb-2">
-                  <svg class="w-4 h-4 text-[#800000] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+              <div class="p-3 rounded-lg bg-gray-50 border border-gray-100">
+                <div class="flex items-center gap-2 mb-1.5">
+                  <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <p class="text-xs font-bold text-gray-700 uppercase tracking-wide">Time</p>
+                  <span class="text-xs font-medium text-gray-600">Time</span>
                 </div>
-                <p class="text-base font-bold text-[#800000]">${appointment.appointment_time}</p>
+                <p class="text-sm font-semibold text-gray-900">${appointment.appointment_time}</p>
               </div>
             </div>
-            <div class="bg-white/90 p-4 rounded-xl border border-[#800000]/10 shadow-sm mb-4">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                  <svg class="w-4 h-4 text-[#800000] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p class="text-xs font-bold text-gray-700 uppercase tracking-wide">Status</p>
-                </div>
-                <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold ${statusColors[appointment.status]} shadow-sm">
-                  ${appointment.status}
-                </span>
+
+            <div class="p-3 rounded-lg bg-gray-50 border border-gray-100">
+              <div class="flex items-center gap-2 mb-1.5">
+                <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="text-xs font-medium text-gray-600">Status</span>
               </div>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[appointment.status]}">
+                <span>${appointment.status}</span>
+              </span>
             </div>
+
             ${appointment.notes ? `
-              <div class="bg-white/90 p-4 rounded-xl border border-[#800000]/10 shadow-sm">
-                <div class="flex items-center mb-2">
-                  <svg class="w-4 h-4 text-[#800000] mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="p-3 rounded-lg bg-gray-50 border border-gray-100">
+                <div class="flex items-center gap-2 mb-1.5">
+                  <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
-                  <p class="text-xs font-bold text-gray-700 uppercase tracking-wide">Notes</p>
+                  <span class="text-xs font-medium text-gray-600">Notes</span>
                 </div>
-                <p class="text-sm text-gray-800 leading-relaxed bg-gray-50 p-3 rounded-lg">${appointment.notes}</p>
+                <p class="text-sm text-gray-700 leading-relaxed">${appointment.notes}</p>
               </div>
             ` : ''}
           </div>
-          <div class="flex gap-3 mt-6">
+
+          <div class="flex gap-2 mt-5">
             <button 
               onclick="window.print()"
-              class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
+              class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -303,7 +305,7 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
             </button>
             <button 
               onclick="this.closest('.fixed').remove()"
-              class="flex-1 bg-[#800000] hover:bg-[#660000] text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              class="flex-1 px-3 py-1.5 bg-[#800000] hover:bg-[#660000] text-white text-sm font-medium rounded-lg transition-colors"
             >
               Close
             </button>
@@ -387,91 +389,91 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
     try {
       const formValues = await new Promise<{date: string, time: string, notes: string} | null>((resolve) => {
         const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-white/20 backdrop-blur-md flex items-center justify-center z-50 p-4';
+        modal.className = 'fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4';
         modal.innerHTML = `
-          <div class="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto border-2 border-[#800000]">
-            <div class="p-6">
-              <div class="space-y-6">
-                <!-- User Info Header -->
-                <div class="text-center mb-6">
-                  <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#800000]/10 to-[#800000]/20 rounded-full mb-4 shadow-lg">
-                    <svg class="w-8 h-8 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
+            <div class="p-5">
+              <div class="flex items-center gap-4 mb-5">
+                <div class="p-3 rounded-lg bg-gradient-to-br from-[#800000]/10 to-[#800000]/20">
+                  <svg class="w-6 h-6 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-lg font-semibold text-gray-900">Edit Appointment</h3>
+                  <p class="text-sm text-gray-500">${appointment.student_name}</p>
+                </div>
+                <button 
+                  id="cancelBtn"
+                  class="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="space-y-4">
+                <div>
+                  <label class="flex items-center gap-2 mb-1.5">
+                    <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                  </div>
-                  <h3 class="text-xl font-bold text-[#800000] mb-2">Edit Appointment</h3>
-                  <div class="bg-[#800000]/5 px-4 py-2 rounded-lg border border-[#800000]/20">
-                    <p class="text-sm font-semibold text-gray-800">${appointment.student_name}</p>
-                    <p class="text-xs text-gray-600">Current: ${formatDate(appointment.appointment_date)} at ${appointment.appointment_time}</p>
-                  </div>
+                    <span class="text-xs font-medium text-gray-700">Appointment Date</span>
+                  </label>
+                  <input 
+                    type="date" 
+                    id="edit-date" 
+                    value="${appointment.appointment_date}"
+                    min="${new Date().toISOString().split('T')[0]}"
+                    class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000]"
+                  />
                 </div>
 
-                <!-- Form Fields -->
-                <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200">
-                  <!-- Date Selection -->
-                  <div class="space-y-3 mb-5">
-                    <label class="flex items-center text-sm font-bold text-gray-700 mb-2">
-                      <div class="w-8 h-8 bg-[#800000]/10 rounded-lg flex items-center justify-center mr-3">
-                        <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      New Appointment Date
-                    </label>
-                    <div class="relative">
-                      <input 
-                        type="date" 
-                        id="edit-date" 
-                        value="${appointment.appointment_date}"
-                        min="${new Date().toISOString().split('T')[0]}"
-                        class="w-full p-4 border-2 rounded-xl bg-white border-gray-300 text-gray-900 focus:ring-4 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-base font-medium shadow-sm hover:shadow-lg hover:border-[#800000]/50" 
-                      />
-                    </div>
-                  </div>
-
-                  <!-- Time Selection -->
-                  <div class="space-y-3 mb-5">
-                    <label class="flex items-center text-sm font-bold text-gray-700 mb-2">
-                      <div class="w-8 h-8 bg-[#800000]/10 rounded-lg flex items-center justify-center mr-3">
-                        <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      New Appointment Time
-                    </label>
-                    <div class="relative">
-                      <input 
-                        type="time" 
-                        id="edit-time" 
-                        value="${appointment.appointment_time}"
-                        class="w-full p-4 border-2 rounded-xl bg-white border-gray-300 text-gray-900 focus:ring-4 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-base font-medium shadow-sm hover:shadow-lg hover:border-[#800000]/50" 
-                      />
-                    </div>
-                  </div>
-
-                  <!-- Notes -->
-                  <div class="space-y-3">
-                    <label class="flex items-center text-sm font-bold text-gray-700 mb-2">
-                      <div class="w-8 h-8 bg-[#800000]/10 rounded-lg flex items-center justify-center mr-3">
-                        <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </div>
-                      Notes (Optional)
-                    </label>
-                    <textarea 
-                      id="edit-notes" 
-                      class="w-full p-4 border-2 rounded-xl bg-white border-gray-300 text-gray-900 focus:ring-4 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-base font-medium shadow-sm hover:shadow-lg hover:border-[#800000]/50 resize-none" 
-                      rows="3"
-                      placeholder="Add any additional notes or special instructions..."
-                    >${appointment.notes || ''}</textarea>
-                  </div>
+                <div>
+                  <label class="flex items-center gap-2 mb-1.5">
+                    <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="text-xs font-medium text-gray-700">Appointment Time</span>
+                  </label>
+                  <input 
+                    type="time" 
+                    id="edit-time" 
+                    value="${appointment.appointment_time}"
+                    class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000]"
+                  />
                 </div>
-                
-                <div class="flex space-x-3">
-                  <button id="cancelBtn" class="flex-1 bg-white border-gray-200 text-gray-700 hover:bg-gray-50 border-2 font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow hover:shadow-md">Cancel</button>
-                  <button id="confirmBtn" class="flex-1 bg-[#800000] hover:bg-[#660000] text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">Update Appointment</button>
+
+                <div>
+                  <label class="flex items-center gap-2 mb-1.5">
+                    <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span class="text-xs font-medium text-gray-700">Notes (Optional)</span>
+                  </label>
+                  <textarea 
+                    id="edit-notes" 
+                    rows="2"
+                    class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] resize-y"
+                    placeholder="Add any notes or special instructions..."
+                  >${appointment.notes || ''}</textarea>
                 </div>
+              </div>
+
+              <div class="flex gap-2 mt-5">
+                <button 
+                  id="cancelBtn2"
+                  class="flex-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  id="confirmBtn"
+                  class="flex-1 px-3 py-1.5 bg-[#800000] hover:bg-[#660000] text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Update
+                </button>
               </div>
             </div>
           </div>
@@ -480,12 +482,16 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
         document.body.appendChild(modal);
         
         const cancelBtn = modal.querySelector('#cancelBtn');
+        const cancelBtn2 = modal.querySelector('#cancelBtn2');
         const confirmBtn = modal.querySelector('#confirmBtn');
         
-        cancelBtn?.addEventListener('click', () => {
+        const closeModal = () => {
           modal.remove();
           resolve(null);
-        });
+        };
+
+        cancelBtn?.addEventListener('click', closeModal);
+        cancelBtn2?.addEventListener('click', closeModal);
         
         confirmBtn?.addEventListener('click', () => {
           const date = (modal.querySelector('#edit-date') as HTMLInputElement)?.value;
@@ -511,17 +517,14 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
 
       if (formValues) {
         try {
-          // Update appointment
           await updateAppointment(appointment.id, {
             appointment_date: formValues.date,
             appointment_time: formValues.time,
             notes: formValues.notes
           });
 
-          // Refresh appointments
           const data = await getAllAppointments();
           setAppointments(data);
-
           showAlert('success', 'Updated!', 'Appointment has been updated successfully.');
         } catch (error) {
           console.error('Error updating appointment:', error);
@@ -553,157 +556,80 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
   // Get status counts
   const getStatusCount = (status: string) => groupedAppointments[status]?.length || 0;
 
-  // Print functionality
-  const handlePrint = () => {
-    const printContent = `
-      <html>
-        <head>
-          <title>Student Appointments Report</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #800000; padding-bottom: 20px; }
-            .status-section { margin-bottom: 30px; }
-            .status-title { background: #f5f5f5; padding: 10px; font-weight: bold; border-left: 4px solid #800000; }
-            .appointment { border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px; }
-            .student-name { font-weight: bold; color: #800000; font-size: 16px; }
-            .appointment-details { margin-top: 10px; }
-            .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
-            .scheduled { background: #dbeafe; color: #1e40af; }
-            .in-progress { background: #fef3c7; color: #92400e; }
-            .completed { background: #d1fae5; color: #065f46; }
-            .canceled { background: #fee2e2; color: #991b1b; }
-            .no-show { background: #f3f4f6; color: #374151; }
-            @media print { body { margin: 0; } }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>Student Appointments Report</h1>
-            <p>Generated on: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
-            <p>Total Appointments: ${appointments.length}</p>
-          </div>
-          ${statusOptions.map(status => {
-            const statusAppointments = groupedAppointments[status] || [];
-            if (statusAppointments.length === 0) return '';
-            return `
-              <div class="status-section">
-                <div class="status-title">${status} Appointments (${statusAppointments.length})</div>
-                ${statusAppointments.map(app => `
-                  <div class="appointment">
-                    <div class="student-name">${app.student_name}</div>
-                    <div class="appointment-details">
-                      <p><strong>Email:</strong> ${app.student_email}</p>
-                      <p><strong>Date:</strong> ${formatDate(app.appointment_date)}</p>
-                      <p><strong>Time:</strong> ${app.appointment_time}</p>
-                      <p><strong>Status:</strong> <span class="status-badge ${status.toLowerCase().replace(' ', '-')}">${app.status}</span></p>
-                      ${app.notes ? `<p><strong>Notes:</strong> ${app.notes}</p>` : ''}
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-            `;
-          }).join('')}
-        </body>
-      </html>
-    `;
-    
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(printContent);
-      printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-    }
-  };
-
-  // Export to CSV functionality
-  const handleExportCSV = () => {
-    const csvContent = [
-      ['Student Name', 'Email', 'Date', 'Time', 'Status', 'Notes'],
-      ...appointments.map(app => [
-        app.student_name,
-        app.student_email,
-        app.appointment_date,
-        app.appointment_time,
-        app.status,
-        app.notes || ''
-      ])
-    ].map(row => row.map(field => `"${field}"`).join(',')).join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `appointments_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   return (
-    <section
-      className={`relative rounded-xl shadow-lg p-6 md:p-8 transition-all border ${
-        darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-      }`}
-      style={{ minHeight: '60vh' }}
-    >
+    <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6`}>
       <img src="/lotus.png" alt="Lotus" className="absolute top-4 right-6 w-14 h-14 opacity-20 pointer-events-none select-none" />
-      {/* Enhanced Header with Actions */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+      
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div className="flex items-center">
-          <FaCalendarAlt className={`mr-3 text-3xl ${darkMode ? 'text-indigo-300' : 'text-indigo-500'}`} />
+          <div className={`p-3 rounded-xl ${darkMode ? 'bg-indigo-600/20' : 'bg-indigo-100'} mr-4`}>
+            <FaCalendarAlt className={`text-2xl ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`} />
+          </div>
           <div>
-            <h2 className={`text-2xl md:text-3xl font-bold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>Student Appointments</h2>
+            <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Student Appointments</h2>
             <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Manage and track all student appointments</p>
           </div>
         </div>
         
-        {/* Action Buttons */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handlePrint}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md ${
-              darkMode 
-                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                : 'bg-blue-500 hover:bg-blue-600 text-white'
-            }`}
-            title="Print appointments report"
-          >
-            <FaPrint className="text-sm" />
-            <span className="hidden sm:inline">Print</span>
-          </button>
-          
-          <button
-            onClick={handleExportCSV}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md ${
-              darkMode 
-                ? 'bg-green-600 hover:bg-green-700 text-white' 
-                : 'bg-green-500 hover:bg-green-600 text-white'
-            }`}
-            title="Export to CSV"
-          >
-            <FaDownload className="text-sm" />
-            <span className="hidden sm:inline">Export</span>
-          </button>
-          
-          <div className={`px-3 py-2 rounded-lg border-2 ${
-            darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-white'
-          }`}>
-            <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Total: <span className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{filteredAppointments.length}</span>
-              {searchTerm && (
-                <span className={`ml-2 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  of {appointments.length}
+        {/* Total Appointments Card */}
+        <div className={`p-4 rounded-xl bg-gradient-to-br ${
+          darkMode 
+            ? 'from-gray-700 to-gray-900 border-gray-600/30' 
+            : 'from-gray-50 to-gray-100 border-gray-200'
+        } border-2 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105`}>
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${darkMode ? 'bg-indigo-500/30' : 'bg-indigo-500/10'}`}>
+              <FaCalendarAlt className={`text-xl ${darkMode ? 'text-indigo-300' : 'text-indigo-600'}`} />
+            </div>
+            <div>
+              <p className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Appointments</p>
+              <div className="flex items-baseline gap-1">
+                <span className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {filteredAppointments.length}
                 </span>
-              )}
-            </span>
+                {searchTerm && (
+                  <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    / {appointments.length}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      
+
+      {/* Status Overview Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+        {statusOptions.map(status => {
+          const colors = darkMode ? statusCardColorsDark[status] : statusCardColors[status];
+          return (
+            <div key={status} className={`p-3 rounded-xl bg-gradient-to-br ${darkMode ? 'from-gray-700 to-gray-900' : 'from-gray-50 to-gray-100'} border transition-all duration-300 hover:shadow-xl hover:scale-105 ${colors.border} shadow-lg backdrop-blur-sm`}>
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{status}</p>
+                  <h3 className={`text-xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{getStatusCount(status)}</h3>
+                </div>
+                <div className={`p-1.5 ${colors.iconBg} rounded-lg`}>
+                  <span className="text-white text-sm">
+                    {statusIcons[status]}
+                  </span>
+                </div>
+              </div>
+              <div className="relative">
+                <div className={`h-1 rounded-full bg-white/30 overflow-hidden`}>
+                  <div className={`h-full rounded-full ${colors.progressBg} transition-all duration-500 shadow-sm`} 
+                       style={{ width: `${Math.min(100, (getStatusCount(status) / Math.max(1, appointments.length)) * 100)}%` }}>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       {/* Search Bar */}
-      <div className="mb-4">
+      <div className="mb-6">
         <div className="relative max-w-sm">
           <input
             type="text"
@@ -737,205 +663,137 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
         )}
       </div>
       
-      {/* Status Legend */}
-      <div className="mb-6">
-        <h3 className={`text-lg font-semibold mb-3 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Status Overview</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {statusOptions.map(status => {
-            const colors = darkMode ? statusCardColorsDark[status] : statusCardColors[status];
-            return (
-              <div key={status} className={`p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-xl hover:scale-105 ${
-                colors.bg
-              } ${colors.border} shadow-lg backdrop-blur-sm`}>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <div className={`p-3 rounded-xl mr-4 ${colors.iconBg} shadow-md`}>
-                      <span className="text-xl text-white">
-                        {statusIcons[status]}
-                      </span>
-                    </div>
-                    <span className={`text-base font-bold ${colors.textColor}`}>
-                      {status}
+      {/* Appointments by Status */}
+      <div className="space-y-6">
+        {statusOptions.map(status => {
+          const statusAppointments = groupedAppointments[status] || [];
+          if (statusAppointments.length === 0) return null;
+          
+          return (
+            <div key={status} className={`rounded-xl border shadow-lg transition-all ${
+              darkMode ? 'bg-gray-900/50 border-gray-700' : 'bg-gray-50/50 border-gray-200'
+            }`}>
+              {/* Status Section Header */}
+              <div className={`px-4 py-3 border-b flex items-center justify-between ${
+                darkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-white/50'
+              }`}>
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${statusCardColorsDark[status].iconBg}`}>
+                    <span className="text-white text-sm">
+                      {statusIcons[status]}
                     </span>
                   </div>
-                  <span className={`text-3xl font-bold ${colors.countColor} drop-shadow-sm`}>
-                    {getStatusCount(status)}
-                  </span>
-                </div>
-                <div className="relative">
-                  <div className={`h-2 rounded-full bg-white/30 overflow-hidden`}>
-                    <div className={`h-full rounded-full ${colors.progressBg} transition-all duration-500 shadow-sm`} 
-                         style={{ width: `${Math.min(100, (getStatusCount(status) / Math.max(1, appointments.length)) * 100)}%` }}>
-                    </div>
-                  </div>
-                  <div className={`text-xs font-medium mt-2 ${colors.textColor} opacity-75`}>
-                    {Math.round((getStatusCount(status) / Math.max(1, appointments.length)) * 100)}% of total
+                  <div>
+                    <h3 className={`text-base font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {status}
+                    </h3>
+                    <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {statusAppointments.length} appointment{statusAppointments.length !== 1 ? 's' : ''}
+                    </p>
                   </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </div>
-      
-      {/* Appointments by Status */}
-      <div className="w-full">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <FaSpinner className="animate-spin text-2xl text-blue-500 mr-3" />
-            <span className="text-gray-500">Loading appointments...</span>
-          </div>
-        ) : error ? (
-          <div className="text-center py-8">
-            <p className="text-red-500 text-base">{error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
-            >
-              Retry
-            </button>
-          </div>
-        ) : appointments.length === 0 ? (
-          <div className={`rounded-lg p-8 border shadow transition-all text-center ${darkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
-            <FaCalendarAlt className={`mx-auto mb-4 text-4xl ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
-            <p className={`text-base italic ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>No appointments scheduled yet.</p>
-            <p className={`text-sm mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Student appointments will appear here organized by status.</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {statusOptions.map(status => {
-              const statusAppointments = groupedAppointments[status] || [];
-              if (statusAppointments.length === 0) return null;
               
-              return (
-                <div key={status} className={`rounded-lg border shadow transition-all ${
-                  darkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'
-                }`}>
-                  {/* Status Section Header */}
-                  <div className={`px-5 py-3 border-b flex items-center justify-between ${
-                    darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'
-                  }`}>
-                    <div className="flex items-center">
-                      <div className={`p-2 rounded-full mr-3 ${statusColors[status].replace('text-', 'bg-').replace('100', '200')}`}>
-                        <span className={`text-lg ${statusColors[status].split(' ')[1]}`}>
-                          {statusIcons[status]}
-                        </span>
-                      </div>
-                      <div>
-                        <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                          {status} Appointments
-                        </h3>
-                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                          {statusAppointments.length} appointment{statusAppointments.length !== 1 ? 's' : ''}
-                        </p>
-                      </div>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${statusColors[status]}`}>
-                      {statusAppointments.length}
-                    </span>
-                  </div>
-                  
-                  {/* Appointments Grid */}
-                  <div className="p-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                      {statusAppointments.map(app => {
-                        const cardColors = darkMode ? statusCardColorsDark[app.status] : statusCardColors[app.status];
-                        return (
-                        <div
-                          key={app.id}
-                          className={`relative overflow-visible z-10 p-5 rounded-xl shadow-lg border-2 transition-all group hover:shadow-xl hover:scale-[1.03] ${
-                            cardColors.bg
-                          } ${cardColors.border} backdrop-blur-sm`}
-                        >
-                          {/* Status indicator bar */}
-                          <div className={`absolute top-0 left-0 right-0 h-2 rounded-t-xl ${cardColors.progressBg}`}></div>
-                          
-                          {/* Header with student name and actions */}
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center space-x-2">
-                              <div className={`p-2 rounded-lg ${cardColors.iconBg} shadow-sm`}>
-                                <FaUser className="text-white text-xs" />
-                              </div>
-                              <span className={`font-bold text-sm truncate ${cardColors.textColor}`} title={app.student_name}>
-                                {app.student_name}
-                              </span>
+              {/* Appointments Grid */}
+              <div className="p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                  {statusAppointments.map(app => {
+                    const cardColors = darkMode ? statusCardColorsDark[app.status] : statusCardColors[app.status];
+                    return (
+                      <div
+                        key={app.id}
+                        className={`relative p-3 rounded-xl border transition-all duration-200 group hover:shadow-lg hover:-translate-y-0.5 ${
+                          darkMode 
+                            ? 'bg-gray-800/50 border-gray-700 hover:bg-gray-800/80' 
+                            : 'bg-white border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        {/* Status indicator bar */}
+                        <div className={`absolute top-0 left-0 right-0 h-1 rounded-t-xl ${cardColors.progressBg}`}></div>
+                        
+                        {/* Header with student name and actions */}
+                        <div className="flex items-start justify-between mt-1.5 mb-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className={`p-1.5 rounded-lg ${cardColors.iconBg} shadow-sm`}>
+                              <FaUser className="text-white text-xs" />
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <button
-                                onClick={() => showStudentInfo(app)}
-                                className="p-1.5 rounded-full hover:bg-blue-50 transition-colors"
-                                title="View details"
-                              >
-                                <FaEye className="text-blue-600 text-xs" />
-                              </button>
-                              <button
-                                onClick={() => handleEditAppointment(app)}
-                                className="p-1.5 rounded-full hover:bg-green-50 transition-colors"
-                                title="Edit appointment"
-                              >
-                                <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => handleDeleteAppointment(app)}
-                                className="p-1.5 rounded-full hover:bg-red-50 transition-colors"
-                                title="Delete appointment"
-                              >
-                                <FaTrash className="text-red-500 text-xs" />
-                              </button>
-                            </div>
+                            <span className={`font-medium text-sm truncate ${darkMode ? 'text-gray-200' : 'text-gray-700'}`} title={app.student_name}>
+                              {app.student_name}
+                            </span>
                           </div>
-
-                          {/* Date and time */}
-                          <div className={`flex items-center text-xs mb-3 ${cardColors.textColor} opacity-80`}>
-                            <FaCalendarAlt className="mr-1" />
-                            <span className="font-medium">{formatDate(app.appointment_date)}</span>
-                            <FaClock className="ml-3 mr-1" />
-                            <span className="font-medium">{app.appointment_time}</span>
-                          </div>
-
-                          {/* Status badge with dropdown */}
-                          <div className="flex items-center justify-between">
-                            <div className={`flex items-center px-4 py-2 rounded-xl text-xs font-bold ${cardColors.iconBg} text-white shadow-md relative w-full justify-between`}>
-                              <span className="flex items-center">
-                                <span className="text-sm mr-2">{statusIcons[app.status]}</span>
-                                <span className="font-bold">{app.status}</span>
-                              </span>
-                              <span className="ml-2">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (expandedAppointment === app.id) {
-                                      setExpandedAppointment(null);
-                                      setDropdownPosition(null);
-                                    } else {
-                                      const rect = e.currentTarget.getBoundingClientRect();
-                                      setDropdownPosition({
-                                        top: rect.bottom + 2,
-                                        left: rect.left + (rect.width / 2)
-                                      });
-                                      setExpandedAppointment(app.id);
-                                    }
-                                  }}
-                                  className="p-1 rounded-full hover:bg-white/20 transition-colors"
-                                  title="Change status"
-                                >
-                                  <FaChevronDown className={`text-white text-xs transition-transform ${expandedAppointment === app.id ? 'rotate-180' : ''}`} />
-                                </button>
-                              </span>
-                            </div>
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => showStudentInfo(app)}
+                              className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                              title="View details"
+                            >
+                              <FaEye className="text-blue-500 text-xs" />
+                            </button>
+                            <button
+                              onClick={() => handleEditAppointment(app)}
+                              className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                              title="Edit appointment"
+                            >
+                              <svg className="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAppointment(app)}
+                              className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                              title="Delete appointment"
+                            >
+                              <FaTrash className="text-red-500 text-xs" />
+                            </button>
                           </div>
                         </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+
+                        {/* Date and time */}
+                        <div className={`flex flex-col gap-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          <div className="flex items-center gap-1.5">
+                            <FaCalendarAlt className="text-xs opacity-70" />
+                            <span>{formatDate(app.appointment_date)}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <FaClock className="text-xs opacity-70" />
+                            <span>{app.appointment_time}</span>
+                          </div>
+                        </div>
+
+                        {/* Status badge */}
+                        <div className="mt-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (expandedAppointment === app.id) {
+                                setExpandedAppointment(null);
+                                setDropdownPosition(null);
+                              } else {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                setDropdownPosition({
+                                  top: rect.bottom + 2,
+                                  left: rect.left + (rect.width / 2)
+                                });
+                                setExpandedAppointment(app.id);
+                              }
+                            }}
+                            className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs font-medium transition-colors ${cardColors.iconBg} text-white`}
+                          >
+                            <span className="flex items-center gap-1">
+                              {statusIcons[app.status]}
+                              <span>{app.status}</span>
+                            </span>
+                            <FaChevronDown className={`text-xs transition-transform ${expandedAppointment === app.id ? 'rotate-180' : ''}`} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-          </div>
-        )}
+              </div>
+            </div>
+          );
+        })}
       </div>
       
       {/* Dropdown rendered using Portal to ensure it's above everything */}
@@ -965,7 +823,7 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
         </div>,
         document.body
       )}
-    </section>
+    </div>
   );
 };
 

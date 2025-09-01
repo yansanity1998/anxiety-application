@@ -131,7 +131,8 @@ export default function Register({ onSwitch }: RegisterProps) {
             guardian_name: guardianName,
             guardian_phone_number: guardianPhoneNumber,
             address: address,
-            role: 'student' // Ensure this is explicitly set to 'student'
+            role: 'student', // Ensure this is explicitly set to 'student'
+            is_verified: false
           }
         }
       });
@@ -206,21 +207,8 @@ export default function Register({ onSwitch }: RegisterProps) {
         timer: 1000
       });
 
-      // Clear form
-      // setName('');
-      // setEmail('');
-      // setPassword('');
-      // setConfirmPassword('');
-      // setSchool('');
-      // setCourse('');
-      // setYearLevel('');
-      // setAge('');
-      // setGender('');
-      // setPhoneNumber('');
-      // setGuardianName('');
-      // setGuardianPhoneNumber('');
-      // setAddress('');
-      // setRememberMe(false);
+      // Ensure no active session after registration (awaiting verification)
+      await supabase.auth.signOut();
 
       // Redirect to login after a short delay
       setTimeout(() => {

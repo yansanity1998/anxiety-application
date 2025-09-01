@@ -165,6 +165,22 @@
             return;
           }
 
+          // Block unverified students from logging in
+          const isVerified = (userProfile as any)?.is_verified === true;
+          const isPrivileged = isAdminByEmail || userRole === 'admin' || userRole === 'guidance';
+          if (!isPrivileged && !isVerified) {
+            await Toast.fire({
+              icon: 'info',
+              iconColor: '#3b82f6',
+              title: 'Pending Verification',
+              text: 'Your account is awaiting verification by the Guidance Office.',
+              timer: 2500
+            });
+            await supabase.auth.signOut();
+            setIsLoading(false);
+            return;
+          }
+
           // Update last_sign_in
           const { error: updateError } = await supabase
             .from('profiles')

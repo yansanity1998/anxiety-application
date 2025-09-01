@@ -7,6 +7,7 @@ import Swal from 'sweetalert2';
 import AdminCharts from './components/AdminCharts';
 import Footer from './components/Footer';
 import Notifications from './components/Notifications';
+import AddUser from './components/AddUser';
 import LoadingSpinner from './components/LoadingSpinner';
 import { ThemeContext } from '../App';
 import AdminNavbar from './components/AdminNavbar';
@@ -118,8 +119,8 @@ const getAnxietyLevelColor = (level: string) => {
         text: 'text-gray-600',
         bg: 'bg-gray-50',
         border: 'border-gray-200',
-        button: 'bg-gray-50 hover:bg-gray-100 text-gray-700',
-        darkModeButton: 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+        button: 'bg-gray-50 hover:bg-rose-200 text-gray-700',
+        darkModeButton: 'bg-gray-800 hover:bg-rose-900 text-gray-300'
       };
   }
 };
@@ -205,7 +206,7 @@ export default function AdminDashboard() {
       title: 'text-lg font-bold text-[#800000]',
       htmlContainer: `text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} max-h-96 overflow-y-auto`,
       confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl',
-      cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border font-medium py-2 px-4 rounded-xl transition-all duration-200 shadow`
+      cancelButton: `${darkMode ? 'bg-rose-900 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border font-medium py-2 px-4 rounded-xl transition-all duration-200 shadow`
     },
     allowOutsideClick: false,
     allowEscapeKey: true,
@@ -508,7 +509,7 @@ export default function AdminDashboard() {
       title: 'Sign Out',
       html: `
         <div class="text-center space-y-3">
-          <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} backdrop-blur-sm rounded-xl p-4 border ${darkMode ? 'border-gray-600' : 'border-red-200'}">
+          <div class="${darkMode ? 'bg-rose-900' : 'bg-white/80'} backdrop-blur-sm rounded-xl p-4 border ${darkMode ? 'border-gray-600' : 'border-red-200'}">
             <p class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">Are you sure you want to sign out?</p>
           </div>
         </div>
@@ -522,7 +523,7 @@ export default function AdminDashboard() {
         popup: 'text-center', 
         htmlContainer: 'text-center', 
         confirmButton: 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-2 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl',
-        cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border font-medium py-2 px-4 rounded-xl transition-all duration-200 shadow`
+        cancelButton: `${darkMode ? 'bg-rose-900 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border font-medium py-2 px-4 rounded-xl transition-all duration-200 shadow`
       }
     });
   
@@ -592,7 +593,7 @@ export default function AdminDashboard() {
               title: `text-lg font-bold ${darkMode ? 'text-[#800000]' : 'text-[#800000]'} mb-3`,
               htmlContainer: `${darkMode ? 'text-gray-200' : 'text-gray-700'}`,
               confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105',
-              cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border-2 font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow hover:shadow-md`,
+              cancelButton: `${darkMode ? 'bg-rose-900 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border-2 font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow hover:shadow-md`,
               icon: 'hidden'
             }
           });
@@ -640,13 +641,13 @@ export default function AdminDashboard() {
                   type="date" 
                   id="schedule-date" 
                   min="${now.toISOString().split('T')[0]}"
-                  class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
+                  class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-rose-900 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
                 />
                 <div class="absolute inset-y-0 right-0 flex items-center pr-3">
                   <button 
                     type="button"
                     onclick="document.getElementById('schedule-date').showPicker()"
-                    class="p-1.5 ${darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-100 hover:bg-gray-200'} rounded-md transition-all duration-200 cursor-pointer border ${darkMode ? 'border-gray-500' : 'border-gray-300'}"
+                    class="p-1.5 ${darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-rose-200 hover:bg-gray-200'} rounded-md transition-all duration-200 cursor-pointer border ${darkMode ? 'border-gray-500' : 'border-gray-300'}"
                     title="Click to open calendar"
                   >
                     <svg class="w-5 h-5 ${darkMode ? 'text-white' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -669,13 +670,13 @@ export default function AdminDashboard() {
                 <input 
                   type="time" 
                   id="schedule-time" 
-                  class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
+                  class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-rose-900 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
                 />
                 <div class="absolute inset-y-0 right-0 flex items-center pr-3">
                   <button 
                     type="button"
                     onclick="document.getElementById('schedule-time').showPicker()"
-                    class="p-1.5 ${darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-100 hover:bg-gray-200'} rounded-md transition-all duration-200 cursor-pointer border ${darkMode ? 'border-gray-500' : 'border-gray-300'}"
+                    class="p-1.5 ${darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-rose-200 hover:bg-gray-200'} rounded-md transition-all duration-200 cursor-pointer border ${darkMode ? 'border-gray-500' : 'border-gray-300'}"
                     title="Click to open time picker"
                   >
                     <svg class="w-5 h-5 ${darkMode ? 'text-white' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -703,7 +704,7 @@ export default function AdminDashboard() {
                     <p class="text-xs">No upcoming appointments</p>
                   </div>`
                 ) : upcoming.map(sch => `
-                  <div class="flex items-center justify-between p-2 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-md border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
+                  <div class="flex items-center justify-between p-2 ${darkMode ? 'bg-rose-900' : 'bg-white'} rounded-md border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
                     <div class="flex items-center">
                       <div class="w-1.5 h-1.5 ${darkMode ? 'bg-[#800000]' : 'bg-[#800000]'} rounded-full mr-2"></div>
                       <span class="text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${sch.date}</span>
@@ -745,7 +746,7 @@ export default function AdminDashboard() {
           title: `text-lg font-bold ${darkMode ? 'text-[#800000]' : 'text-[#800000]'} mb-3`,
           htmlContainer: `${darkMode ? 'text-gray-200' : 'text-gray-700'}`,
           confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105',
-          cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border-2 font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow hover:shadow-md`,
+          cancelButton: `${darkMode ? 'bg-rose-900 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border-2 font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow hover:shadow-md`,
           icon: 'hidden'
         }
       });
@@ -831,7 +832,7 @@ export default function AdminDashboard() {
                   id="edit-date" 
                   value="${appointment.appointment_date}"
                   min="${new Date().toISOString().split('T')[0]}"
-                  class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
+                  class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-rose-900 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
                 />
               </div>
             </div>
@@ -849,7 +850,7 @@ export default function AdminDashboard() {
                   type="time" 
                   id="edit-time" 
                   value="${appointment.appointment_time}"
-                  class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
+                  class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-rose-900 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
                 />
               </div>
             </div>
@@ -864,7 +865,7 @@ export default function AdminDashboard() {
               </label>
               <textarea 
                 id="edit-notes" 
-                class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
+                class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-rose-900 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
                 rows="2"
                 placeholder="Add any additional notes..."
               >${appointment.notes || ''}</textarea>
@@ -892,7 +893,7 @@ export default function AdminDashboard() {
           title: `text-lg font-bold ${darkMode ? 'text-[#800000]' : 'text-[#800000]'} mb-3`,
           htmlContainer: `${darkMode ? 'text-gray-200' : 'text-gray-700'}`,
           confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105',
-          cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border-2 font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow hover:shadow-md`,
+          cancelButton: `${darkMode ? 'bg-rose-900 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border-2 font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow hover:shadow-md`,
           icon: 'hidden'
         }
       });
@@ -996,14 +997,14 @@ export default function AdminDashboard() {
               <div class="text-left">
                 <label class="block text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">${field.label}</label>
                 ${field.type === 'select' && field.name === 'gender' ? `
-                  <select id="${field.name}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm">
+                  <select id="${field.name}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-rose-900 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm">
                     <option value="">Select Gender</option>
                     <option value="Male" ${field.value === 'Male' ? 'selected' : ''}>Male</option>
                     <option value="Female" ${field.value === 'Female' ? 'selected' : ''}>Female</option>
                     <option value="Other" ${field.value === 'Other' ? 'selected' : ''}>Other</option>
                   </select>
                 ` : field.type === 'select' && field.name === 'year_level' ? `
-                  <select id="${field.name}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm">
+                  <select id="${field.name}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-rose-900 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm">
                     <option value="">Select Year Level</option>
                     <option value="1" ${field.value === 1 ? 'selected' : ''}>1st Year</option>
                     <option value="2" ${field.value === 2 ? 'selected' : ''}>2nd Year</option>
@@ -1011,9 +1012,9 @@ export default function AdminDashboard() {
                     <option value="4" ${field.value === 4 ? 'selected' : ''}>4th Year</option>
                   </select>
                 ` : field.type === 'textarea' ? `
-                  <textarea id="${field.name}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm" rows="2" placeholder="Enter ${field.label.toLowerCase()}">${field.value}</textarea>
+                  <textarea id="${field.name}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-rose-900 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm" rows="2" placeholder="Enter ${field.label.toLowerCase()}">${field.value}</textarea>
                 ` : `
-                  <input type="${field.type}" id="${field.name}" value="${field.value}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm" placeholder="Enter ${field.label.toLowerCase()}">
+                  <input type="${field.type}" id="${field.name}" value="${field.value}" class="w-full p-2 border rounded-md ${darkMode ? 'bg-rose-900 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-[#800000] focus:border-[#800000] transition-colors text-sm" placeholder="Enter ${field.label.toLowerCase()}">
                 `}
               </div>
             `).join('')}
@@ -1043,7 +1044,7 @@ export default function AdminDashboard() {
           title: `text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-3`,
           htmlContainer: `${darkMode ? 'text-gray-200' : 'text-gray-700'}`,
           confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-5 rounded-lg transition-colors shadow-lg hover:shadow-xl',
-          cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border font-medium py-2 px-5 rounded-lg transition-colors shadow`
+          cancelButton: `${darkMode ? 'bg-rose-900 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border font-medium py-2 px-5 rounded-lg transition-colors shadow`
         }
       });
 
@@ -1098,7 +1099,7 @@ export default function AdminDashboard() {
         title: 'Archive Student',
         html: `
           <div class="text-left space-y-3">
-            <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} backdrop-blur-sm rounded-xl p-4 border ${darkMode ? 'border-gray-600' : 'border-[#800000]/30'}">
+            <div class="${darkMode ? 'bg-rose-900' : 'bg-white/80'} backdrop-blur-sm rounded-xl p-4 border ${darkMode ? 'border-gray-600' : 'border-[#800000]/30'}">
               <p class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">Are you sure you want to archive this student?</p>
               <div class="mt-2 p-2 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg border ${darkMode ? 'border-gray-500' : 'border-gray-200'}">
                 <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}"><strong>Name:</strong> ${user.full_name || 'No name'}</p>
@@ -1263,7 +1264,7 @@ export default function AdminDashboard() {
                 <div className={`mb-4 flex items-center ${darkMode ? 'bg-gray-700' : 'bg-[#800000]/5'} rounded-lg px-4 py-3 border ${darkMode ? 'border-gray-600' : 'border-[#800000]/30'} w-fit`}> 
                   <FaUser className={`mr-2 text-xl ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`} />
                   <span className={`font-semibold text-base ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`}>Active Students:</span>
-                  <span className={`ml-2 text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{activeUsers.filter(u => u.role !== 'admin').length}</span>
+                  <span className={`ml-2 text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{activeUsers.filter(u => u.role === 'student').length}</span>
                 </div>
                 <div className="mb-3">
                   <div className="flex gap-2">
@@ -1289,12 +1290,13 @@ export default function AdminDashboard() {
                       <option value="3">3rd Year</option>
                       <option value="4">4th Year</option>
                     </select>
+                    <AddUser darkMode={darkMode} onUserCreated={fetchUsers} />
                     <button
                       onClick={fetchUsers}
                       disabled={isLoading}
                       className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
                         isLoading
-                          ? `${darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
+                          ? `${darkMode ? 'bg-rose-900 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
                           : `${darkMode ? 'bg-[#800000] hover:bg-[#660000] text-white' : 'bg-[#800000] hover:bg-[#660000] text-white'}`
                       }`}
                     >
@@ -1306,17 +1308,17 @@ export default function AdminDashboard() {
 
                 <div className={`rounded-md shadow overflow-x-auto ${darkMode ? 'bg-gray-800' : 'bg-white'} w-full`}>
                   <div className="overflow-x-auto w-full">
-                    <table className="min-w-full divide-y divide-gray-200 w-full text-xs">
-                      <thead className={darkMode ? 'bg-gray-700' : 'bg-gray-100'}>
+                    <table className={`min-w-full divide-y ${darkMode ? 'divide-gray-700' : 'divide-gray-200'} w-full text-xs`}>
+                      <thead className="bg-[#800000]">
                         <tr>
-                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Users</th>
-                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Email</th>
-                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Role</th>
-                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Registration Info</th>
-                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Latest Assessment</th>
-                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Joined</th>
-                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Last Sign In</th>
-                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Actions</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Users</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Email</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Role</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Registration Info</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Latest Assessment</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Joined</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Last Sign In</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Actions</th>
                         </tr>
                       </thead>
                       <tbody className={`divide-y ${darkMode ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
@@ -1409,7 +1411,7 @@ export default function AdminDashboard() {
                                           title: 'Registration Details',
                                           html: `
                                             <div class="text-left space-y-2">
-                                              <div class="${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
+                                              <div class="${darkMode ? 'bg-rose-900' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
                                                 <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center justify-between">
                                                   <div class="flex items-center">
                                                     <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
@@ -1419,7 +1421,7 @@ export default function AdminDashboard() {
                                                     </div>
                                                     Personal Information
                                                   </div>
-                                                                                        <button onclick="handleEditPersonalInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Personal Information">
+                                                                                        <button onclick="handleEditPersonalInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-rose-200'} transition-colors" title="Edit Personal Information">
                                         <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
                                           <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                         </svg>
@@ -1464,7 +1466,7 @@ export default function AdminDashboard() {
                                                   </div>
                                                 </div>
                                               </div>
-                                              <div class="${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
+                                              <div class="${darkMode ? 'bg-rose-900' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
                                                 <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center justify-between">
                                                   <div class="flex items-center">
                                                     <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
@@ -1475,7 +1477,7 @@ export default function AdminDashboard() {
                                                     </div>
                                                     Academic Information
                                                   </div>
-                                                                                                    <button onclick="handleEditAcademicInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Academic Information">
+                                                                                                    <button onclick="handleEditAcademicInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-rose-200'} transition-colors" title="Edit Academic Information">
                                         <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
                                           <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                         </svg>
@@ -1508,7 +1510,7 @@ export default function AdminDashboard() {
                                                   </div>
                                                 </div>
                                               </div>
-                                              <div class="${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
+                                              <div class="${darkMode ? 'bg-rose-900' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
                                                 <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center justify-between">
                                                   <div class="flex items-center">
                                                     <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
@@ -1518,7 +1520,7 @@ export default function AdminDashboard() {
                                                     </div>
                                                     Guardian Information
                                                   </div>
-                                                                                                    <button onclick="handleEditGuardianInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Guardian Information">
+                                                                                                    <button onclick="handleEditGuardianInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-rose-200'} transition-colors" title="Edit Guardian Information">
                                         <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
                                           <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                                         </svg>
@@ -1575,7 +1577,7 @@ export default function AdminDashboard() {
                                               title: 'Assessment Details',
                                               html: `
                                                 <div class="text-left space-y-2">
-                                                  <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : colors.border}">
+                                                  <div class="${darkMode ? 'bg-rose-900' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : colors.border}">
                                                     <div class="flex items-center justify-between mb-2">
                                                       <p class="mb-1"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Anxiety Level:</strong></p>
                                                       <span class="px-2 py-0.5 rounded-full ${darkMode ? 'bg-gray-600' : colors.bg} ${colors.text} font-medium text-xs">
@@ -1586,7 +1588,7 @@ export default function AdminDashboard() {
                                                     <p class="mb-1 text-xs"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Percentage:</strong> <span class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">${latestAssessment.percentage}%</span></p>
                                                     <p class="mb-1 text-xs"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Date:</strong> <span class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">${new Date(latestAssessment.created_at).toLocaleString()}</span></p>
                                                   </div>
-                                                  <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
+                                                  <div class="${darkMode ? 'bg-rose-900' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
                                                     <p class="mb-1 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'} text-xs">Answers:</p>
                                                     <div class="text-xs space-y-1">
                                                       ${latestAssessment.answers.map((answer, index) => `
@@ -1625,7 +1627,7 @@ export default function AdminDashboard() {
                                               title: 'Assessment Details',
                                               html: `
                                                 <div class="text-left space-y-2">
-                                                  <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
+                                                  <div class="${darkMode ? 'bg-rose-900' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
                                                     <p class="${darkMode ? 'text-gray-300' : 'text-gray-600'} text-center text-xs">No assessments available for this user yet.</p>
                                                   </div>
                                                 </div>
@@ -1646,7 +1648,7 @@ export default function AdminDashboard() {
                                             title: 'Assessment Details',
                                             html: `
                                               <div class="text-left space-y-2">
-                                                <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
+                                                <div class="${darkMode ? 'bg-rose-900' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
                                                   <p class="${darkMode ? 'text-gray-300' : 'text-gray-600'} text-center text-xs">No assessments available for this user yet.</p>
                                                 </div>
                                               </div>
@@ -1669,8 +1671,8 @@ export default function AdminDashboard() {
                                               ? getAnxietyLevelColor(getLatestAssessment(assessments[user.profile_id])?.anxiety_level || '').darkModeButton
                                               : getAnxietyLevelColor(getLatestAssessment(assessments[user.profile_id])?.anxiety_level || '').button)
                                           : (darkMode
-                                              ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                                              : 'bg-gray-50 hover:bg-gray-100 text-gray-700')
+                                              ? 'bg-rose-900 hover:bg-gray-600 text-gray-200'
+                                              : 'bg-gray-50 hover:bg-rose-200 text-gray-700')
                                       }`}
                                     >
                                       {assessments[user.profile_id] && assessments[user.profile_id].length > 0 ? (
@@ -1709,13 +1711,13 @@ export default function AdminDashboard() {
                                     disabled={isArchived(user.role)}
                                     className={`p-2 rounded-full transition-colors ${
                                       isArchived(user.role)
-                                        ? (darkMode ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-gray-400 cursor-not-allowed')
-                                        : (darkMode ? 'bg-gray-700 hover:bg-gray-600 text-[#f3f4f6]' : 'bg-gray-100 hover:bg-gray-200 text-gray-700')
+                                        ? (darkMode ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed')
+                                        : (darkMode ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700')
                                     }`}
                                     aria-label="Archive student"
                                     title={isArchived(user.role) ? 'Already archived' : `Archive ${user.full_name || ''}`.trim()}
                                   >
-                                    <FaArchive className={darkMode ? 'text-white' : 'text-[#800000]'} />
+                                    <FaArchive className={darkMode ? 'text-white' : 'text-red-900'} />
                                   </button>
                                   {/* Schedule Button */}
                                   <button
@@ -1748,7 +1750,7 @@ export default function AdminDashboard() {
                         disabled={currentPage === 1}
                         className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
                           currentPage === 1
-                            ? `${darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
+                            ? `${darkMode ? 'bg-rose-900 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
                             : `${darkMode ? 'bg-[#800000] hover:bg-[#660000] text-white' : 'bg-[#800000] hover:bg-[#660000] text-white'}`
                         }`}
                       >
@@ -1762,7 +1764,7 @@ export default function AdminDashboard() {
                         disabled={currentPage === totalPages}
                         className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
                           currentPage === totalPages
-                            ? `${darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
+                            ? `${darkMode ? 'bg-rose-900 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
                             : `${darkMode ? 'bg-[#800000] hover:bg-[#660000] text-white' : 'bg-[#800000] hover:bg-[#660000] text-white'}`
                         }`}
                       >
@@ -1799,7 +1801,7 @@ export default function AdminDashboard() {
                       disabled={isLoading}
                       className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
                         isLoading
-                          ? `${darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
+                          ? `${darkMode ? 'bg-rose-900 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
                           : `${darkMode ? 'bg-[#800000] hover:bg-[#660000] text-white' : 'bg-[#800000] hover:bg-[#660000] text-white'}`
                       }`}
                     >
@@ -1810,15 +1812,15 @@ export default function AdminDashboard() {
                 </div>
                 <div className={`rounded-md shadow overflow-x-auto ${darkMode ? 'bg-gray-800' : 'bg-white'} w-full`}>
                   <div className="overflow-x-auto w-full">
-                    <table className="min-w-full divide-y divide-gray-200 w-full text-xs">
-                      <thead className={darkMode ? 'bg-gray-700' : 'bg-gray-100'}>
+                    <table className={`min-w-full divide-y ${darkMode ? 'divide-gray-700' : 'divide-gray-200'} w-full text-xs`}>
+                      <thead className="bg-[#800000]">
                         <tr>
-                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Users</th>
-                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Email</th>
-                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Role</th>
-                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Joined</th>
-                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Last Sign In</th>
-                          <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Actions</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Users</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Email</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Role</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Joined</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Last Sign In</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Actions</th>
                         </tr>
                       </thead>
                       <tbody className={`divide-y ${darkMode ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
@@ -1895,7 +1897,7 @@ export default function AdminDashboard() {
                                         await Toast.fire({ icon: 'error', iconColor: '#ef4444', title: 'Error', text: e instanceof Error ? e.message : 'Failed to unarchive' });
                                       }
                                     }}
-                                    className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-[#f3f4f6]' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                                    className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-rose-900 hover:bg-gray-600 text-[#f3f4f6]' : 'bg-rose-200 hover:bg-gray-200 text-gray-700'}`}
                                     aria-label="Unarchive student"
                                     title={`Unarchive ${user.full_name || ''}`.trim()}
                                   >

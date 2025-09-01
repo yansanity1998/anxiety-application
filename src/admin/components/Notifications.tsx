@@ -9,6 +9,7 @@ type Notification = {
   user: {
     email: string;
     full_name: string;
+    role?: string;
   };
   timestamp: string;
   read: boolean;
@@ -150,13 +151,15 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                       type: 'login',
                       user: {
                         email: payload.new.email,
-                        full_name: payload.new.full_name || 'Student'
+                        full_name: payload.new.full_name || 'Student',
+                        role: payload.new.role
                       },
                       timestamp: currentTime,
                       read: false
                     };
                     setNotifications(prev => [newNotification, ...prev]);
-                    showNotificationToast('Student Login', `${newNotification.user.full_name} has logged in!`);
+                    const loginType = payload.new.role === 'guidance' ? 'Guidance Login' : 'Student Login';
+                    showNotificationToast(loginType, `${newNotification.user.full_name} has logged in!`);
                   } else {
                     console.log('⏭️ Skipping notification - likely dashboard visit or too recent');
                   }
@@ -289,7 +292,11 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                     </div>
                     <div className="flex-1">
                       <p className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                        {notification.type === 'registration' ? 'New Registration' : notification.type === 'login' ? 'Student Login' : 'Student Archived'}
+                        {notification.type === 'registration' 
+                          ? 'New Registration' 
+                          : notification.type === 'login' 
+                            ? (notification.user.role === 'guidance' ? 'Guidance Login' : 'Student Login')
+                            : 'Student Archived'}
                       </p>
                       <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         {notification.user.full_name} ({notification.user.email})

@@ -14,7 +14,7 @@ import { archiveUser, unarchiveUser, isArchived } from './services/archiveServic
 import { createAppointment, getAllAppointments, updateAppointment } from '../lib/appointmentService';
 import CBTModules from './components/CBTModules';
 import AnxietyVideos from './components/AnxietyVideos';
-import TodoList from '../admin/components/TodoList';
+import TodoList from './components/TodoList';
 import Referral from './components/Referral';
 import Schedule from './components/Schedule';
 import Gamification from './components/Gamification';
@@ -39,6 +39,7 @@ type UserProfile = {
   id_number?: string;
   streak?: number;
   last_activity_date?: string;
+  is_verified?: boolean;
 };
 
 type Assessment = {
@@ -154,6 +155,7 @@ export default function GuidanceDashboard() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
   const [yearFilter, setYearFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -226,8 +228,32 @@ export default function GuidanceDashboard() {
   });
 
   useEffect(() => {
+    fetchCurrentUser();
     fetchUsers();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single();
+        
+        if (profile) {
+          setCurrentUser({
+            ...profile,
+            id: profile.user_id,
+            profile_id: profile.id
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -425,6 +451,56 @@ export default function GuidanceDashboard() {
           text: 'Failed to sign out',
         });
       }
+    }
+  };
+
+  const handleArchiveUser = async (user: UserProfile) => {
+    try {
+      const result = await Modal.fire({
+        title: 'Archive Student',
+        html: `
+          <div class="text-left space-y-3">
+            <div class="${darkMode ? 'bg-rose-900' : 'bg-white/80'} backdrop-blur-sm rounded-xl p-4 border ${darkMode ? 'border-gray-600' : 'border-[#800000]/30'}">
+              <p class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">Are you sure you want to archive this student?</p>
+              <div class="mt-2 p-2 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg border ${darkMode ? 'border-gray-500' : 'border-gray-200'}">
+                <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}"><strong>Name:</strong> ${user.full_name || 'No name'}</p>
+                <p class="text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'}"><strong>Email:</strong> ${user.email}</p>
+              </div>
+              <p class="${darkMode ? 'text-gray-400' : 'text-gray-500'} text-xs mt-2">Archiving will prevent access while keeping data intact.</p>
+            </div>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Archive',
+        confirmButtonColor: '#800000',
+        cancelButtonText: 'Cancel',
+        focusCancel: true
+      });
+
+      if (result.isConfirmed) {
+        console.log('📦 Archiving user:', user.id, 'profile:', user.profile_id);
+        await archiveUser(user.profile_id);
+
+        // Update local state (mutate role to archived)
+        setUsers(prev => prev.map(u => u.profile_id === user.profile_id ? { ...u, role: 'archived' } : u));
+
+        await Toast.fire({
+          icon: 'success',
+          iconColor: '#22c55e',
+          title: 'Archived',
+          text: 'Student archived successfully',
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error archiving user:', error);
+      let errorMessage = 'Failed to archive user';
+      if (error instanceof Error) errorMessage = error.message;
+      await Toast.fire({
+        icon: 'error',
+        iconColor: '#ef4444',
+        title: 'Error',
+        text: errorMessage,
+      });
     }
   };
 
@@ -993,11 +1069,19 @@ export default function GuidanceDashboard() {
         <div className="max-w-10xl mx-auto px-6 sm:px-12 lg:px-16">
           <div className="flex justify-between items-center py-6">
                           <div className="flex items-center space-x-3">
-              <div className="rounded-full">
+              <button 
+                onClick={() => setActiveView('dashboard')}
+                className={`rounded-full transition-all duration-200 hover:scale-105 p-1 ${
+                  darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                }`}
+                title="Go to Dashboard"
+              >
                 <img src="/spc-guidance.png" alt="Guidance Service Center" className="h-15 w-15 object-contain" />
-              </div>
+              </button>
               <div>
-                <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-red-900'}`}>Guidance Dashboard</h1>
+                <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-red-900'}`}>
+                  {currentUser?.full_name ? `${currentUser.full_name.split(' ')[0]} Dashboard` : 'Guidance Dashboard'}
+                </h1>
                 <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-red-900'}`}>
                   Student Counseling & Support Management
                 </p>
@@ -1016,7 +1100,7 @@ export default function GuidanceDashboard() {
                 </div>
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-1 px-2 py-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors hover:cursor-pointer text-xs"
+                className="flex items-center gap-1 px-2 py-1.5 bg-red-900 text-white rounded-md hover:bg-red-700 transition-colors hover:cursor-pointer text-xs"
               >
                 <FaSignOutAlt />
                 Sign Out
@@ -1041,7 +1125,7 @@ export default function GuidanceDashboard() {
             <div className={`mb-4 flex items-center ${darkMode ? 'bg-gray-700' : 'bg-[#800000]/5'} rounded-lg px-4 py-3 border ${darkMode ? 'border-gray-600' : 'border-[#800000]/30'} w-fit`}> 
               <FaUser className={`mr-2 text-xl ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`} />
               <span className={`font-semibold text-base ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`}>Active Students:</span>
-              <span className={`ml-2 text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{activeUsers.filter(u => u.role !== 'admin').length}</span>
+              <span className={`ml-2 text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{activeUsers.filter(u => u.role === 'student').length}</span>
             </div>
             <div className="mb-3">
               <div className="flex gap-2">
@@ -1084,17 +1168,18 @@ export default function GuidanceDashboard() {
 
             <div className={`rounded-md shadow overflow-x-auto ${darkMode ? 'bg-gray-800' : 'bg-white'} w-full`}>
               <div className="overflow-x-auto w-full">
-                <table className="min-w-full divide-y divide-gray-200 w-full text-xs">
-                  <thead className={darkMode ? 'bg-gray-700' : 'bg-gray-100'}>
+                <table className={`min-w-full divide-y ${darkMode ? 'divide-gray-700' : 'divide-gray-200'} w-full text-xs`}>
+                  <thead className="bg-[#800000]">
                     <tr>
-                      <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Users</th>
-                      <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Email</th>
-                      <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Role</th>
-                      <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Registration Info</th>
-                      <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Latest Assessment</th>
-                      <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Joined</th>
-                      <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Last Sign In</th>
-                      <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Actions</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Users</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Email</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Verified</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Role</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Registration Info</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Latest Assessment</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Joined</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Last Sign In</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Actions</th>
                     </tr>
                   </thead>
                   <tbody className={`divide-y ${darkMode ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
@@ -1167,6 +1252,13 @@ export default function GuidanceDashboard() {
                               <FaEnvelope className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
                               {user.email}
                             </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <span className={`px-2 py-0.5 inline-flex text-[10px] leading-5 font-semibold rounded-full ${
+                              (user as any).is_verified ? (darkMode ? 'bg-green-900/40 text-green-300 border border-green-700' : 'bg-green-50 text-green-700 border border-green-200') : (darkMode ? 'bg-yellow-900/40 text-yellow-300 border border-yellow-700' : 'bg-yellow-50 text-yellow-700 border border-yellow-200')
+                            }`}>
+                              {(user as any).is_verified ? 'Verified' : 'Pending'}
+                            </span>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -1322,8 +1414,7 @@ export default function GuidanceDashboard() {
                                        width: '370px',
                                        customClass: {
                                          popup: 'rounded-lg shadow-lg border border-gray-200',
-                                         title: 'text-base font-bold text-gray-900',
-                                         confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-4 rounded-lg transition-colors'
+                                         title: 'text-base font-bold text-gray-900'
                                        },
                                        showConfirmButton: true,
                                        confirmButtonText: 'Close',
@@ -1392,7 +1483,7 @@ export default function GuidanceDashboard() {
                                            customClass: {
                                              popup: 'rounded-lg shadow-lg border border-gray-200',
                                              title: 'text-base font-bold text-gray-900',
-                                             confirmButton: 'bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors'
+                                             confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-4 rounded-lg transition-colors'
                                            },
                                            showConfirmButton: true,
                                            confirmButtonText: 'Close',
@@ -1412,7 +1503,7 @@ export default function GuidanceDashboard() {
                                            customClass: {
                                              popup: 'rounded-lg shadow-lg border border-gray-200',
                                              title: 'text-base font-bold text-gray-900',
-                                             confirmButton: 'bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors'
+                                             confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-4 rounded-lg transition-colors'
                                            },
                                            showConfirmButton: true,
                                            confirmButtonText: 'Close',
@@ -1432,8 +1523,7 @@ export default function GuidanceDashboard() {
                                          width: '370px',
                                          customClass: {
                                            popup: 'rounded-lg shadow-lg border border-gray-200',
-                                           title: 'text-base font-bold text-gray-900',
-                                           confirmButton: 'bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors'
+                                           title: 'text-base font-bold text-gray-900'
                                          },
                                          showConfirmButton: true,
                                          confirmButtonText: 'Close',
@@ -1465,12 +1555,7 @@ export default function GuidanceDashboard() {
                                        {(() => {
                                          const latestAssessment = getLatestAssessment(assessments[user.profile_id]);
                                          if (latestAssessment) {
-                                           const colors = getAnxietyLevelColor(latestAssessment.anxiety_level);
-                                           return (
-                                             <span className={`${darkMode ? colors.text : colors.text}`}>
-                                               {latestAssessment.anxiety_level || 'Unknown'} Anxiety
-                                             </span>
-                                           );
+                                           return `${latestAssessment.anxiety_level || 'Unknown'} Anxiety`;
                                          }
                                          return 'Unknown Anxiety';
                                        })()}
@@ -1503,20 +1588,97 @@ export default function GuidanceDashboard() {
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center justify-center space-x-2">
                               <button
-                                onClick={async () => {
-                                  try {
-                                    await archiveUser(user.profile_id);
-                                    setUsers(prev => prev.map(u => u.profile_id === user.profile_id ? { ...u, role: 'archived' } : u));
-                                    await Toast.fire({ icon: 'success', iconColor: '#22c55e', title: 'Archived', text: 'User archived successfully' });
-                                  } catch (e) {
-                                    await Toast.fire({ icon: 'error', iconColor: '#ef4444', title: 'Error', text: e instanceof Error ? e.message : 'Failed to archive' });
-                                  }
-                                }}
+                                onClick={() => handleArchiveUser(user)}
                                 className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-[#f3f4f6]' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
                                 aria-label="Archive user"
                                 title={`Archive ${user.full_name || ''}`.trim()}
                               >
-                                <FaArchive className="text-[#800000]" />
+                                <FaArchive className={darkMode ? 'text-white' : 'text-[#800000]'} />
+                              </button>
+                              {/* Verify/Unverify Button */}
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const next = !(user as any).is_verified;
+                                    const { error } = await supabase
+                                      .from('profiles')
+                                      .update({ is_verified: next })
+                                      .eq('id', user.profile_id);
+                                    if (error) throw error;
+                                    setUsers(prev => prev.map(u => u.profile_id === user.profile_id ? { ...u, is_verified: next } : u));
+                                    
+                                    // Modern alert for verify/unverify
+                                    const alertDiv = document.createElement('div');
+                                    alertDiv.className = 'fixed top-4 right-4 z-50 bg-white border-l-4 border-emerald-500 rounded-lg shadow-lg p-4 max-w-sm transform transition-all duration-300 ease-in-out';
+                                    alertDiv.innerHTML = `
+                                      <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                          <svg class="h-5 w-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                          </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                          <p class="text-sm font-medium text-gray-900">${next ? 'User Verified' : 'Verification Removed'}</p>
+                                          <p class="text-xs text-gray-500 mt-1">${next ? 'User can now access the system' : 'User access has been restricted'}</p>
+                                        </div>
+                                        <div class="ml-auto pl-3">
+                                          <div class="-mx-1.5 -my-1.5">
+                                            <button type="button" class="inline-flex bg-white rounded-md p-1.5 text-gray-400 hover:text-gray-500 focus:outline-none" onclick="this.closest('div').remove()">
+                                              <span class="sr-only">Dismiss</span>
+                                              <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                              </svg>
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    `;
+                                    document.body.appendChild(alertDiv);
+                                    setTimeout(() => alertDiv.remove(), 3000);
+                                  } catch (e) {
+                                    // Modern error alert
+                                    const alertDiv = document.createElement('div');
+                                    alertDiv.className = 'fixed top-4 right-4 z-50 bg-white border-l-4 border-red-500 rounded-lg shadow-lg p-4 max-w-sm transform transition-all duration-300 ease-in-out';
+                                    alertDiv.innerHTML = `
+                                      <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                          <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                          </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                          <p class="text-sm font-medium text-gray-900">Error</p>
+                                          <p class="text-xs text-gray-500 mt-1">${e instanceof Error ? e.message : 'Failed to update verification'}</p>
+                                        </div>
+                                        <div class="ml-auto pl-3">
+                                          <div class="-mx-1.5 -my-1.5">
+                                            <button type="button" class="inline-flex bg-white rounded-md p-1.5 text-gray-400 hover:text-gray-500 focus:outline-none" onclick="this.closest('div').remove()">
+                                              <span class="sr-only">Dismiss</span>
+                                              <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                              </svg>
+                                            </button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    `;
+                                    document.body.appendChild(alertDiv);
+                                    setTimeout(() => alertDiv.remove(), 3000);
+                                  }
+                                }}
+                                className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-[#f3f4f6]' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                                aria-label={(user as any).is_verified ? 'Unverify user' : 'Verify user'}
+                                title={`${(user as any).is_verified ? 'Unverify' : 'Verify'} ${user.full_name || ''}`.trim()}
+                              >
+                                {(user as any).is_verified ? (
+                                  <svg className="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                )}
                               </button>
                               {/* Schedule Button */}
                               <button
@@ -1584,15 +1746,15 @@ export default function GuidanceDashboard() {
             </div>
             <div className={`rounded-md shadow overflow-x-auto ${darkMode ? 'bg-gray-800' : 'bg-white'} w-full`}>
               <div className="overflow-x-auto w-full">
-                <table className="min-w-full divide-y divide-gray-200 w-full text-xs">
-                  <thead className={darkMode ? 'bg-gray-700' : 'bg-gray-100'}>
+                <table className={`min-w-full divide-y ${darkMode ? 'divide-gray-700' : 'divide-gray-200'} w-full text-xs`}>
+                  <thead className="bg-[#800000]">
                     <tr>
-                      <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Users</th>
-                      <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Email</th>
-                      <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Status</th>
-                      <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Joined</th>
-                      <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Last Sign In</th>
-                      <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>Actions</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Users</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Email</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Status</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Joined</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Last Sign In</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Actions</th>
                     </tr>
                   </thead>
                   <tbody className={`divide-y ${darkMode ? 'divide-gray-700 bg-gray-800' : 'divide-gray-200 bg-white'}`}>
