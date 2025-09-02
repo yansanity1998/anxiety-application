@@ -378,7 +378,7 @@ const TodoList = ({ darkMode }: TodoListProps) => {
   };
 
   return (
-    <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-4 sm:p-6 border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+    <div className={`${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-xl shadow-lg p-4 sm:p-6 border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex items-center">
           <div className="p-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl mr-3">

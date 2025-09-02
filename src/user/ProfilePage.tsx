@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
+import { realtimeService } from '../lib/realtimeService';
 import { 
   FaUser, 
   FaEnvelope, 
@@ -233,6 +234,9 @@ const ProfilePage: React.FC = () => {
       } else {
         console.log('Fetched updated profile:', updatedProfile);
         setUserData(updatedProfile);
+        
+        // Broadcast the profile update for real-time synchronization
+        realtimeService.broadcastProfileUpdate(updatedProfile);
       }
       
       showAlert('success', 'Profile Updated', 'Your profile has been successfully updated');

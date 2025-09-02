@@ -18,6 +18,7 @@ import TodoList from './components/TodoList';
 import Referral from './components/Referral';
 import Schedule from './components/Schedule';
 import Gamification from './components/Gamification';
+import { realtimeService } from '../lib/realtimeService';
 
 type UserProfile = {
   id: string;
@@ -230,6 +231,45 @@ export default function GuidanceDashboard() {
   useEffect(() => {
     fetchCurrentUser();
     fetchUsers();
+    
+    // Set up real-time subscriptions
+    const unsubscribe = realtimeService.subscribe((payload) => {
+      console.log('🔄 Guidance Dashboard: Profile update received', payload);
+      
+      if (payload.eventType === 'UPDATE' || payload.table === 'profiles') {
+        const updatedProfile = payload.new;
+        
+        if (updatedProfile) {
+          // Update the users state with the new profile data
+          setUsers(prevUsers => {
+            return prevUsers.map(user => {
+              if (user.profile_id === updatedProfile.id || user.id === updatedProfile.user_id) {
+                return {
+                  ...user,
+                  ...updatedProfile,
+                  id: updatedProfile.user_id || user.id,
+                  profile_id: updatedProfile.id || user.profile_id
+                };
+              }
+              return user;
+            });
+          });
+          
+          // Show toast notification for real-time update
+          Toast.fire({
+            icon: 'info',
+            iconColor: '#3b82f6',
+            title: 'Profile Updated',
+            text: `${updatedProfile.full_name || 'User'} profile updated`,
+          });
+        }
+      }
+    });
+    
+    // Cleanup subscription on unmount
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const fetchCurrentUser = async () => {

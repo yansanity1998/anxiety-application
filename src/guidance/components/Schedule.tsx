@@ -556,8 +556,20 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
   // Get status counts
   const getStatusCount = (status: string) => groupedAppointments[status]?.length || 0;
 
+  // Scroll to specific status section
+  const scrollToStatus = (status: string) => {
+    const element = document.getElementById(`status-section-${status.toLowerCase().replace(/\s+/g, '-')}`);
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start',
+        inline: 'nearest'
+      });
+    }
+  };
+
   return (
-    <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6`}>
+    <div className={`${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-xl shadow-lg p-6`}>
       <img src="/lotus.png" alt="Lotus" className="absolute top-4 right-6 w-14 h-14 opacity-20 pointer-events-none select-none" />
       
       {/* Header */}
@@ -603,8 +615,14 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
         {statusOptions.map(status => {
           const colors = darkMode ? statusCardColorsDark[status] : statusCardColors[status];
+          const hasAppointments = getStatusCount(status) > 0;
           return (
-            <div key={status} className={`p-3 rounded-xl bg-gradient-to-br ${darkMode ? 'from-gray-700 to-gray-900' : 'from-gray-50 to-gray-100'} border transition-all duration-300 hover:shadow-xl hover:scale-105 ${colors.border} shadow-lg backdrop-blur-sm`}>
+            <div 
+              key={status} 
+              onClick={() => hasAppointments && scrollToStatus(status)}
+              className={`p-3 rounded-xl bg-gradient-to-br ${darkMode ? 'from-gray-700 to-gray-900' : 'from-gray-50 to-gray-100'} border transition-all duration-300 hover:shadow-xl hover:scale-105 ${colors.border} shadow-lg backdrop-blur-sm ${
+                hasAppointments ? 'cursor-pointer' : 'cursor-default opacity-75'
+              }`}>
               <div className="flex items-center justify-between mb-2">
                 <div>
                   <p className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{status}</p>
@@ -670,9 +688,12 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
           if (statusAppointments.length === 0) return null;
           
           return (
-            <div key={status} className={`rounded-xl border shadow-lg transition-all ${
-              darkMode ? 'bg-gray-900/50 border-gray-700' : 'bg-gray-50/50 border-gray-200'
-            }`}>
+            <div 
+              key={status} 
+              id={`status-section-${status.toLowerCase().replace(/\s+/g, '-')}`}
+              className={`rounded-xl border shadow-lg transition-all scroll-mt-6 ${
+                darkMode ? 'bg-gray-900/50 border-gray-700' : 'bg-gray-50/50 border-gray-200'
+              }`}>
               {/* Status Section Header */}
               <div className={`px-4 py-3 border-b flex items-center justify-between ${
                 darkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-white/50'
