@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+// import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { FaCalendarAlt, FaUser, FaClock, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaChevronDown, FaEye, FaTrash, FaCalendarTimes, FaUserTimes } from 'react-icons/fa';
 import { getAllAppointments, updateAppointment, deleteAppointment } from '../../lib/appointmentService';
 import type { Appointment } from '../../lib/appointmentService';

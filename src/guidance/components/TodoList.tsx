@@ -478,7 +478,7 @@ const TodoList = ({ darkMode }: TodoListProps) => {
               placeholder="Search todos or users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-9 pr-4 py-2 text-sm border rounded-xl ${darkMode ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'} focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
+              className={`w-full pl-9 pr-4 py-2 text-sm border rounded-xl ${darkMode ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'} focus:ring-2 focus:ring-red-800 focus:border-transparent focus:outline-none transition-all duration-200`}
             />
           </div>
         </div>
@@ -486,7 +486,7 @@ const TodoList = ({ darkMode }: TodoListProps) => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className={`px-3 py-2 text-sm border rounded-xl whitespace-nowrap ${darkMode ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+            className={`px-3 py-2 text-sm border rounded-xl whitespace-nowrap ${darkMode ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-red-800 focus:border-transparent focus:outline-none`}
           >
             <option value="all">All Status</option>
             <option value="in_progress">In Progress</option>
@@ -496,7 +496,7 @@ const TodoList = ({ darkMode }: TodoListProps) => {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className={`px-3 py-2 text-sm border rounded-xl whitespace-nowrap ${darkMode ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+            className={`px-3 py-2 text-sm border rounded-xl whitespace-nowrap ${darkMode ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-red-800 focus:border-transparent focus:outline-none`}
           >
             <option value="all">All Categories</option>
             {TODO_CATEGORIES.map(cat => (
@@ -506,7 +506,7 @@ const TodoList = ({ darkMode }: TodoListProps) => {
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className={`px-3 py-2 text-sm border rounded-xl whitespace-nowrap ${darkMode ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+            className={`px-3 py-2 text-sm border rounded-xl whitespace-nowrap ${darkMode ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-red-800 focus:border-transparent focus:outline-none`}
           >
             <option value="all">All Priorities</option>
             <option value="1">Urgent</option>

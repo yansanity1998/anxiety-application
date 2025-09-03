@@ -485,7 +485,7 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
                 darkMode 
                   ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400' 
                   : 'bg-white border-gray-300 placeholder-gray-500'
-              } focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
+              } focus:ring-2 focus:ring-red-800 focus:border-transparent focus:outline-none transition-all duration-200`}
             />
           </div>
         </div>
@@ -497,7 +497,7 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
               darkMode 
                 ? 'bg-gray-700/50 border-gray-600 text-white' 
                 : 'bg-white border-gray-300'
-            } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+            } focus:ring-2 focus:ring-red-800 focus:border-transparent focus:outline-none`}
           >
             <option value="all">All Status ({stats.total})</option>
             <option value="in_progress">In Progress ({stats.inProgress})</option>
@@ -511,7 +511,7 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
               darkMode 
                 ? 'bg-gray-700/50 border-gray-600 text-white' 
                 : 'bg-white border-gray-300'
-            } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+            } focus:ring-2 focus:ring-red-800 focus:border-transparent focus:outline-none`}
           >
             <option value="">All Users ({users.length})</option>
             {users.map(user => (
@@ -526,7 +526,7 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
               darkMode 
                 ? 'bg-gray-700/50 border-gray-600 text-white' 
                 : 'bg-white border-gray-300'
-            } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+            } focus:ring-2 focus:ring-red-800 focus:border-transparent focus:outline-none`}
           >
             <option value="created_at">Sort by Date</option>
             <option value="title">Sort by Title</option>
@@ -578,7 +578,7 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
                     <FaBrain className={`text-sm ${darkMode ? 'text-blue-400 group-hover:text-blue-300' : 'text-blue-500 group-hover:text-blue-600'}`} />
                   </div>
                   <h3 className={`font-semibold text-sm leading-tight truncate transition-colors ${
-                    darkMode ? 'text-white group-hover:text-white' : 'text-gray-900 group-hover:text-black'
+                    darkMode ? 'text-white group-hover:text-white' : 'text-gray-900 group-hover:text-gray-900'
                   }`}>
                     {module.module_title}
                   </h3>
@@ -586,7 +586,7 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
               </div>
 
               <p className={`text-xs leading-relaxed mb-3 line-clamp-2 transition-colors ${
-                darkMode ? 'text-gray-300 group-hover:text-white' : 'text-gray-600 group-hover:text-black'
+                darkMode ? 'text-gray-300 group-hover:text-white' : 'text-gray-600 group-hover:text-gray-700'
               }`}>
                 {module.module_description}
               </p>
@@ -602,13 +602,13 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <FaUser className="text-xs" />
                   <span className={`truncate font-bold transition-colors ${
-                    darkMode ? 'group-hover:text-white' : 'group-hover:text-black'
+                    darkMode ? 'group-hover:text-white' : 'group-hover:text-gray-700'
                   }`}>{getUserName(module.profile_id)}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <FaClock className="text-xs" />
                   <span className={`transition-colors ${
-                    darkMode ? 'group-hover:text-white' : 'group-hover:text-black'
+                    darkMode ? 'group-hover:text-white' : 'group-hover:text-gray-700'
                   }`}>Created: {new Date(module.created_at!).toLocaleDateString()}</span>
                 </div>
               </div>

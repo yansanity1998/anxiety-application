@@ -17,7 +17,7 @@ import AnxietyVideos from './components/AnxietyVideos';
 import TodoList from './components/TodoList';
 import Referral from './components/Referral';
 import Schedule from './components/Schedule';
-import Gamification from './components/Gamification';
+import Records from './components/Records';
 import { realtimeService } from '../lib/realtimeService';
 
 type UserProfile = {
@@ -568,77 +568,20 @@ export default function GuidanceDashboard() {
     };
   }, [users]);
 
-    // Schedules state (in-memory, replace with DB integration if needed)
-  const [schedules] = useState<{ [profileId: string]: { date: string; time: string }[] }>({});
   
   // Handler for scheduling a guidance visit
   const handleSchedule = async (user: UserProfile) => {
     try {
-      // Check if user already has an appointment
+      // Get existing appointments for context (but don't block scheduling)
       const existingAppointments = appointments.filter(app => app.profile_id === user.profile_id);
-      const hasActiveAppointment = existingAppointments.some(app => 
+      const activeAppointments = existingAppointments.filter(app => 
         app.status !== 'Canceled' && app.status !== 'Completed'
       );
 
-      if (hasActiveAppointment) {
-        // Show existing appointment with option to edit
-        const activeAppointment = existingAppointments.find(app => 
-          app.status !== 'Canceled' && app.status !== 'Completed'
-        );
-        
-        if (activeAppointment) {
-          const result = await Modal.fire({
-            title: 'Student Already Has Appointment',
-            html: `
-              <div class="text-center space-y-4">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-3">
-                  <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                </div>
-                <h3 class="text-lg font-bold text-gray-900">Existing Appointment Found</h3>
-                <p class="text-gray-600">${user.full_name || user.email} already has an appointment scheduled.</p>
-                <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
-                  <p class="font-semibold text-blue-800 text-lg">${activeAppointment.student_name}</p>
-                  <p class="text-sm text-blue-600">${formatDate(activeAppointment.appointment_date)} at ${activeAppointment.appointment_time}</p>
-                  <p class="text-sm text-blue-600">Status: ${activeAppointment.status}</p>
-                </div>
-                <p class="text-sm text-gray-500">Would you like to edit this appointment or cancel it?</p>
-              </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'Edit Appointment',
-            confirmButtonColor: '#800000',
-            cancelButtonText: 'Cancel',
-            focusConfirm: false,
-            width: '400px',
-            customClass: {
-              popup: `rounded-xl shadow-xl border-2 ${darkMode ? 'border-[#800000] bg-gray-900' : 'border-[#800000] bg-white'}`,
-              title: `text-lg font-bold ${darkMode ? 'text-[#800000]' : 'text-[#800000]'} mb-3`,
-              htmlContainer: `${darkMode ? 'text-gray-200' : 'text-gray-700'}`,
-              confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105',
-              cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border-2 font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow hover:shadow-md`,
-              icon: 'hidden'
-            }
-          });
-
-          if (result.isConfirmed) {
-            // Edit existing appointment
-            await handleEditAppointment(activeAppointment);
-          }
-        }
-        return;
-      }
-
-      // Only show upcoming appointments (future dates)
       const now = new Date();
-      const upcoming = (schedules[user.profile_id] || []).filter(sch => {
-        const dt = new Date(`${sch.date}T${sch.time}`);
-        return dt > now;
-      });
 
       const { value: formValues } = await Swal.fire({
-        title: 'Schedule Guidance Visit',
+        title: 'Schedule New Appointment',
         html: `
           <div class="space-y-4">
             <!-- User Info Header -->
@@ -649,8 +592,34 @@ export default function GuidanceDashboard() {
                 </svg>
               </div>
               <h3 class="text-base font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-1">Schedule for ${user.full_name || user.email}</h3>
-              <p class="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}">Select a date and time for the guidance visit</p>
+              <p class="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}">Add a new appointment (multiple appointments allowed)</p>
             </div>
+
+            <!-- Existing Appointments Info -->
+            ${activeAppointments.length > 0 ? `
+            <div class="mb-4 p-3 ${darkMode ? 'bg-blue-900/20 border-blue-600/30' : 'bg-blue-50 border-blue-200'} border rounded-lg">
+              <div class="flex items-center mb-2">
+                <svg class="w-4 h-4 mr-2 ${darkMode ? 'text-blue-400' : 'text-blue-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h4 class="text-xs font-semibold ${darkMode ? 'text-blue-400' : 'text-blue-700'}">Existing Active Appointments (${activeAppointments.length})</h4>
+              </div>
+              <div class="space-y-1.5">
+                ${activeAppointments.map(apt => `
+                  <div class="flex items-center justify-between p-2 ${darkMode ? 'bg-blue-800/30' : 'bg-white'} rounded-md border ${darkMode ? 'border-blue-600/20' : 'border-blue-200'} shadow-sm">
+                    <div class="flex items-center">
+                      <div class="w-1.5 h-1.5 ${darkMode ? 'bg-blue-400' : 'bg-blue-600'} rounded-full mr-2"></div>
+                      <span class="text-xs font-medium ${darkMode ? 'text-blue-200' : 'text-blue-800'}">${formatDate(apt.appointment_date)}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs ${darkMode ? 'text-blue-300' : 'text-blue-600'}">${apt.appointment_time}</span>
+                      <span class="text-xs px-2 py-0.5 rounded-full ${darkMode ? 'bg-blue-700 text-blue-200' : 'bg-blue-100 text-blue-700'}">${apt.status}</span>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            ` : ''}
 
             <!-- Date Selection -->
             <div class="space-y-2">
@@ -711,32 +680,20 @@ export default function GuidanceDashboard() {
               </div>
             </div>
 
-            <!-- Upcoming Appointments -->
-            <div class="mt-4 p-3 ${darkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-200'} border rounded-lg">
-              <div class="flex items-center mb-2">
-                <svg class="w-4 h-4 mr-2 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <!-- Notes -->
+            <div class="space-y-2">
+              <label class="block text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">
+                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                <h4 class="text-xs font-semibold ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}">Upcoming Appointments</h4>
-              </div>
-              <div class="space-y-1.5">
-                ${upcoming.length === 0 ? (
-                  `<div class="text-center py-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}">
-                    <svg class="w-6 h-6 mx-auto mb-1 ${darkMode ? 'text-gray-600' : 'text-gray-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <p class="text-xs">No upcoming appointments</p>
-                  </div>`
-                ) : upcoming.map(sch => `
-                  <div class="flex items-center justify-between p-2 ${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-md border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
-                    <div class="flex items-center">
-                      <div class="w-1.5 h-1.5 ${darkMode ? 'bg-[#800000]' : 'bg-[#800000]'} rounded-full mr-2"></div>
-                      <span class="text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${sch.date}</span>
-                    </div>
-                    <span class="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}">${sch.time}</span>
-                  </div>
-                `).join('')}
-              </div>
+                Notes (Optional)
+              </label>
+              <textarea 
+                id="schedule-notes" 
+                class="w-full p-2.5 border-2 rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'} focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md" 
+                rows="2"
+                placeholder="Add any notes or special instructions for this appointment..."
+              ></textarea>
             </div>
 
             <!-- Help Text -->
@@ -745,7 +702,7 @@ export default function GuidanceDashboard() {
                 <svg class="inline w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Select a future date and time for the appointment
+                You can schedule multiple appointments for the same student
               </p>
             </div>
           </div>
@@ -758,11 +715,12 @@ export default function GuidanceDashboard() {
         preConfirm: () => {
           const date = (document.getElementById('schedule-date') as HTMLInputElement)?.value;
           const time = (document.getElementById('schedule-time') as HTMLInputElement)?.value;
+          const notes = (document.getElementById('schedule-notes') as HTMLTextAreaElement)?.value;
           if (!date || !time) {
             Swal.showValidationMessage('Please select both date and time');
             return false;
           }
-          return { date, time };
+          return { date, time, notes };
         },
         width: '400px',
         customClass: {
@@ -785,7 +743,7 @@ export default function GuidanceDashboard() {
             appointment_date: formValues.date,
             appointment_time: formValues.time,
             status: 'Scheduled',
-            notes: `Scheduled by guidance counselor for guidance visit`
+            notes: formValues.notes || `Scheduled by guidance counselor for guidance visit`
           });
 
           await Toast.fire({
@@ -1077,7 +1035,7 @@ export default function GuidanceDashboard() {
           iconColor: '#22c55e',
           title: 'Updated',
           text: `${title} updated successfully`,
-        });
+        }); 
         
         console.log('🎉 User updated successfully');
       }
@@ -1894,7 +1852,7 @@ export default function GuidanceDashboard() {
                     {(activeView === 'todo-list' || activeView === 'relaxation-tools') && <TodoList darkMode={darkMode} />}
         {activeView === 'referral' && <Referral darkMode={darkMode} />}
         {activeView === 'schedule' && <Schedule darkMode={darkMode} />}
-        {activeView === 'gamification' && <Gamification darkMode={darkMode} />}
+        {activeView === 'records' && <Records darkMode={darkMode} />}
       </div>
       <Footer darkMode={darkMode} />
     </div>

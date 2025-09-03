@@ -18,7 +18,7 @@ import AnxietyVideos from './components/AnxietyVideos';
 import TodoList from './components/TodoList';
 import Referral from './components/Referral';
 import Schedule from './components/Schedule';
-import Gamification from './components/Gamification';
+import Records from '../guidance/components/Records';
 import { realtimeService } from '../lib/realtimeService';
 
 type UserProfile = {
@@ -1959,7 +1959,7 @@ export default function AdminDashboard() {
             {(activeView === 'todo-list' || activeView === 'relaxation-tools') && <TodoList darkMode={darkMode} />}
             {activeView === 'referral' && <Referral darkMode={darkMode} />}
             {activeView === 'schedule' && <Schedule darkMode={darkMode} />}
-            {activeView === 'gamification' && <Gamification darkMode={darkMode} />}
+            {activeView === 'records' && <Records darkMode={darkMode} />}
           </div>
           <Footer darkMode={darkMode} />
         </>

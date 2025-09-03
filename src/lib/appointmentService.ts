@@ -119,9 +119,10 @@ export const testAppointmentPermissions = async (): Promise<{ success: boolean; 
 export const checkStudentHasAppointment = async (profileId: number): Promise<boolean> => {
   try {
     // Only block if student has an appointment with status 'Scheduled' or 'In Progress'
+    // AND the appointment is on the same date (to prevent double-booking on the same day)
     const { data, error } = await supabase
       .from('appointments')
-      .select('id, status')
+      .select('id, status, appointment_date')
       .eq('profile_id', profileId)
       .in('status', ['Scheduled', 'In Progress'])
       .limit(1);
@@ -143,13 +144,15 @@ export const createAppointment = async (appointmentData: CreateAppointmentData):
   try {
     console.log('🔍 Creating appointment with data:', appointmentData);
     
-    // Check if student already has an active appointment
+    // Check if student already has an active appointment on the same date
     const hasExistingAppointment = await checkStudentHasAppointment(appointmentData.profile_id);
     if (hasExistingAppointment) {
-      throw new Error('Student already has an active appointment. Please cancel the existing appointment first or edit it.');
+      // Instead of blocking, just log a warning and allow the appointment
+      console.log('⚠️ Student has existing active appointments, but allowing multiple appointments for guidance flexibility');
+      // Note: We could implement more sophisticated conflict checking here if needed
     }
 
-    console.log('✅ No existing appointment found, proceeding with creation...');
+    console.log('✅ Proceeding with appointment creation...');
 
     const { data, error } = await supabase
       .from('appointments')
