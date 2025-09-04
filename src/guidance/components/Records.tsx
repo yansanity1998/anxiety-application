@@ -110,13 +110,15 @@ const Records = ({ darkMode }: RecordsProps) => {
     fetchAllStudentData();
   }, []);
 
-  // Cleanup effect to restore scroll when component unmounts or modal state changes
+  // Cleanup effect to restore scroll when component unmounts
   useEffect(() => {
     return () => {
-      // Ensure body scroll is restored when component unmounts
-      document.body.style.overflow = 'unset';
+      // Only restore scroll if we actually modified it
+      if (showStudentModal) {
+        document.body.style.overflow = '';
+      }
     };
-  }, []);
+  }, [showStudentModal]);
 
   // Handle escape key to close modal
   useEffect(() => {
@@ -242,7 +244,7 @@ const Records = ({ darkMode }: RecordsProps) => {
     setShowStudentModal(false);
     setSelectedStudent(null);
     // Restore body scroll when modal is closed
-    document.body.style.overflow = 'unset';
+    document.body.style.overflow = '';
   };
 
   // Export functions
@@ -687,7 +689,6 @@ const Records = ({ darkMode }: RecordsProps) => {
 
   return (
     <div className={`${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-xl shadow-lg p-6`}>
-      <img src="/lotus.png" alt="Lotus" className="absolute top-4 right-6 w-14 h-14 opacity-20 pointer-events-none select-none" />
       
       {/* Header */}
       <div className="flex items-center mb-6">
@@ -981,17 +982,6 @@ const Records = ({ darkMode }: RecordsProps) => {
               </div>
             </div>
 
-            {/* Compact Click to view details */}
-            <div className="text-center">
-              <div className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gradient-to-r ${
-                darkMode 
-                  ? 'from-red-900/30 to-red-800/40 border-red-700/50 text-red-300' 
-                  : 'from-red-50 to-red-100 border-red-300 text-red-800'
-              } border text-xs font-medium hover:scale-105 transition-all duration-200`}>
-                <FaEye className="text-xs" />
-                <span>View Details</span>
-              </div>
-            </div>
           </div>
         ))}
       </div>
@@ -1007,7 +997,7 @@ const Records = ({ darkMode }: RecordsProps) => {
               darkMode 
                 ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-gray-600/30' 
                 : 'bg-gradient-to-br from-white to-gray-50 border-gray-200'
-            } rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border-2 backdrop-blur-sm`}
+            } rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 backdrop-blur-sm`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Enhanced Modal Header */}

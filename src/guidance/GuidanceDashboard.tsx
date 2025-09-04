@@ -223,8 +223,8 @@ export default function GuidanceDashboard() {
       document.body.style.paddingRight = '0px';
     },
     didClose: () => {
-      document.body.style.overflow = 'auto';
-      document.body.style.paddingRight = '0px';
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
     }
   });
 
