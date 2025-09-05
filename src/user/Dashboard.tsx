@@ -427,8 +427,8 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
       gradient: 'from-orange-500 to-amber-600',
       bgGradient: 'from-orange-50 to-amber-100',
       borderColor: 'border-orange-200',
-      onClick: () => alert('Gamification - Coming Soon!'),
-      tags: ['Coming Soon', 'Fun']
+      onClick: () => navigate('/activities'),
+      tags: ['Mindful Game', 'Fun']
     }
   ];
 
@@ -592,26 +592,6 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
                 <FaChevronRight className={`text-gray-400 group-hover:text-gray-600 transition-colors text-sm group-hover:translate-x-1 transition-transform`} />
               </div>
             </div>
-          ))}
-        </div>
-        
-        {/* Enhanced Scroll Indicator Dots */}
-        <div className="flex justify-center gap-2 sm:gap-3 mt-4">
-          {[0, 1, 2, 3].map((index) => (
-            <button
-              key={index}
-              className={`relative rounded-full transition-all duration-300 cursor-pointer hover:scale-110 ${
-                activeIndex === index 
-                  ? 'w-6 sm:w-8 h-2.5 sm:h-3 bg-[#800000]' 
-                  : 'w-2.5 sm:w-3 h-2.5 sm:h-3 bg-gray-300 hover:bg-gray-400'
-              }`}
-              onClick={() => scrollToIndex(index)}
-            >
-              {/* Active indicator glow effect */}
-              {activeIndex === index && (
-                <div className="absolute inset-0 bg-[#800000] rounded-full opacity-30 blur-sm scale-150" />
-              )}
-            </button>
           ))}
         </div>
       </div>
@@ -1421,7 +1401,6 @@ const Dashboard = () => {
         <div data-section="todays-activities">
           <TodaysActivities navigate={navigate} userData={userData} />
         </div>
-
 
         {/* Functional Mood Tracker */}
         <MoodTracker userData={userData} />

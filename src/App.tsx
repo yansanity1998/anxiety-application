@@ -11,6 +11,7 @@ import CBTModules from './user/components/CBTModules';
 import AnxietyVideos from './user/components/AnxietyVideos';
 import TodoListPage from './user/TodoListPage';
 import RelaxationPage from './user/RelaxationPage';
+import Activities from './user/Activities';
 import { supabase } from './lib/supabase';
 import './App.css';
 
@@ -203,6 +204,14 @@ function App() {
             element={
               <AuthRoute>
                 <RelaxationPage />
+              </AuthRoute>
+            } 
+          />
+          <Route 
+            path="/activities" 
+            element={
+              <AuthRoute>
+                <Activities />
               </AuthRoute>
             } 
           />
