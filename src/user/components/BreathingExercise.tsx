@@ -202,9 +202,9 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({
           'linear-gradient(135deg, rgba(255,255,255,0.7), rgba(255,255,255,0.5))'
       }}
     >
-      {/* Modern Background Pattern */}
+      {/* Simplified Background Pattern - Static for better mobile performance */}
       <div className="absolute inset-0 opacity-5">
-        <motion.div 
+        <div 
           className="w-full h-full"
           style={{
             background: breathingActive ? 
@@ -212,33 +212,28 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({
               'radial-gradient(circle at 25% 25%, #800000 2px, transparent 2px), radial-gradient(circle at 75% 75%, #800000 1px, transparent 1px)',
             backgroundSize: '40px 40px, 20px 20px'
           }}
-          animate={{
-            backgroundPosition: ['0% 0%', '100% 100%', '0% 0%']
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
         />
       </div>
       
-      {/* Floating Particles */}
+      {/* Simplified Floating Particles - Reduced count and simpler animation */}
       {breathingActive && (
         <div className="absolute inset-0 pointer-events-none">
-          {[...Array(6)].map((_, i) => (
+          {[...Array(3)].map((_, i) => (
             <motion.div
               key={i}
               className={`absolute w-2 h-2 rounded-full bg-gradient-to-r ${phaseConfig.gradient} opacity-30`}
               style={{
-                left: `${20 + (i * 15)}%`,
-                top: `${30 + (i * 10)}%`
+                left: `${30 + (i * 20)}%`,
+                top: `${40 + (i * 10)}%`
               }}
               animate={{
-                y: [-20, -40, -20],
-                opacity: [0.3, 0.7, 0.3],
-                scale: [0.8, 1.2, 0.8]
+                y: [-10, -20, -10],
+                opacity: [0.2, 0.5, 0.2]
               }}
               transition={{
-                duration: 4,
+                duration: 6,
                 repeat: Infinity,
-                delay: i * 0.5,
+                delay: i * 1,
                 ease: "easeInOut"
               }}
             />
@@ -247,22 +242,20 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({
       )}
 
       <div className="relative z-10">
-        {/* Icon in top-left corner */}
+        {/* Icon in top-left corner - Simplified animation */}
         <motion.div
           className={`absolute top-2 left-2 sm:top-4 sm:left-4 w-11 h-11 sm:w-13 sm:h-13 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-xl ${
             breathingActive ? `bg-gradient-to-r ${phaseConfig.gradient}` : 'bg-gradient-to-r from-[#800000] to-[#a00000]'
           } backdrop-blur-sm z-20`}
           animate={{ 
-            y: [0, -2, 0],
-            rotate: [0, 4, 0],
-            scale: breathingActive ? [1, 1.05, 1] : 1
+            scale: breathingActive ? [1, 1.02, 1] : 1
           }}
-          transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+          transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
         >
-          {/* Glow effect */}
+          {/* Simplified glow effect */}
           <div className={`absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-r ${
             breathingActive ? phaseConfig.gradient : 'from-[#800000] to-[#a00000]'
-          } blur-lg opacity-50 -z-10`} />
+          } blur-md opacity-40 -z-10`} />
           <FaLeaf className="text-white text-sm sm:text-lg drop-shadow-lg" />
         </motion.div>
 
@@ -340,7 +333,7 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5 }}
             >
-              {/* Hero Icon with Animation */}
+              {/* Hero Icon with Simplified Animation */}
               <motion.div 
                 className="relative mb-8"
                 initial={{ scale: 0 }}
@@ -350,24 +343,18 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({
                 <motion.div
                   className="text-6xl md:text-7xl mb-4 relative z-10"
                   animate={{
-                    y: [0, -10, 0],
-                    rotate: [0, 2, 0, -2, 0]
+                    y: [0, -5, 0]
                   }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                 >
                   🧘‍♀️
                 </motion.div>
                 
-                {/* Floating rings around icon */}
+                {/* Single simplified ring */}
                 <motion.div
                   className="absolute inset-0 w-20 h-20 mx-auto mt-4 border-2 border-blue-300/30 rounded-full"
-                  animate={{ rotate: 360, scale: [1, 1.1, 1] }}
-                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                />
-                <motion.div
-                  className="absolute inset-0 w-24 h-24 mx-auto mt-2 border border-purple-300/20 rounded-full"
-                  animate={{ rotate: -360, scale: [1, 1.05, 1] }}
-                  transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
                 />
               </motion.div>
               
@@ -430,12 +417,11 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({
                 
                 <span className="text-base sm:text-lg">Start Breathing Session</span>
                 
-                {/* Ripple effect */}
+                {/* Simplified ripple effect */}
                 <motion.div
-                  className="absolute inset-0 bg-white/20 rounded-2xl"
-                  initial={{ scale: 0, opacity: 0.5 }}
-                  animate={{ scale: 1.5, opacity: 0 }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="absolute inset-0 bg-white/10 rounded-2xl"
+                  animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.2, 0.1] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 />
               </motion.button>
             </motion.div>
@@ -450,69 +436,41 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({
             >
               {/* Enhanced Breathing Circle */}
               <div className="relative mb-6 sm:mb-8">
-                {/* Outer breathing rings */}
+                {/* Single simplified breathing ring */}
                 <motion.div
                   className="absolute inset-0 w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 mx-auto rounded-full border-2 opacity-20"
-                  style={{
-                    borderImage: `linear-gradient(45deg, ${phaseConfig.gradient.replace('from-', '').replace(' via-', ', ').replace(' to-', ', ')}) 1`
-                  }}
-                  animate={{
-                    scale: phase === 'inhale' ? [1, 1.3] : phase === 'hold' ? 1.3 : [1.3, 1],
-                    opacity: [0.2, 0.4, 0.2]
-                  }}
-                  transition={{ duration: 4, ease: "easeInOut" }}
-                />
-                
-                <motion.div
-                  className="absolute inset-0 w-28 h-28 sm:w-32 sm:h-32 lg:w-40 lg:h-40 mx-auto mt-2 sm:mt-4 ml-2 sm:ml-4 rounded-full border opacity-30"
                   style={{
                     borderColor: phaseConfig.gradient.includes('blue') ? '#3b82f6' : 
                                 phaseConfig.gradient.includes('purple') ? '#8b5cf6' : '#10b981'
                   }}
                   animate={{
-                    scale: phase === 'inhale' ? [1, 1.2] : phase === 'hold' ? 1.2 : [1.2, 1],
-                    rotate: [0, 180, 360]
+                    scale: phase === 'inhale' ? 1.2 : phase === 'hold' ? 1.2 : 1,
+                    opacity: [0.2, 0.3, 0.2]
                   }}
                   transition={{ duration: 4, ease: "easeInOut" }}
                 />
                 
-                {/* Main breathing circle */}
+                {/* Main breathing circle - Simplified */}
                 <motion.div 
                   className={`relative w-32 h-32 sm:w-36 sm:h-36 lg:w-40 lg:h-40 mx-auto rounded-full bg-gradient-to-r ${phaseConfig.gradient} shadow-2xl flex items-center justify-center overflow-hidden backdrop-blur-sm`}
                   animate={{
-                    scale: phase === 'inhale' ? 1.15 : phase === 'hold' ? 1.15 : 0.85,
-                    rotate: [0, 360]
+                    scale: phase === 'inhale' ? 1.1 : phase === 'hold' ? 1.1 : 0.9
                   }}
                   transition={{ 
-                    scale: { duration: 4, ease: "easeInOut" },
-                    rotate: { duration: 12, repeat: Infinity, ease: "linear" }
+                    scale: { duration: 4, ease: "easeInOut" }
                   }}
                 >
-                  {/* Multiple pulse effects */}
-                  <div className={`absolute inset-0 rounded-full bg-gradient-to-r ${phaseConfig.gradient} animate-ping opacity-20`}></div>
-                  <div className={`absolute inset-0 rounded-full bg-gradient-to-r ${phaseConfig.gradient} animate-pulse opacity-30`}></div>
+                  {/* Single pulse effect */}
+                  <div className={`absolute inset-0 rounded-full bg-gradient-to-r ${phaseConfig.gradient} animate-pulse opacity-20`}></div>
                   
-                  {/* Inner glow */}
-                  <motion.div
-                    className="absolute inset-2 rounded-full bg-white/20 backdrop-blur-sm"
-                    animate={{
-                      opacity: [0.2, 0.4, 0.2]
-                    }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
+                  {/* Simplified inner glow */}
+                  <div className="absolute inset-2 rounded-full bg-white/15 backdrop-blur-sm" />
                   
                   {/* Inner content */}
                   <div className="relative z-10 text-center">
-                    <motion.div 
-                      className="text-2xl sm:text-3xl mb-1 sm:mb-2"
-                      animate={{
-                        scale: [1, 1.1, 1],
-                        rotate: [0, 5, 0, -5, 0]
-                      }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
+                    <div className="text-2xl sm:text-3xl mb-1 sm:mb-2">
                       {phaseConfig.icon}
-                    </motion.div>
+                    </div>
                     <motion.div 
                       className="text-2xl sm:text-3xl font-bold text-white drop-shadow-2xl"
                       key={`${phase}-${count}`}
@@ -525,24 +483,14 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({
                   </div>
                 </motion.div>
                 
-                {/* Enhanced glow effects */}
+                {/* Simplified glow effect */}
                 <motion.div 
-                  className={`absolute inset-0 w-32 h-32 sm:w-36 sm:h-36 lg:w-40 lg:h-40 mx-auto rounded-full bg-gradient-to-r ${phaseConfig.gradient} blur-2xl opacity-40 -z-10`}
+                  className={`absolute inset-0 w-32 h-32 sm:w-36 sm:h-36 lg:w-40 lg:h-40 mx-auto rounded-full bg-gradient-to-r ${phaseConfig.gradient} blur-xl opacity-30 -z-10`}
                   animate={{
-                    scale: phase === 'inhale' ? [1, 1.3] : phase === 'hold' ? 1.3 : [1.3, 1],
-                    opacity: [0.3, 0.6, 0.3]
+                    scale: phase === 'inhale' ? 1.2 : phase === 'hold' ? 1.2 : 1,
+                    opacity: [0.2, 0.4, 0.2]
                   }}
                   transition={{ duration: 4, ease: "easeInOut" }}
-                />
-                
-                {/* Outer glow ring */}
-                <motion.div 
-                  className={`absolute inset-0 w-36 h-36 sm:w-44 sm:h-44 lg:w-48 lg:h-48 mx-auto rounded-full bg-gradient-to-r ${phaseConfig.glowColor} blur-3xl opacity-20 -z-20`}
-                  animate={{
-                    scale: [1, 1.5, 1],
-                    opacity: [0.1, 0.3, 0.1]
-                  }}
-                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                 />
               </div>
               
@@ -554,19 +502,13 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                {/* Phase title with modern styling */}
-                <motion.div
-                  className={`inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl backdrop-blur-sm border ${phaseConfig.borderColor} ${phaseConfig.bgGradient} shadow-lg`}
-                  animate={{
-                    scale: [1, 1.02, 1]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
+                {/* Phase title with simplified styling */}
+                <div className={`inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl backdrop-blur-sm border ${phaseConfig.borderColor} ${phaseConfig.bgGradient} shadow-lg`}>
                   <span className="text-xl sm:text-2xl">{phaseConfig.icon}</span>
                   <h4 className={`text-lg sm:text-xl font-bold capitalize ${phaseConfig.color}`}>
                     {phase}
                   </h4>
-                </motion.div>
+                </div>
                 
                 {/* Instruction with better typography */}
                 <motion.p 
@@ -581,15 +523,11 @@ const BreathingExercise: React.FC<BreathingExerciseProps> = ({
                 {/* Progress indicator */}
                 <div className="flex justify-center gap-2 mt-4">
                   {[...Array(4)].map((_, i) => (
-                    <motion.div
+                    <div
                       key={i}
-                      className={`w-2 h-2 rounded-full ${
-                        i < (4 - count) ? `bg-gradient-to-r ${phaseConfig.gradient}` : 'bg-gray-300'
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        i < (4 - count) ? `bg-gradient-to-r ${phaseConfig.gradient} scale-110` : 'bg-gray-300'
                       }`}
-                      animate={{
-                        scale: i === (4 - count) ? [1, 1.3, 1] : 1
-                      }}
-                      transition={{ duration: 0.5, repeat: i === (4 - count) ? Infinity : 0 }}
                     />
                   ))}
                 </div>

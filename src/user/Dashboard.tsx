@@ -27,10 +27,11 @@ import {
   FaArrowUp,
   FaTasks,
   FaCheck,
-  FaSignOutAlt
+  FaSignOutAlt,
+  FaSpa,
 } from 'react-icons/fa';
 
-import { motion, AnimatePresence } from 'framer-motion';
+// Removed framer-motion imports since animations are disabled
 import { supabase } from '../lib/supabase';
 import { streakService } from '../lib/streakService';
 import { useNavigate } from 'react-router-dom';
@@ -38,6 +39,7 @@ import { StreakPet } from './StreakPet';
 import QuickRelaxation from './components/QuickRelaxation';
 import BreathingExercise from './components/BreathingExercise';
 import MoodTracker from './components/MoodTracker';
+import AssessmentRecordsModal from './components/AssessmentRecordsModal';
 
 // Today's Activities Component
 const TodaysActivities = ({ navigate, userData }: { navigate: any, userData: any }) => {
@@ -333,22 +335,14 @@ const ProgressRing = ({ progress, size = 60 }: ProgressRingProps) => {
   const IconComponent = progressInfo.icon;
 
   return (
-    <motion.div 
-      className="relative"
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
-    >
-      <motion.div 
+    <div className="relative">
+      <div 
         className={`rounded-full ${progressInfo.bgColor} ${progressInfo.borderColor} border-2 flex items-center justify-center relative`}
         style={{ width: size, height: size }}
-        initial={{ opacity: 0, rotate: -180 }}
-        animate={{ opacity: 1, rotate: 0 }}
-        transition={{ duration: 1, ease: "easeOut" }}
       >
         <IconComponent className={`${progressInfo.color} text-lg`} />
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 };
 
@@ -515,49 +509,37 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
 
   return (
     <div className="mb-6 w-full overflow-hidden">
-      <motion.h2 
-        className="font-bold text-xl text-gray-800 mb-4 px-1"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        🎯 Your Wellness Tools
-      </motion.h2>
+      <div className="flex items-center gap-3 mb-4 px-1">
+        <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl shadow-lg">
+          <FaSpa className="text-white text-lg" />
+        </div>
+        <div>
+          <h2 className="font-bold text-xl bg-gradient-to-r from-gray-800 to-gray-800 bg-clip-text text-transparent">
+            Your Wellness Tools
+          </h2>
+        </div>
+      </div>
       
       <div className="relative w-full">
         {/* Left Scroll Button */}
-        <AnimatePresence>
-          {canScrollLeft && (
-            <motion.button
-              className="absolute left-1 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white transition-all duration-200"
-              onClick={() => scrollCarousel('left')}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <FaChevronLeft className="text-gray-600 text-xs sm:text-sm" />
-            </motion.button>
-          )}
-        </AnimatePresence>
+        {canScrollLeft && (
+          <button
+            className="absolute left-1 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white transition-all duration-200"
+            onClick={() => scrollCarousel('left')}
+          >
+            <FaChevronLeft className="text-gray-600 text-xs sm:text-sm" />
+          </button>
+        )}
 
         {/* Right Scroll Button */}
-        <AnimatePresence>
-          {canScrollRight && (
-            <motion.button
-              className="absolute right-1 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white transition-all duration-200"
-              onClick={() => scrollCarousel('right')}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <FaChevronRight className="text-gray-600 text-xs sm:text-sm" />
-            </motion.button>
-          )}
-        </AnimatePresence>
+        {canScrollRight && (
+          <button
+            className="absolute right-1 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:bg-white transition-all duration-200"
+            onClick={() => scrollCarousel('right')}
+          >
+            <FaChevronRight className="text-gray-600 text-xs sm:text-sm" />
+          </button>
+        )}
 
         {/* Carousel Container */}
         <div
@@ -569,16 +551,11 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
             WebkitOverflowScrolling: 'touch'
           }}
         >
-          {mainNavItems.map((item, index) => (
-            <motion.div
+          {mainNavItems.map((item) => (
+            <div
               key={item.id}
-              className={`flex-shrink-0 w-56 sm:w-64 bg-gradient-to-r ${item.bgGradient} rounded-2xl p-4 sm:p-5 shadow-lg border ${item.borderColor} cursor-pointer group hover:shadow-xl transition-all duration-300`}
+              className={`flex-shrink-0 w-56 sm:w-64 bg-gradient-to-r ${item.bgGradient} rounded-2xl p-4 sm:p-5 shadow-lg border ${item.borderColor} cursor-pointer group hover:shadow-xl transition-all duration-300 hover:-translate-y-2 hover:scale-105`}
               onClick={item.onClick}
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-              whileHover={{ y: -8, scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
             >
               <div className="flex items-center gap-3 sm:gap-4 mb-3">
                 <div className={`w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r ${item.gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
@@ -614,40 +591,27 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
                 </div>
                 <FaChevronRight className={`text-gray-400 group-hover:text-gray-600 transition-colors text-sm group-hover:translate-x-1 transition-transform`} />
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
         
         {/* Enhanced Scroll Indicator Dots */}
         <div className="flex justify-center gap-2 sm:gap-3 mt-4">
           {[0, 1, 2, 3].map((index) => (
-            <motion.button
+            <button
               key={index}
-              className={`relative rounded-full transition-all duration-300 cursor-pointer ${
+              className={`relative rounded-full transition-all duration-300 cursor-pointer hover:scale-110 ${
                 activeIndex === index 
                   ? 'w-6 sm:w-8 h-2.5 sm:h-3 bg-[#800000]' 
                   : 'w-2.5 sm:w-3 h-2.5 sm:h-3 bg-gray-300 hover:bg-gray-400'
               }`}
               onClick={() => scrollToIndex(index)}
-              whileHover={{ scale: 1.2 }}
-              whileTap={{ scale: 0.9 }}
-              initial={false}
-              animate={{
-                width: activeIndex === index ? (window.innerWidth > 640 ? 32 : 24) : (window.innerWidth > 640 ? 12 : 10),
-                backgroundColor: activeIndex === index ? '#800000' : '#d1d5db'
-              }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
             >
               {/* Active indicator glow effect */}
               {activeIndex === index && (
-                <motion.div
-                  className="absolute inset-0 bg-[#800000] rounded-full opacity-30 blur-sm"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1.5 }}
-                  transition={{ duration: 0.3 }}
-                />
+                <div className="absolute inset-0 bg-[#800000] rounded-full opacity-30 blur-sm scale-150" />
               )}
-            </motion.button>
+            </button>
           ))}
         </div>
       </div>
@@ -673,6 +637,7 @@ const Dashboard = () => {
   const [loadingStreak, setLoadingStreak] = useState(true);
   const [streakIncrease] = useState(false);
   const prevStreakRef = useRef<number>(0);
+  const [showAssessmentRecords, setShowAssessmentRecords] = useState(false);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -920,184 +885,37 @@ const Dashboard = () => {
   const closeNotificationPopover = () => setActiveNotification(null);
 
   return (
-    <div className="min-h-screen bg-[#800000]/5 w-full overflow-x-hidden" style={{ maxWidth: '100vw' }}>
-      {/* Header with scroll effect */}
-      <motion.div 
+    <div className="min-h-screen bg-[#800000]/5 w-full" style={{ maxWidth: '100vw' }}>
+      {/* Header */}
+      <div 
         ref={headerRef}
-        className="relative bg-gradient-to-br from-[#4a0e0e] via-[#660000] to-[#800000] backdrop-blur-md border-b border-white/10 sticky top-0 z-50 shadow-2xl overflow-hidden w-full"
-        initial={{ y: -50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
+        className="bg-[#800000] border-b border-white/10 sticky top-0 z-50 shadow-lg w-full backdrop-blur-sm"
       >
-        
-        {/* Animated Background Layers */}
-        <div className="absolute inset-0">
-          {/* Primary gradient overlay */}
-          <motion.div 
-            className="absolute inset-0 bg-gradient-to-r from-purple-900/20 via-transparent to-pink-900/20"
-            animate={{ 
-              background: [
-                'linear-gradient(to right, rgba(88, 28, 135, 0.2), transparent, rgba(157, 23, 77, 0.2))',
-                'linear-gradient(to right, rgba(157, 23, 77, 0.2), transparent, rgba(88, 28, 135, 0.2))',
-                'linear-gradient(to right, rgba(88, 28, 135, 0.2), transparent, rgba(157, 23, 77, 0.2))'
-              ]
-            }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          />
-          
-          {/* Floating geometric shapes */}
-          <motion.div 
-            className="absolute top-2 left-4 w-16 h-16 bg-white/5 rounded-full blur-sm"
-            animate={{ 
-              y: [0, -10, 0],
-              scale: [1, 1.1, 1],
-              opacity: [0.3, 0.5, 0.3]
-            }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div 
-            className="absolute top-6 right-8 w-8 h-8 bg-white/10 rounded-lg rotate-45"
-            animate={{ 
-              rotate: [45, 135, 45],
-              scale: [1, 1.2, 1]
-            }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div 
-            className="absolute bottom-2 left-1/3 w-12 h-12 bg-gradient-to-br from-white/5 to-white/10 rounded-full"
-            animate={{ 
-              x: [0, 20, 0],
-              opacity: [0.2, 0.4, 0.2]
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          />
-          
-          {/* Dynamic mesh gradient */}
-          <div className="absolute inset-0 opacity-20">
-            <motion.div 
-              className="w-full h-full"
-              style={{
-                background: 'radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 0%, transparent 50%)',
-              }}
-              animate={{
-                background: [
-                  'radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 0%, transparent 50%)',
-                  'radial-gradient(circle at 60% 20%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 40% 80%, rgba(255,255,255,0.05) 0%, transparent 50%)',
-                  'radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 0%, transparent 50%)'
-                ]
-              }}
-              transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </div>
-          
-          {/* Subtle pattern overlay */}
-          <div className="absolute inset-0 opacity-[0.03]">
-            <div className="w-full h-full bg-white" style={{
-              backgroundImage: `
-                radial-gradient(circle at 25% 25%, white 1px, transparent 1px),
-                radial-gradient(circle at 75% 75%, white 1px, transparent 1px),
-                linear-gradient(45deg, transparent 48%, white 49%, white 51%, transparent 52%)
-              `,
-              backgroundSize: '24px 24px, 24px 24px, 48px 48px'
-            }}></div>
-          </div>
-          
-          {/* Top highlight line */}
-          <motion.div 
-            className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </div>
         
         <div className="relative px-3 sm:px-4 md:px-6 py-3 sm:py-4 w-full max-w-full">
           <div className="flex items-center justify-between w-full max-w-full">
             {/* Left: Greeting Section */}
             <div className="flex-1 min-w-0 max-w-[calc(100%-120px)] sm:max-w-[calc(100%-140px)]">
               <div className="flex items-center space-x-2 sm:space-x-3">
-                                  {/* Enhanced Lotus Icon with Multiple Effects */}
-                  <motion.div
-                    className="relative flex-shrink-0"
-                    animate={{ 
-                      rotate: [0, 5, 0, -5, 0],
-                      y: [0, -2, 0, -1, 0]
-                    }}
-                    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                  >
-                    {/* Outer glow ring */}
-                    <motion.div 
-                      className="absolute inset-0 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-18 lg:h-18 bg-gradient-to-r from-pink-400/30 via-purple-400/30 to-cyan-400/30 rounded-full blur-lg -z-20"
-                      animate={{ 
-                        scale: [1, 1.2, 1],
-                        opacity: [0.3, 0.6, 0.3]
-                      }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    />
-                    
-                    {/* Inner glow */}
-                    <motion.div 
-                      className="absolute inset-0 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 bg-white/30 rounded-full blur-md -z-10"
-                      animate={{ 
-                        scale: [1, 1.1, 1],
-                        opacity: [0.4, 0.7, 0.4]
-                      }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    />
-                    
-                    {/* Sparkle effects */}
-                    <motion.div 
-                      className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-white/60 rounded-full"
-                      animate={{ 
-                        scale: [0, 1, 0],
-                        opacity: [0, 1, 0]
-                      }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                    />
-                    <motion.div 
-                      className="absolute -bottom-0.5 -left-0.5 sm:-bottom-1 sm:-left-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-cyan-300/60 rounded-full"
-                      animate={{ 
-                        scale: [0, 1, 0],
-                        opacity: [0, 1, 0]
-                      }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                    />
-                    
-                    {/* Main lotus image */}
-                    <motion.img 
-                      src="/lotus.png" 
-                      alt="Lotus" 
-                      className="relative z-10 h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 lg:h-16 lg:w-16 drop-shadow-2xl filter brightness-125 contrast-110" 
-                      animate={{ 
-                        filter: [
-                          'brightness(125%) contrast(110%) saturate(120%)',
-                          'brightness(135%) contrast(120%) saturate(130%)',
-                          'brightness(125%) contrast(110%) saturate(120%)'
-                        ]
-                      }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    />
-                  </motion.div>
+                {/* Simple Lotus Icon */}
+                <div className="flex-shrink-0">
+                  <img 
+                    src="/lotus.png" 
+                    alt="Lotus" 
+                    className="h-10 w-10 sm:h-12 sm:w-12" 
+                  />
+                </div>
                 
-                {/* Enhanced Greeting Text */}
+                {/* Greeting Text */}
                 <div className="flex-1 min-w-0 ml-2 sm:ml-3">
-                  <motion.h1 
+                  <h1 
                     className="relative text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white"
                     style={{ 
                       textShadow: '0 2px 8px rgba(0,0,0,0.4), 0 0 30px rgba(255,255,255,0.15), 0 0 60px rgba(255,255,255,0.05)'
                     }}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2, duration: 0.6 }}
                   >
-                    {/* Animated text background */}
-                    <motion.div 
-                      className="absolute inset-0 bg-gradient-to-r from-white/5 via-white/10 to-white/5 rounded-lg blur-sm -z-10"
-                      animate={{ 
-                        opacity: [0, 0.3, 0],
-                        scale: [0.95, 1.05, 0.95]
-                      }}
-                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    />
+                    {/* Text background */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-white/10 to-white/5 rounded-lg blur-sm -z-10" />
                     <span className="block">
                       {getGreeting()}
                     </span>
@@ -1111,139 +929,68 @@ const Dashboard = () => {
                         `${(userData?.full_name || userData?.name || mockUserData.name || 'User').split(' ')[0]}!`
                       )}
                     </span>
-                  </motion.h1>
+                  </h1>
                   
                   {/* Time indicator - now visible on small screens with larger text */}
-                  <motion.p 
-                    className="hidden sm:block text-xs sm:text-sm md:text-base text-white/80 font-medium mt-1 truncate"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4, duration: 0.6 }}
-                  >
+                  <p className="hidden sm:block text-xs sm:text-sm md:text-base text-white/80 font-medium mt-1 truncate">
                     {currentTime.toLocaleDateString('en-US', { 
                       weekday: 'long', 
                       month: 'short', 
                       day: 'numeric' 
                     })}
-                  </motion.p>
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Right: Enhanced Action Buttons */}
-            <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
-              {/* Enhanced Notification Button */}
-              <motion.button 
-                className="relative group p-1.5 sm:p-2 bg-gradient-to-br from-white/15 via-white/20 to-white/15 hover:from-white/25 hover:via-white/30 hover:to-white/25 backdrop-blur-sm rounded-lg sm:rounded-xl border border-white/30 shadow-lg hover:shadow-2xl transition-all duration-300"
-                whileTap={{ scale: 0.95 }}
-                whileHover={{ scale: 1.05, y: -2 }}
+            {/* Right: Action Buttons */}
+            <div className="flex items-center space-x-2 flex-shrink-0">
+              {/* Notification Button */}
+              <button 
+                className="relative bg-white/10 hover:bg-white/20 rounded-full transition-colors w-10 h-10 flex items-center justify-center border border-white/20"
                 onClick={() => {
-                                     if (notifications && notifications.length > 0) {
-                     openNotificationPopover(notifications[0]);
-                   } else {
-                     setShowNotifications((prev) => !prev);
-                   }
+                  if (notifications && notifications.length > 0) {
+                    openNotificationPopover(notifications[0]);
+                  } else {
+                    setShowNotifications((prev) => !prev);
+                  }
                 }}
                 aria-label="Show notifications"
               >
-                {/* Button glow effect */}
-                <motion.div 
-                  className="absolute inset-0 bg-gradient-to-br from-cyan-400/20 to-purple-400/20 rounded-lg sm:rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  animate={{ 
-                    scale: [1, 1.1, 1],
-                  }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                />
-                
-                <motion.div
-                  animate={{ 
-                    rotate: [0, 15, 0, -15, 0]
-                  }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <FaBell className="relative z-10 text-white text-xs sm:text-sm drop-shadow-lg" />
-                </motion.div>
-                
+                <FaBell className="text-white text-base" />
                 {notifications.length > 0 && (
-                  <motion.span 
-                    className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-gradient-to-r from-red-400 via-red-500 to-pink-500 text-white text-xs rounded-full min-w-[16px] h-[16px] sm:min-w-[18px] sm:h-[18px] flex items-center justify-center font-bold shadow-xl border-2 border-white/30"
-                    initial={{ scale: 0 }}
-                    animate={{ 
-                      scale: 1,
-                      boxShadow: [
-                        '0 0 0 0 rgba(239, 68, 68, 0.7)',
-                        '0 0 0 10px rgba(239, 68, 68, 0)',
-                        '0 0 0 0 rgba(239, 68, 68, 0)'
-                      ]
-                    }}
-                    transition={{ 
-                      scale: { type: "spring", stiffness: 300, damping: 20 },
-                      boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                    }}
-                  >
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-[16px] flex items-center justify-center font-medium">
                     {notifications.length > 9 ? '9+' : notifications.length}
-                  </motion.span>
+                  </span>
                 )}
-              </motion.button>
+              </button>
 
-              {/* Enhanced Logout Button */}
-              <motion.div 
-                className="relative group w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-white/15 via-white/20 to-white/15 hover:from-red-500/80 hover:via-red-600/80 hover:to-red-500/80 backdrop-blur-sm rounded-lg sm:rounded-xl flex items-center justify-center cursor-pointer border border-white/30 shadow-lg hover:shadow-2xl transition-all duration-300"
-                whileHover={{ scale: 1.05, rotate: 5, y: -2 }}
-                whileTap={{ scale: 0.95 }}
+              {/* Logout Button */}
+              <button 
+                className="bg-white/10 hover:bg-white/20 rounded-full transition-colors w-10 h-10 flex items-center justify-center border border-white/20"
                 onClick={showLogoutConfirmation}
                 title="Sign Out"
               >
-                {/* Logout button glow */}
-                <motion.div 
-                  className="absolute inset-0 bg-gradient-to-br from-red-400/20 to-red-600/20 rounded-lg sm:rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  animate={{ 
-                    scale: [1, 1.05, 1],
-                  }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                />
-                
-                {/* Animated border */}
-                <motion.div 
-                  className="absolute inset-0 rounded-lg sm:rounded-xl border border-white/20 group-hover:border-red-300/50"
-                  animate={{ 
-                    borderColor: [
-                      'rgba(255,255,255,0.2)',
-                      'rgba(255,255,255,0.4)',
-                      'rgba(255,255,255,0.2)'
-                    ]
-                  }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                />
-                
-                <FaSignOutAlt className="relative z-10 text-white text-xs sm:text-sm drop-shadow-lg group-hover:text-white" />
-              </motion.div>
+                <FaSignOutAlt className="text-white text-base" />
+              </button>
             </div>
           </div>
 
-          {/* Enhanced Notification Panel */}
+          {/* Notification Panel */}
           {showNotifications && (
-            <motion.div 
-              className="absolute right-3 sm:right-4 md:right-6 top-full mt-2 bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-2xl z-50 w-[calc(100vw-24px)] sm:w-80 md:w-96 max-w-md"
-              initial={{ opacity: 0, y: -10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-            >
+            <div className="absolute right-3 sm:right-4 md:right-6 top-full mt-2 bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-2xl z-50 w-[calc(100vw-24px)] sm:w-80 md:w-96 max-w-md">
               <div className="p-4 sm:p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-[#800000] text-lg flex items-center">
                     <FaBell className="mr-2" /> 
                     Notifications
                   </h3>
-                  <motion.button
+                  <button
                     className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
                     onClick={() => setShowNotifications(false)}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
                   >
                     <span className="text-gray-400 text-xl">×</span>
-                  </motion.button>
+                  </button>
                 </div>
                 
                 {notifications.length === 0 ? (
@@ -1255,13 +1002,10 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-64 overflow-y-auto">
-                    {notifications.map((appt, index) => (
-                      <motion.div 
+                    {notifications.map((appt) => (
+                      <div 
                         key={appt.id} 
                         className="cursor-pointer bg-gradient-to-r from-[#800000]/5 to-[#800000]/10 rounded-xl p-3 border border-[#800000]/10 hover:border-[#800000]/20 transition-all duration-200"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
                         onClick={() => openNotificationPopover(appt)}
                       >
                         <div className="flex items-start justify-between">
@@ -1283,38 +1027,30 @@ const Dashboard = () => {
                             )}
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 )}
               </div>
-            </motion.div>
+            </div>
           )}
         </div>
-      </motion.div>
+      </div>
 
-      {/* Enhanced Notification Modal - Positioned outside header for proper layering */}
-      <AnimatePresence>
-        {activeNotification && (
-          <>
-            {/* Backdrop */}
-            <motion.div 
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[9998]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closeNotificationPopover}
-            />
-            
-            {/* Modal positioned below notification button - Fully responsive */}
-            <motion.div 
-              className="fixed right-2 sm:right-3 md:right-4 lg:right-6 top-14 sm:top-16 md:top-16 bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 w-[calc(100vw-16px)] xs:w-[calc(100vw-20px)] sm:w-80 md:w-96 lg:w-[400px] max-w-[95vw] sm:max-w-md overflow-hidden z-[9999]"
-              initial={{ scale: 0.9, opacity: 0, y: -10 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: -10 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              onClick={(e) => e.stopPropagation()}
-            >
+      {/* Notification Modal - Positioned outside header for proper layering */}
+      {activeNotification && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[9998]"
+            onClick={closeNotificationPopover}
+          />
+          
+          {/* Modal positioned below notification button - Fully responsive */}
+          <div 
+            className="fixed right-2 sm:right-3 md:right-4 lg:right-6 top-14 sm:top-16 md:top-16 bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 w-[calc(100vw-16px)] xs:w-[calc(100vw-20px)] sm:w-80 md:w-96 lg:w-[400px] max-w-[95vw] sm:max-w-md overflow-hidden z-[9999]"
+            onClick={(e) => e.stopPropagation()}
+          >
               {/* Header - Mobile responsive */}
               <div className="bg-gradient-to-r from-[#800000] to-[#a00000] p-3 sm:p-4 text-white">
                 <div className="flex items-center justify-between">
@@ -1327,14 +1063,12 @@ const Dashboard = () => {
                       <p className="text-white/80 text-xs sm:text-sm truncate">Your scheduled appointment</p>
                     </div>
                   </div>
-                  <motion.button 
+                  <button 
                     onClick={closeNotificationPopover}
                     className="w-7 h-7 sm:w-8 sm:h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors flex-shrink-0 ml-2"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
                   >
                     <span className="text-white text-base sm:text-lg">×</span>
-                  </motion.button>
+                  </button>
                 </div>
               </div>
 
@@ -1399,49 +1133,33 @@ const Dashboard = () => {
 
                 {/* Action Buttons */}
                 <div className="pt-1 sm:pt-2 flex gap-2 sm:gap-3">
-                  <motion.button
+                  <button
                     onClick={closeNotificationPopover}
                     className="flex-1 bg-gradient-to-r from-[#800000] to-[#a00000] hover:from-[#660000] hover:to-[#800000] text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                   >
                     Got it
-                  </motion.button>
+                  </button>
                 </div>
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+          </div>
+        </>
+      )}
 
       {/* Logout Confirmation Modal */}
-      <AnimatePresence>
-        {showLogoutModal && (
-          <>
-            {/* Backdrop */}
-            <motion.div 
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={cancelLogout}
-            />
-            
-            {/* Modal */}
-            <motion.div 
-              className="fixed inset-0 flex items-center justify-center z-[9999] p-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+      {showLogoutModal && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998]"
+            onClick={cancelLogout}
+          />
+          
+          {/* Modal */}
+          <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4">
+            <div 
+              className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-sm overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
             >
-              <motion.div 
-                className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-sm overflow-hidden"
-                initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                onClick={(e) => e.stopPropagation()}
-              >
                 {/* Header */}
                 <div className="bg-gradient-to-r from-[#800000] to-[#a00000] p-6 text-white">
                   <div className="flex items-center justify-center">
@@ -1466,29 +1184,32 @@ const Dashboard = () => {
 
                   {/* Action Buttons */}
                   <div className="flex gap-3">
-                    <motion.button
+                    <button
                       onClick={cancelLogout}
                       className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 border border-gray-200"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
                     >
                       Cancel
-                    </motion.button>
-                    <motion.button
+                    </button>
+                    <button
                       onClick={confirmLogout}
                       className="flex-1 bg-gradient-to-r from-[#800000] to-[#a00000] hover:from-[#660000] hover:to-[#800000] text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
                     >
                       Sign Out
-                    </motion.button>
+                    </button>
                   </div>
                 </div>
-              </motion.div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Scroll To Top Button */}
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-20 sm:bottom-24 right-3 sm:right-4 z-40 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-[#800000] to-[#a00000] hover:from-[#660000] hover:to-[#800000] text-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:shadow-3xl border-2 border-white/20 hover:scale-110 hover:-translate-y-1"
+        >
+          <FaArrowUp className="text-lg sm:text-xl" />
+        </button>
 
       {/* Main Content */}
       <div className="w-full max-w-full px-3 sm:px-4 py-4 sm:py-6 pb-20 overflow-x-hidden">
@@ -1544,6 +1265,7 @@ const Dashboard = () => {
 
           {/* Recent Assessment Compact Card */}
           <div 
+            onClick={() => recentAssessment && setShowAssessmentRecords(true)}
             className={`relative overflow-hidden rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-lg border-2 w-full ${
               loadingAssessment ? 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-300' :
               !recentAssessment ? 'bg-gradient-to-br from-[#800000]/10 to-[#800000]/20 border-[#800000]/30' :
@@ -1551,7 +1273,7 @@ const Dashboard = () => {
               recentAssessment.percentage < 50 ? 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-400' :
               recentAssessment.percentage < 75 ? 'bg-gradient-to-br from-yellow-50 to-orange-100 border-yellow-400' :
               'bg-gradient-to-br from-red-50 to-red-100 border-red-400'
-            }`}
+            } ${recentAssessment ? 'cursor-pointer hover:scale-105 transition-transform duration-200' : ''}`}
           >
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-10">
@@ -1667,15 +1389,13 @@ const Dashboard = () => {
                 <>
                   <p className="text-xs sm:text-sm font-bold text-[#800000] mb-1">Assessment</p>
                   <p className="text-xs text-gray-600 mb-2 sm:mb-3 leading-tight">Start your wellness journey</p>
-                  <motion.button 
+                  <button 
                     onClick={goToAssessment}
-                    className="w-full bg-gradient-to-r from-[#800000] to-[#a00000] text-white text-xs px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg hover:from-[#660000] hover:to-[#800000] transition-all duration-200 font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-1 sm:gap-2"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    className="w-full bg-gradient-to-r from-[#800000] to-[#a00000] text-white text-xs px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg hover:from-[#660000] hover:to-[#800000] transition-all duration-200 font-medium shadow-md hover:shadow-lg flex items-center justify-center gap-1 sm:gap-2 hover:scale-105"
                   >
                     <FaChartLine className="text-xs" />
                     <span className="truncate">Take Assessment</span>
-                  </motion.button>
+                  </button>
                 </>
               )}
             </div>
@@ -1708,12 +1428,7 @@ const Dashboard = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <motion.div 
-        className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm border-t border-gray-200 z-50 w-full"
-        initial={{ y: 50 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200/50 shadow-2xl z-50">
         <div className="flex justify-around py-1.5 sm:py-2 px-2 w-full max-w-full">
           {[
             { id: 'home', icon: FaHeart, label: 'Home', color: 'text-pink-500', action: () => {
@@ -1739,30 +1454,33 @@ const Dashboard = () => {
             }},
             { id: 'user', icon: FaUser, label: 'Profile', color: 'text-gray-500', action: goToProfile }
           ].map((tab) => (
-            <motion.button
+            <button
               key={tab.id}
-              className={`flex flex-col items-center py-1.5 sm:py-2 px-1 sm:px-2 rounded-lg transition-all duration-200 min-w-0 flex-1 ${
-                selectedTab === tab.id ? 'bg-[#800000]/10 transform scale-105' : ''
-              }`}
               onClick={tab.action}
-              whileHover={{ y: -3 }}
-              whileTap={{ scale: 0.9 }}
+              className={`relative flex flex-col items-center justify-center py-2 sm:py-3 px-2 sm:px-3 rounded-xl sm:rounded-2xl transition-all duration-300 min-w-0 flex-1 hover:scale-105 ${
+                selectedTab === tab.id 
+                  ? 'bg-gradient-to-t from-[#800000]/10 to-[#800000]/5 shadow-lg' 
+                  : 'hover:bg-gray-50'
+              }`}
             >
               <tab.icon className={`text-base sm:text-lg ${selectedTab === tab.id ? tab.color : 'text-gray-400'}`} />
               <span className={`text-xs mt-0.5 sm:mt-1 truncate ${selectedTab === tab.id ? tab.color : 'text-gray-400'}`}>
                 {tab.label}
               </span>
               {selectedTab === tab.id && (
-                <motion.div
-                  className="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-[#800000]"
-                  layoutId="activeTabIndicator"
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                />
+                <div className="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-[#800000]" />
               )}
-            </motion.button>
+            </button>
           ))}
         </div>
-      </motion.div>
+      </div>
+
+      {/* Assessment Records Modal */}
+      <AssessmentRecordsModal
+        isOpen={showAssessmentRecords}
+        onClose={() => setShowAssessmentRecords(false)}
+        userId={userData?.id || ''}
+      />
     </div>
   );
 };

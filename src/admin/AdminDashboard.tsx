@@ -259,14 +259,6 @@ export default function AdminDashboard() {
               return user;
             });
           });
-          
-          // Show toast notification for real-time update
-          Toast.fire({
-            icon: 'info',
-            iconColor: '#3b82f6',
-            title: 'Profile Updated',
-            text: `${updatedProfile.full_name || 'User'} profile updated`,
-          });
         }
       }
     });

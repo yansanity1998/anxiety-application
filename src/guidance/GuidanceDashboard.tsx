@@ -255,13 +255,7 @@ export default function GuidanceDashboard() {
             });
           });
           
-          // Show toast notification for real-time update
-          Toast.fire({
-            icon: 'info',
-            iconColor: '#3b82f6',
-            title: 'Profile Updated',
-            text: `${updatedProfile.full_name || 'User'} profile updated`,
-          });
+          // Real-time profile update processed silently
         }
       }
     });

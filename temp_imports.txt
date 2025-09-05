@@ -1,0 +1,41 @@
+﻿import { useState, useEffect, useRef } from 'react';
+import { 
+  FaHeart, 
+  FaBrain, 
+  FaLeaf, 
+  FaPlay, 
+  FaUser, 
+  FaCalendarAlt, 
+  FaChartLine, 
+  // FaMedal,
+  FaFire,
+  // FaStar,
+  // FaHeadphones,
+  FaBookOpen,
+  FaGamepad,
+  FaSmile,
+  // FaMoon,
+  // FaSun,
+  // FaWind,
+  // FaWater,
+  // FaTree,
+  // FaCloudSun,
+  FaChevronRight,
+  FaChevronLeft,
+  // FaPlus,
+  FaArrowUp,
+  FaTasks,
+  FaCheck,
+  FaSignOutAlt,
+  FaSpa
+} from 'react-icons/fa';
+
+// Removed framer-motion imports since animations are disabled
+import { supabase } from '../lib/supabase';
+import { streakService } from '../lib/streakService';
+import { useNavigate } from 'react-router-dom';
+import { StreakPet } from './StreakPet';
+import QuickRelaxation from './components/QuickRelaxation';
+import BreathingExercise from './components/BreathingExercise';
+import MoodTracker from './components/MoodTracker';
+import NotificationSystem from './components/NotificationSystem';

@@ -30,7 +30,10 @@ export const MOOD_OPTIONS = [
   { level: 2, emoji: '😔', label: 'Sad', color: 'bg-orange-500' },
   { level: 3, emoji: '😐', label: 'Neutral', color: 'bg-yellow-500' },
   { level: 4, emoji: '😄', label: 'Happy', color: 'bg-green-500' },
-  { level: 5, emoji: '😊', label: 'Very Happy', color: 'bg-blue-500' }
+  { level: 5, emoji: '😊', label: 'Very Happy', color: 'bg-blue-500' },
+  { level: 6, emoji: '😠', label: 'Angry', color: 'bg-red-600' },
+  { level: 7, emoji: '😍', label: 'In Love', color: 'bg-pink-500' },
+  { level: 8, emoji: '😭', label: 'Crying', color: 'bg-blue-600' }
 ];
 
 class MoodService {
