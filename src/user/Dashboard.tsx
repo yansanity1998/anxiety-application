@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   FaHeart, 
   FaBrain, 
   FaLeaf, 
   FaPlay, 
-  FaTrophy, 
   FaUser, 
   FaBell, 
   FaCalendarAlt, 
@@ -12,7 +11,6 @@ import {
   // FaMedal,
   FaFire,
   // FaStar,
-  FaCheck,
   // FaHeadphones,
   FaBookOpen,
   FaGamepad,
@@ -27,17 +25,259 @@ import {
   FaChevronLeft,
   // FaPlus,
   FaArrowUp,
-  FaTasks
+  FaTasks,
+  FaCheck,
+  FaSignOutAlt
 } from 'react-icons/fa';
 
-import { motion, AnimatePresence, useInView, useScroll, useTransform } from 'framer-motion';
-import type { Variants } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { streakService } from '../lib/streakService';
 import { useNavigate } from 'react-router-dom';
 import { StreakPet } from './StreakPet';
 import QuickRelaxation from './components/QuickRelaxation';
 import BreathingExercise from './components/BreathingExercise';
+import MoodTracker from './components/MoodTracker';
+
+// Today's Activities Component
+const TodaysActivities = ({ navigate, userData }: { navigate: any, userData: any }) => {
+  const [activities, setActivities] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTodaysActivities = async () => {
+      if (!userData?.id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Only show real activities - no defaults
+        const activityItems: any[] = [];
+
+        // Fetch CBT modules assigned to this user (show in_progress and not_started)
+        const { data: cbtModules, error: cbtError } = await supabase
+          .from('cbt_module')
+          .select('*')
+          .eq('profile_id', userData.id)
+          .in('module_status', ['in_progress', 'not_started'])
+          .limit(3);
+
+        console.log('CBT Modules Query:', { cbtModules, cbtError, userId: userData.id });
+
+        // Add CBT modules if found
+        if (cbtModules && cbtModules.length > 0) {
+          cbtModules.forEach((module: any) => {
+            activityItems.push({
+              id: `cbt-${module.id}`,
+              type: 'cbt',
+              title: module.module_title || 'CBT Module',
+              subtitle: module.module_status === 'in_progress' ? 'Continue your progress' : 'Start this module',
+              status: module.module_status,
+              icon: FaBrain,
+              color: 'blue',
+              bgColor: 'bg-blue-50',
+              iconBg: 'bg-blue-100',
+              iconColor: 'text-blue-600',
+              action: () => navigate('/cbt-modules')
+            });
+          });
+        }
+
+        // Fetch todo items (active todos)
+        const { data: todos, error: todoError } = await supabase
+          .from('todo_items')
+          .select('*')
+          .eq('profile_id', userData.id)
+          .in('status', ['in_progress', 'pending'])
+          .limit(3);
+
+        console.log('Todo Items Query:', { todos, todoError, userId: userData.id, today });
+
+        // Add todo items if found for today
+        if (todos && todos.length > 0) {
+          todos.forEach((todo: any) => {
+            activityItems.push({
+              id: `todo-${todo.id}`,
+              type: 'todo',
+              title: todo.title || 'Task',
+              subtitle: todo.description || 'Complete this task',
+              status: 'pending',
+              icon: FaTasks,
+              color: 'green',
+              bgColor: 'bg-green-50',
+              iconBg: 'bg-green-100',
+              iconColor: 'text-green-600',
+              action: () => navigate('/todo-list')
+            });
+          });
+        }
+
+        // Check for anxiety videos assigned to this user
+        const { data: anxietyVideos, error: videoError } = await supabase
+          .from('anxiety_video')
+          .select('*')
+          .eq('profile_id', userData.id)
+          .in('video_status', ['not_started', 'in_progress'])
+          .limit(3);
+
+        console.log('Anxiety Videos Query:', { anxietyVideos, videoError, userId: userData.id });
+
+        // Add anxiety videos if found
+        if (anxietyVideos && anxietyVideos.length > 0) {
+          anxietyVideos.forEach((video: any) => {
+            activityItems.push({
+              id: `video-${video.id}`,
+              type: 'video',
+              title: video.video_title || 'Anxiety Video',
+              subtitle: video.video_status === 'in_progress' ? 'Continue watching' : 'Watch helpful content',
+              status: video.video_status,
+              icon: FaPlay,
+              color: 'red',
+              bgColor: 'bg-red-50',
+              iconBg: 'bg-red-100',
+              iconColor: 'text-red-600',
+              action: () => navigate('/anxiety-videos')
+            });
+          });
+        }
+
+        // Set activities (no shuffling, no defaults)
+        console.log('Final Activity Items:', activityItems);
+        setActivities(activityItems);
+      } catch (error) {
+        console.error('Error fetching activities:', error);
+        // No default activities on error - show empty state
+        setActivities([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTodaysActivities();
+  }, [userData, navigate]);
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return (
+          <div className="flex items-center gap-1">
+            <FaCheck className="text-green-500 text-xs" />
+            <span className="text-xs font-medium text-green-600">Done</span>
+          </div>
+        );
+      case 'in_progress':
+        return (
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+            <span className="text-xs font-medium text-yellow-600">In Progress</span>
+          </div>
+        );
+      case 'not_started':
+      case 'available':
+      case 'pending':
+      default:
+        return (
+          <div className="flex items-center gap-1">
+            <FaChevronRight className="text-gray-400 text-xs" />
+            <span className="text-xs font-medium text-gray-500">Start</span>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
+          <FaCalendarAlt className="text-indigo-500" />
+          Today's Activities
+        </h3>
+        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+          {activities.length} {activities.length === 1 ? 'item' : 'items'}
+        </span>
+      </div>
+      
+      {loading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-xl p-4 shadow-md border border-gray-200 animate-pulse">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                <div className="flex-1">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                </div>
+                <div className="w-16 h-6 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : activities.length === 0 ? (
+        <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 text-center border border-gray-200">
+          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+            <FaCalendarAlt className="text-gray-400 text-2xl" />
+          </div>
+          <p className="text-gray-600 font-medium mb-1">No activities scheduled</p>
+          <p className="text-gray-500 text-sm">Check back later or explore our wellness tools</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {activities.map((activity) => (
+            <div
+              key={activity.id}
+              className={`bg-white rounded-xl p-4 shadow-md border border-gray-200 cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-gray-300 ${activity.bgColor} hover:scale-[1.02]`}
+              onClick={activity.action}
+            >
+              <div className="flex items-center gap-3">
+                {/* Icon */}
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 ${activity.iconBg} rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                  <activity.icon className={`${activity.iconColor} text-lg sm:text-xl`} />
+                </div>
+                
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="font-semibold text-gray-800 text-sm sm:text-base truncate">
+                      {activity.title}
+                    </h4>
+                    <div className="ml-2 flex-shrink-0">
+                      {getStatusBadge(activity.status)}
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-xs sm:text-sm truncate">
+                    {activity.subtitle}
+                  </p>
+                  
+                  {/* Activity Type Badge */}
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      activity.type === 'cbt' ? 'bg-blue-100 text-blue-700' :
+                      activity.type === 'video' ? 'bg-red-100 text-red-700' :
+                      activity.type === 'todo' ? 'bg-green-100 text-green-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {activity.type === 'cbt' ? '🧠 CBT' :
+                       activity.type === 'video' ? '🎥 Video' :
+                       activity.type === 'todo' ? '✅ Task' : 'Activity'}
+                    </span>
+                    {activity.status === 'in_progress' && (
+                      <span className="text-xs text-yellow-600 font-medium">• Continue where you left off</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      
+    </div>
+  );
+};
 
 // Mock user data - in a real app, this would come from your backend
 const mockUserData = {
@@ -51,12 +291,6 @@ const mockUserData = {
     date: "Today",
     improvement: "+12%"
   },
-  achievements: [
-    { id: 1, name: "First Steps", icon: "🌱", unlocked: true },
-    { id: 2, name: "Weekly Warrior", icon: "🔥", unlocked: true },
-    { id: 3, name: "Mindful Master", icon: "🧘‍♀️", unlocked: false },
-    { id: 4, name: "Calm Collector", icon: "☮️", unlocked: false }
-  ]
 };
 
 type ProgressRingProps = {
@@ -67,31 +301,32 @@ type ProgressRingProps = {
 const ProgressRing = ({ progress, size = 60 }: ProgressRingProps) => {
 
   // Determine color and icon based on progress (lower is better for anxiety)
+  // Standardized anxiety level colors: Green (Minimal 0-24%), Blue (Mild 25-49%), Yellow (Moderate 50-74%), Red (Severe 75-100%)
   const getProgressInfo = () => {
     if (progress < 25) return { 
-      color: "text-green-500", 
+      color: "text-green-600", 
       bgColor: "bg-green-100", 
       icon: FaSmile,
-      borderColor: "border-green-300"
-    }; // Green - Low anxiety
+      borderColor: "border-green-200"
+    }; // Green - Minimal anxiety (0-24%)
     if (progress < 50) return { 
-      color: "text-blue-500", 
+      color: "text-blue-600", 
       bgColor: "bg-blue-100", 
       icon: FaHeart,
-      borderColor: "border-blue-300"
-    }; // Blue - Mild anxiety
+      borderColor: "border-blue-200"
+    }; // Blue - Mild anxiety (25-49%)
     if (progress < 75) return { 
-      color: "text-yellow-500", 
+      color: "text-yellow-600", 
       bgColor: "bg-yellow-100", 
       icon: FaBrain,
-      borderColor: "border-yellow-300"
-    }; // Yellow - Moderate anxiety
+      borderColor: "border-yellow-200"
+    }; // Yellow - Moderate anxiety (50-74%)
     return { 
-      color: "text-red-500", 
+      color: "text-red-600", 
       bgColor: "bg-red-100", 
       icon: FaHeart,
-      borderColor: "border-red-300"
-    }; // Red - High anxiety
+      borderColor: "border-red-200"
+    }; // Red - Severe anxiety (75-100%)
   };
 
   const progressInfo = getProgressInfo();
@@ -117,46 +352,6 @@ const ProgressRing = ({ progress, size = 60 }: ProgressRingProps) => {
   );
 };
 
-// Add this new component for scroll-triggered animations
-interface ScrollRevealProps {
-  children: React.ReactNode;
-  delay?: number;
-  direction?: "up" | "down" | "left" | "right";
-}
-
-const ScrollReveal = ({ children, delay = 0, direction = "up" }: ScrollRevealProps) => {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.3 });
-  
-  const variants: Variants = {
-    hidden: {
-      opacity: 0,
-      y: direction === "up" ? 50 : direction === "down" ? -50 : 0,
-      x: direction === "left" ? 50 : direction === "right" ? -50 : 0,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      x: 0,
-      transition: {
-        duration: 0.6,
-        delay: delay,
-        ease: [0.22, 1, 0.36, 1]
-      }
-    }
-  };
-
-  return (
-    <motion.div
-      ref={ref}
-      initial="hidden"
-      animate={isInView ? "visible" : "hidden"}
-      variants={variants}
-    >
-      {children}
-    </motion.div>
-  );
-};
 
 const getFireColor = (streak: number) => {
   if (streak >= 100) return 'text-yellow-400 drop-shadow-lg animate-pulse'; // Gold
@@ -503,11 +698,7 @@ const Dashboard = () => {
     fetchNotifications();
   }, [userData]);
 
-  // Add these refs for scroll effects
   const headerRef = useRef<HTMLDivElement | null>(null);
-  const { scrollY } = useScroll();
-  const scrollButtonOpacity = useTransform(scrollY, [100, 300], [0, 1]);
-  const scrollButtonScale = useTransform(scrollY, [100, 300], [0.6, 1]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -688,10 +879,40 @@ const Dashboard = () => {
     navigate('/profile');
   };
 
-  // Add this function for scrolling to top
+  // State for logout confirmation modal
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // Function to handle logout
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  // Function to show logout confirmation
+  const showLogoutConfirmation = () => {
+    setShowLogoutModal(true);
+  };
+
+  // Function to confirm logout
+  const confirmLogout = () => {
+    setShowLogoutModal(false);
+    handleLogout();
+  };
+
+  // Function to cancel logout
+  const cancelLogout = () => {
+    setShowLogoutModal(false);
+  };
+
+  // Function to scroll to top
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
 
   // Inline notification preview (Facebook-style popover)
   const [activeNotification, setActiveNotification] = useState<any | null>(null);
@@ -965,16 +1186,17 @@ const Dashboard = () => {
                 )}
               </motion.button>
 
-              {/* Enhanced Profile Button */}
+              {/* Enhanced Logout Button */}
               <motion.div 
-                className="relative group w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-white/15 via-white/20 to-white/15 hover:from-white/25 hover:via-white/30 hover:to-white/25 backdrop-blur-sm rounded-lg sm:rounded-xl flex items-center justify-center cursor-pointer border border-white/30 shadow-lg hover:shadow-2xl transition-all duration-300"
+                className="relative group w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-white/15 via-white/20 to-white/15 hover:from-red-500/80 hover:via-red-600/80 hover:to-red-500/80 backdrop-blur-sm rounded-lg sm:rounded-xl flex items-center justify-center cursor-pointer border border-white/30 shadow-lg hover:shadow-2xl transition-all duration-300"
                 whileHover={{ scale: 1.05, rotate: 5, y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={goToProfile}
+                onClick={showLogoutConfirmation}
+                title="Sign Out"
               >
-                {/* Profile button glow */}
+                {/* Logout button glow */}
                 <motion.div 
-                  className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-lg sm:rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="absolute inset-0 bg-gradient-to-br from-red-400/20 to-red-600/20 rounded-lg sm:rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   animate={{ 
                     scale: [1, 1.05, 1],
                   }}
@@ -983,7 +1205,7 @@ const Dashboard = () => {
                 
                 {/* Animated border */}
                 <motion.div 
-                  className="absolute inset-0 rounded-lg sm:rounded-xl border border-white/20"
+                  className="absolute inset-0 rounded-lg sm:rounded-xl border border-white/20 group-hover:border-red-300/50"
                   animate={{ 
                     borderColor: [
                       'rgba(255,255,255,0.2)',
@@ -994,7 +1216,7 @@ const Dashboard = () => {
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 />
                 
-                <FaUser className="relative z-10 text-white text-xs sm:text-sm drop-shadow-lg" />
+                <FaSignOutAlt className="relative z-10 text-white text-xs sm:text-sm drop-shadow-lg group-hover:text-white" />
               </motion.div>
             </div>
           </div>
@@ -1192,6 +1414,82 @@ const Dashboard = () => {
         )}
       </AnimatePresence>
 
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutModal && (
+          <>
+            {/* Backdrop */}
+            <motion.div 
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={cancelLogout}
+            />
+            
+            {/* Modal */}
+            <motion.div 
+              className="fixed inset-0 flex items-center justify-center z-[9999] p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div 
+                className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-sm overflow-hidden"
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="bg-gradient-to-r from-[#800000] to-[#a00000] p-6 text-white">
+                  <div className="flex items-center justify-center">
+                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-2">
+                      <FaSignOutAlt className="text-white text-xl" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold text-center">Sign Out</h3>
+                  <p className="text-white/80 text-sm text-center mt-1">Confirm your action</p>
+                </div>
+
+                {/* Content */}
+                <div className="p-6">
+                  <div className="text-center mb-6">
+                    <p className="text-gray-700 text-base leading-relaxed">
+                      Are you sure you want to sign out of your account?
+                    </p>
+                    <p className="text-gray-500 text-sm mt-2">
+                      You'll need to log in again to access your wellness dashboard.
+                    </p>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3">
+                    <motion.button
+                      onClick={cancelLogout}
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 border border-gray-200"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Cancel
+                    </motion.button>
+                    <motion.button
+                      onClick={confirmLogout}
+                      className="flex-1 bg-gradient-to-r from-[#800000] to-[#a00000] hover:from-[#660000] hover:to-[#800000] text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Sign Out
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Main Content */}
       <div className="w-full max-w-full px-3 sm:px-4 py-4 sm:py-6 pb-20 overflow-x-hidden">
         {/* Main Navigation Carousel */}
@@ -1200,18 +1498,11 @@ const Dashboard = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-6 w-full">
           {/* Day Streak Card */}
-          <motion.div 
+          <div 
             className={`bg-white rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-lg border-2 w-full ${getFireBorderColor(userStreak)}`}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-            whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
           >
             <div className="flex items-center justify-between mb-1 sm:mb-2">
-              <motion.div
-                animate={{ rotate: [0, 10, 0, -10, 0] }}
-                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-              >
+              <div>
                 <FaFire className={`${getFireColor(userStreak)} text-lg sm:text-xl`} title={
                   userStreak >= 100 ? '🔥 100+ Day Streak! Legendary!' :
                   userStreak >= 60 ? '🔥 60+ Day Streak! Incredible!' :
@@ -1221,29 +1512,22 @@ const Dashboard = () => {
                   userStreak >= 10 ? '🔥 10+ Day Streak! Keep going!' :
                   '🔥 Keep your streak alive!'
                 } />
-              </motion.div>
+              </div>
               {loadingStreak ? (
                 <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-gray-300 border-t-orange-500 animate-spin"></div>
               ) : (
-                <motion.span 
+                <span 
                   className={`text-xl sm:text-2xl font-bold relative ${getFireColor(userStreak)}`}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.2 }}
                 >
                   {userStreak}
                   {streakIncrease && (
-                    <motion.span
+                    <span
                       className="absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 text-green-500 text-sm sm:text-base font-bold drop-shadow"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: -10 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.8 }}
                     >
                       +1
-                    </motion.span>
+                    </span>
                   )}
-                </motion.span>
+                </span>
               )}
             </div>
             <p className={`text-xs sm:text-sm font-bold mb-1 ${getFireColor(userStreak)}`}>Day Streak</p>
@@ -1256,10 +1540,10 @@ const Dashboard = () => {
                 {userStreak > 0 ? `${userStreak} days!` : 'Start today!'}
               </span>
             </div>
-          </motion.div>
+          </div>
 
           {/* Recent Assessment Compact Card */}
-          <motion.div 
+          <div 
             className={`relative overflow-hidden rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-lg border-2 w-full ${
               loadingAssessment ? 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-300' :
               !recentAssessment ? 'bg-gradient-to-br from-[#800000]/10 to-[#800000]/20 border-[#800000]/30' :
@@ -1268,10 +1552,6 @@ const Dashboard = () => {
               recentAssessment.percentage < 75 ? 'bg-gradient-to-br from-yellow-50 to-orange-100 border-yellow-400' :
               'bg-gradient-to-br from-red-50 to-red-100 border-red-400'
             }`}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-            whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
           >
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-10">
@@ -1289,8 +1569,8 @@ const Dashboard = () => {
 
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-2 sm:mb-3">
-                {/* Icon with animated background */}
-                <motion.div
+                {/* Icon with background */}
+                <div
                   className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg ${
                     loadingAssessment ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
                     !recentAssessment ? 'bg-gradient-to-r from-[#800000] to-[#a00000]' :
@@ -1299,54 +1579,27 @@ const Dashboard = () => {
                     recentAssessment.percentage < 75 ? 'bg-gradient-to-r from-yellow-500 to-orange-600' :
                     'bg-gradient-to-r from-red-500 to-red-600'
                   }`}
-                  animate={{ 
-                    y: [0, -3, 0],
-                    rotate: [0, 5, 0]
-                  }}
-                  transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
                 >
                   <FaChartLine className="text-white text-base sm:text-lg drop-shadow-sm" />
-                  {/* Pulse effect */}
-                  <div className={`absolute inset-0 rounded-lg sm:rounded-xl ${
-                    loadingAssessment ? 'bg-gray-400' :
-                    !recentAssessment ? 'bg-[#800000]' :
-                    recentAssessment.percentage < 25 ? 'bg-green-500' :
-                    recentAssessment.percentage < 50 ? 'bg-blue-500' :
-                    recentAssessment.percentage < 75 ? 'bg-yellow-500' :
-                    'bg-red-500'
-                  } animate-pulse opacity-30`}></div>
-                </motion.div>
+                </div>
                 
                 {/* Progress Ring or Loading */}
                 {loadingAssessment ? (
                   <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-gray-300 border-t-[#800000] animate-spin"></div>
                 ) : recentAssessment ? (
-                  <motion.div 
+                  <div 
                     className="flex items-center gap-1 sm:gap-2"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
                   >
                     <div className="relative">
                       <ProgressRing progress={recentAssessment.percentage} size={35} />
-                      {/* Glow effect */}
-                      <div className={`absolute inset-0 rounded-full blur-md opacity-20 ${
-                        recentAssessment.percentage < 25 ? 'bg-green-400' :
-                        recentAssessment.percentage < 50 ? 'bg-blue-400' :
-                        recentAssessment.percentage < 75 ? 'bg-yellow-400' :
-                        'bg-red-400'
-                      }`}></div>
                     </div>
-                  </motion.div>
+                  </div>
                 ) : (
-                  <motion.div 
+                  <div 
                     className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-[#800000] to-[#a00000] rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
                   >
                     <FaBrain className="text-white text-xs sm:text-sm" />
-                  </motion.div>
+                  </div>
                 )}
               </div>
               
@@ -1364,20 +1617,20 @@ const Dashboard = () => {
               ) : recentAssessment ? (
                 <>
                   <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
-                    <p className={`text-sm sm:text-base font-black leading-tight ${
-                      recentAssessment.percentage < 25 ? 'text-green-700' :
-                      recentAssessment.percentage < 50 ? 'text-blue-700' :
-                      recentAssessment.percentage < 75 ? 'text-yellow-700' :
-                      'text-red-700'
+                    <p className={`text-xs sm:text-sm font-semibold ${
+                      recentAssessment.percentage < 25 ? 'text-green-800' :
+                      recentAssessment.percentage < 50 ? 'text-blue-800' :
+                      recentAssessment.percentage < 75 ? 'text-yellow-800' :
+                      'text-red-800'
                     }`}>
                       {recentAssessment.anxiety_level}
                     </p>
                     {/* Status Badge */}
-                    <span className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold ${
-                      recentAssessment.percentage < 25 ? 'bg-green-200 text-green-800' :
-                      recentAssessment.percentage < 50 ? 'bg-blue-200 text-blue-800' :
-                      recentAssessment.percentage < 75 ? 'bg-yellow-200 text-yellow-800' :
-                      'bg-red-200 text-red-800'
+                    <span className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold border ${
+                      recentAssessment.percentage < 25 ? 'bg-green-100 text-green-800 border-green-200' :
+                      recentAssessment.percentage < 50 ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                      recentAssessment.percentage < 75 ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                      'bg-red-100 text-red-800 border-red-200'
                     }`}>
                       {recentAssessment.percentage}%
                     </span>
@@ -1397,19 +1650,16 @@ const Dashboard = () => {
                     </div>
                     
                     {calculateImprovement() && (
-                      <motion.span 
+                      <span 
                         className={`font-bold text-xs flex items-center gap-0.5 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full flex-shrink-0 ${
                           calculateImprovement()!.isPositive 
                             ? 'bg-green-100 text-green-700 border border-green-300' 
                             : 'bg-red-100 text-red-700 border border-red-300'
                         }`}
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.5, type: "spring" }}
                       >
                         {calculateImprovement()!.isPositive ? <FaArrowUp className="text-xs" /> : <FaArrowUp className="text-xs rotate-180" />}
                         {calculateImprovement()!.isPositive ? '+' : ''}{calculateImprovement()!.value}%
-                      </motion.span>
+                      </span>
                     )}
                   </div>
                 </>
@@ -1429,180 +1679,32 @@ const Dashboard = () => {
                 </>
               )}
             </div>
-          </motion.div>
+          </div>
         </div>
 
 
 
-        {/* Breathing Exercise with scroll reveal */}
-        <ScrollReveal delay={0.2} direction="right">
-          <div className="mb-6">
-            <BreathingExercise 
-              breathingActive={breathingActive}
-              setBreathingActive={setBreathingActive}
-            />
-          </div>
-        </ScrollReveal>
+        {/* Breathing Exercise */}
+        <div className="mb-6" data-section="breathing-exercise">
+          <BreathingExercise 
+            breathingActive={breathingActive}
+            setBreathingActive={setBreathingActive}
+          />
+        </div>
 
-        {/* Quick Relaxation Tools with scroll reveal */}
-        <ScrollReveal delay={0.3} direction="left">
-          <div className="mb-6" data-relaxation-tools>
-            <QuickRelaxation />
-          </div>
-        </ScrollReveal>
+        {/* Quick Relaxation Tools */}
+        <div className="mb-6" data-relaxation-tools>
+          <QuickRelaxation />
+        </div>
 
-        {/* Daily Activities with scroll reveal */}
-        <ScrollReveal delay={0.4}>
-          <div className="mb-6">
-            <motion.h3 
-              className="font-semibold text-gray-800 mb-4 flex items-center gap-2"
-            >
-              <FaCalendarAlt className="text-green-500" />
-              Today's Activities
-            </motion.h3>
-            
-            <div className="space-y-3 w-full">
-              <motion.div 
-                className="bg-white rounded-xl p-3 sm:p-4 shadow-md border border-gray-200 flex items-center justify-between w-full"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-                whileHover={{ x: 5, backgroundColor: "#f9fafb" }}
-              >
-                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <FaCheck className="text-green-600 text-xs sm:text-sm" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-800 text-sm truncate">Morning Meditation</p>
-                    <p className="text-xs text-gray-500 truncate">5 minutes completed</p>
-                  </div>
-                </div>
-                <FaSmile className="text-green-500" />
-              </motion.div>
+        {/* Today's Activities - Dynamic Content */}
+        <div data-section="todays-activities">
+          <TodaysActivities navigate={navigate} userData={userData} />
+        </div>
 
-              <motion.div 
-                className="bg-white rounded-xl p-3 sm:p-4 shadow-md border border-gray-200 flex items-center justify-between w-full"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.3 }}
-                whileHover={{ x: 5, backgroundColor: "#f9fafb" }}
-              >
-                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#800000]/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <FaPlay className="text-[#800000] text-xs sm:text-sm" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-800 text-sm truncate">Anxiety Video</p>
-                    <p className="text-xs text-gray-500 truncate">Watch "Managing Daily Stress"</p>
-                  </div>
-                </div>
-                <FaChevronRight className="text-gray-400 flex-shrink-0" />
-              </motion.div>
 
-              <motion.div 
-                className="bg-white rounded-xl p-3 sm:p-4 shadow-md border border-gray-200 flex items-center justify-between w-full"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.4 }}
-                whileHover={{ x: 5, backgroundColor: "#f9fafb" }}
-              >
-                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-[#800000]/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <FaBrain className="text-[#800000] text-xs sm:text-sm" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-800 text-sm truncate">CBT Exercise</p>
-                    <p className="text-xs text-gray-500 truncate">Thought challenging worksheet</p>
-                  </div>
-                </div>
-                <FaChevronRight className="text-gray-400 flex-shrink-0" />
-              </motion.div>
-            </div>
-          </div>
-        </ScrollReveal>
-
-        {/* Achievements with scroll reveal */}
-        <ScrollReveal delay={0.5} direction="left">
-          <div className="mb-6">
-            <motion.h3 
-              className="font-semibold text-gray-800 mb-4 flex items-center gap-2"
-            >
-              <FaTrophy className="text-yellow-500" />
-              Achievements
-            </motion.h3>
-            
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 w-full">
-              {mockUserData.achievements.map((achievement, index) => (
-                <motion.div
-                  key={achievement.id}
-                  className={`bg-white rounded-xl p-2 sm:p-3 shadow-md border-2 text-center w-full ${
-                    achievement.unlocked 
-                      ? 'border-yellow-200 bg-gradient-to-br from-yellow-50 to-orange-50' 
-                      : 'border-gray-200 opacity-50'
-                  }`}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: 0.1 * index }}
-                  whileHover={achievement.unlocked ? { y: -5, scale: 1.05 } : {}}
-                >
-                  <div className="text-xl sm:text-2xl mb-1">{achievement.icon}</div>
-                  <p className="text-xs font-medium text-gray-700 leading-tight">{achievement.name}</p>
-                  {achievement.unlocked && (
-                    <FaCheck className="text-green-500 text-xs mx-auto mt-1" />
-                  )}
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </ScrollReveal>
-
-        {/* Mood Tracker */}
-        <ScrollReveal delay={0.6} direction="right">
-          <motion.div 
-            className="bg-[#800000]/5 rounded-2xl p-3 sm:p-4 border-2 border-[#800000]/30 w-full"
-            whileInView={{ 
-              boxShadow: ["0px 0px 0px rgba(0,0,0,0)", "0px 10px 20px rgba(0,0,0,0.1)", "0px 0px 0px rgba(0,0,0,0)"]
-            }}
-            transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-          >
-            <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2 text-sm sm:text-base">
-              <FaHeart className="text-pink-500 flex-shrink-0" />
-              <span className="truncate">How are you feeling right now?</span>
-            </h3>
-            
-            <div className="flex justify-between gap-1 sm:gap-2 w-full">
-              {['😢', '😟', '😐', '😊', '😄'].map((emoji, index) => (
-                <motion.button
-                  key={index}
-                  className="w-10 h-10 sm:w-12 sm:h-12 text-xl sm:text-2xl bg-white rounded-full shadow-md hover:shadow-lg hover:scale-110 transition-all duration-200 border-2 border-transparent hover:border-pink-300 flex-shrink-0"
-                  onClick={() => alert(`Mood recorded: ${emoji}`)}
-                  whileHover={{ scale: 1.15, rotate: 5 }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 * index }}
-                >
-                  {emoji}
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        </ScrollReveal>
-
-        {/* Scroll-up button */}
-        <motion.div
-          className="fixed bottom-16 sm:bottom-20 right-3 sm:right-4 bg-[#800000] text-white p-2.5 sm:p-3 rounded-full shadow-lg cursor-pointer z-10"
-          onClick={scrollToTop}
-          style={{
-            opacity: scrollButtonOpacity,
-            scale: scrollButtonScale,
-          }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <FaArrowUp className="text-sm sm:text-base" />
-        </motion.div>
+        {/* Functional Mood Tracker */}
+        <MoodTracker userData={userData} />
       </div>
 
       {/* Bottom Navigation */}
@@ -1614,10 +1716,27 @@ const Dashboard = () => {
       >
         <div className="flex justify-around py-1.5 sm:py-2 px-2 w-full max-w-full">
           {[
-            { id: 'home', icon: FaHeart, label: 'Home', color: 'text-pink-500', action: () => setSelectedTab('home') },
+            { id: 'home', icon: FaHeart, label: 'Home', color: 'text-pink-500', action: () => {
+              setSelectedTab('home');
+              scrollToTop();
+            }},
             { id: 'brain', icon: FaBrain, label: 'Assessment', color: 'text-[#800000]', action: goToAssessment },
-            { id: 'leaf', icon: FaLeaf, label: 'Relax', color: 'text-green-500', action: () => setSelectedTab('leaf') },
-            { id: 'chart', icon: FaChartLine, label: 'Progress', color: 'text-[#800000]', action: () => setSelectedTab('chart') },
+            { id: 'breathing', icon: FaLeaf, label: 'Breathing', color: 'text-green-500', action: () => {
+              setSelectedTab('breathing');
+              // Scroll to breathing exercise section
+              const breathingSection = document.querySelector('[data-section="breathing-exercise"]');
+              if (breathingSection) {
+                breathingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }},
+            { id: 'activities', icon: FaCalendarAlt, label: 'Activities', color: 'text-indigo-500', action: () => {
+              setSelectedTab('activities');
+              // Scroll to Today's Activities section
+              const activitiesSection = document.querySelector('[data-section="todays-activities"]');
+              if (activitiesSection) {
+                activitiesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }},
             { id: 'user', icon: FaUser, label: 'Profile', color: 'text-gray-500', action: goToProfile }
           ].map((tab) => (
             <motion.button

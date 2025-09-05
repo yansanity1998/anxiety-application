@@ -13,7 +13,6 @@ import {
   FaArrowLeft, 
   FaChevronDown, 
   FaSpinner,
-  FaSignOutAlt,
   FaFire,
   FaEdit,
   FaCamera,
@@ -254,45 +253,6 @@ const ProfilePage: React.FC = () => {
     navigate(-1);
   };
 
-  // Sign out handler with modern confirmation
-  const handleSignOut = async () => {
-    const confirmDiv = document.createElement('div');
-    confirmDiv.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-    confirmDiv.innerHTML = `
-      <div class="bg-white rounded-2xl p-6 max-w-sm mx-4 shadow-2xl">
-        <div class="text-center">
-          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-            <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-            </svg>
-          </div>
-          <h3 class="text-lg font-medium text-gray-900 mb-2">Sign Out?</h3>
-          <p class="text-sm text-gray-500 mb-6">Are you sure you want to sign out of your account?</p>
-          <div class="flex space-x-3">
-            <button id="cancelBtn" class="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-medium hover:bg-gray-200 transition-colors">Cancel</button>
-            <button id="confirmBtn" class="flex-1 bg-red-500 text-white px-4 py-2 rounded-xl font-medium hover:bg-red-600 transition-colors">Sign Out</button>
-          </div>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(confirmDiv);
-    
-    const cancelBtn = confirmDiv.querySelector('#cancelBtn');
-    const confirmBtn = confirmDiv.querySelector('#confirmBtn');
-    
-    cancelBtn?.addEventListener('click', () => confirmDiv.remove());
-    confirmBtn?.addEventListener('click', async () => {
-      try {
-        await supabase.auth.signOut();
-        navigate('/');
-      } catch (err) {
-        console.error('Error signing out:', err);
-        showAlert('error', 'Sign Out Failed', 'Could not sign out. Please try again.');
-      }
-      confirmDiv.remove();
-    });
-  };
 
   if (isLoading) {
     return (
@@ -338,14 +298,7 @@ const ProfilePage: React.FC = () => {
                 }`}
               >
                 <FaEdit className="text-sm" />
-                <span>{isEditing ? 'Cancel' : 'Edit Profile'}</span>
-              </button>
-              <button
-                onClick={handleSignOut}
-                className="p-2 rounded-xl hover:bg-red-50 transition-colors border border-red-200 text-red-500"
-                title="Sign Out"
-              >
-                <FaSignOutAlt className="text-lg" />
+                <span>{isEditing ? 'Cancel' : 'Edit'}</span>
               </button>
             </div>
           </div>

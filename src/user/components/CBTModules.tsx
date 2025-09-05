@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaBrain, FaBookOpen, FaSearch, FaEye, FaPlay, FaCheck, FaCalendarAlt, FaTrophy, FaArrowLeft, FaFilter, FaTimes, FaLeaf, FaHeart } from 'react-icons/fa';
+import { FaBrain, FaBookOpen, FaSearch, FaEye, FaPlay, FaCheck, FaCalendarAlt, FaArrowLeft, FaFilter, FaTimes, FaLeaf, FaHeart } from 'react-icons/fa';
 import { cbtModuleService } from '../../lib/cbtModuleService';
 import type { CBTModule } from '../../lib/cbtModuleService';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -298,8 +298,34 @@ const CBTModules = ({ }: CBTModulesProps) => {
                 whileHover={{ y: -8, scale: 1.02 }}
                 className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl shadow-blue-500/10 border border-white/40 overflow-hidden hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-500"
               >
-                                 {/* Large Module Image */}
-                 <div className="relative h-64 overflow-hidden cursor-pointer" onClick={() => openImageModal(module)}>
+                                 {/* Module Header with Title and Status */}
+                <div className="p-6 pb-4 bg-gradient-to-r from-white/95 to-gray-50/95 backdrop-blur-sm border-b border-gray-100/50">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-3 leading-tight">
+                        {module.module_title}
+                      </h3>
+                      <p className="text-gray-600 text-base leading-relaxed">
+                        {module.module_description}
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0">
+                      <span className={`inline-flex items-center px-4 py-2 rounded-2xl text-sm font-bold shadow-lg ${
+                        module.module_status === 'completed' 
+                          ? 'text-emerald-700 bg-gradient-to-r from-emerald-100 to-emerald-200 border border-emerald-300/50' 
+                          : module.module_status === 'in_progress'
+                          ? 'text-amber-700 bg-gradient-to-r from-amber-100 to-amber-200 border border-amber-300/50'
+                          : 'text-slate-700 bg-gradient-to-r from-slate-100 to-slate-200 border border-slate-300/50'
+                      }`}>
+                        {getStatusIcon(module.module_status)}
+                        <span className="ml-2 capitalize">{module.module_status.replace('_', ' ')}</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Large Module Image */}
+                <div className="relative h-64 overflow-hidden cursor-pointer" onClick={() => openImageModal(module)}>
                   {module.module_image ? (
                     <>
                       <img
@@ -310,112 +336,88 @@ const CBTModules = ({ }: CBTModulesProps) => {
                           e.currentTarget.style.display = 'none';
                         }}
                       />
-                      {/* Gradient Overlay for better text readability */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      {/* Subtle gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                       
-                      {/* Status Badge on Image */}
-                      <div className="absolute top-4 right-4">
-                        <span className={`inline-flex items-center px-4 py-2 rounded-2xl text-sm font-bold backdrop-blur-md border ${
-                          module.module_status === 'completed' 
-                            ? 'text-emerald-700 bg-emerald-100/80 border-emerald-300/50' 
-                            : module.module_status === 'in_progress'
-                            ? 'text-amber-700 bg-amber-100/80 border-amber-300/50'
-                            : 'text-slate-700 bg-slate-100/80 border-slate-300/50'
-                        }`}>
-                          {getStatusIcon(module.module_status)}
-                          <span className="ml-2 capitalize">{module.module_status.replace('_', ' ')}</span>
-                        </span>
-                      </div>
-
-                      {/* Module Title Overlay */}
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <h3 className="text-2xl font-bold text-white mb-2 drop-shadow-lg">
-                          {module.module_title}
-                        </h3>
+                      {/* View Image Indicator */}
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 bg-black/20">
+                        <div className="bg-white/90 backdrop-blur-sm rounded-2xl px-4 py-2 flex items-center gap-2 text-gray-700 font-semibold">
+                          <FaEye />
+                          <span>View Image</span>
+                        </div>
                       </div>
                     </>
                   ) : (
-                    <div className="h-full bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 flex flex-col items-center justify-center cursor-pointer">
-                      <FaBrain className="text-6xl text-white/80 mb-4" />
-                      <h3 className="text-2xl font-bold text-white text-center px-4">
-                        {module.module_title}
-                      </h3>
-                      
-                      {/* Status Badge */}
-                      <div className="absolute top-4 right-4">
-                        <span className={`inline-flex items-center px-4 py-2 rounded-2xl text-sm font-bold backdrop-blur-md ${
-                          module.module_status === 'completed' 
-                            ? 'text-emerald-700 bg-emerald-100/80' 
-                            : module.module_status === 'in_progress'
-                            ? 'text-amber-700 bg-amber-100/80'
-                            : 'text-slate-700 bg-slate-100/80'
-                        }`}>
-                          {getStatusIcon(module.module_status)}
-                          <span className="ml-2 capitalize">{module.module_status.replace('_', ' ')}</span>
-                        </span>
+                    <div className="h-full bg-gradient-to-br from-blue-400 via-indigo-500 to-purple-600 flex flex-col items-center justify-center cursor-pointer group">
+                      <FaBrain className="text-6xl text-white/80 mb-4 group-hover:scale-110 transition-transform duration-300" />
+                      <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-2 flex items-center gap-2 text-white font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <FaEye />
+                        <span>View Details</span>
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Module Content - Minimized */}
-                <div className="p-6">
-                  {/* Description */}
-                  <p className="text-gray-600 text-lg leading-relaxed mb-6 line-clamp-2">
-                    {module.module_description}
-                  </p>
+                {/* Module Content */}
+                <div className="p-6 pt-4">
 
-                  {/* Dates - Compact */}
+                  {/* Progress Timeline */}
                   {(module.module_date_started || module.module_date_complete) && (
-                    <div className="flex items-center gap-6 mb-6 text-sm text-gray-500">
-                      {module.module_date_started && (
-                        <div className="flex items-center gap-2">
-                          <FaCalendarAlt className="text-blue-500" />
-                          <span>Started {formatDate(module.module_date_started)}</span>
-                        </div>
-                      )}
-                      {module.module_date_complete && (
-                        <div className="flex items-center gap-2">
-                          <FaTrophy className="text-amber-500" />
-                          <span>Completed {formatDate(module.module_date_complete)}</span>
-                        </div>
-                      )}
+                    <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-4 mb-6 border border-gray-100/50">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <FaCalendarAlt className="text-blue-500" />
+                        Progress Timeline
+                      </h4>
+                      <div className="space-y-2">
+                        {module.module_date_started && (
+                          <div className="flex items-center gap-3 text-sm text-gray-600">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                            <span>Started on {formatDate(module.module_date_started)}</span>
+                          </div>
+                        )}
+                        {module.module_date_complete && (
+                          <div className="flex items-center gap-3 text-sm text-gray-600">
+                            <div className="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0"></div>
+                            <span>Completed on {formatDate(module.module_date_complete)}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
 
                   {/* Action Buttons */}
-                  <div className="flex gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <motion.button
                       onClick={() => openModuleDetail(module)}
-                      className="flex-1 py-4 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-slate-200 hover:to-slate-300 text-slate-700 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-3"
-                      whileHover={{ scale: 1.02 }}
+                      className="py-4 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 shadow-md hover:shadow-lg border border-gray-200/50"
+                      whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <FaEye />
-                      View Details
+                      <FaEye className="text-lg" />
+                      <span>View Details</span>
                     </motion.button>
                     
                     {module.module_status !== 'in_progress' && (
                       <motion.button
                         onClick={() => handleStatusChange(module, 'in_progress')}
-                        className="flex-1 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 shadow-lg"
-                        whileHover={{ scale: 1.02 }}
+                        className="py-4 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl"
+                        whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        <FaPlay />
-                        {module.module_status === 'completed' ? 'Restart' : 'Start'}
+                        <FaPlay className="text-lg" />
+                        <span>{module.module_status === 'completed' ? 'Restart Module' : 'Start Module'}</span>
                       </motion.button>
                     )}
                     
                     {module.module_status !== 'completed' && (
                       <motion.button
                         onClick={() => handleStatusChange(module, 'completed')}
-                        className="flex-1 py-4 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 shadow-lg"
-                        whileHover={{ scale: 1.02 }}
+                        className="py-4 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl"
+                        whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        <FaCheck />
-                        Complete
+                        <FaCheck className="text-lg" />
+                        <span>Mark Complete</span>
                       </motion.button>
                     )}
                   </div>

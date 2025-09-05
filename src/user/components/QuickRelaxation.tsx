@@ -103,16 +103,9 @@ const QuickRelaxation: React.FC<QuickRelaxationProps> = ({ className = '' }) => 
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <div className="flex items-center gap-3">
-              <motion.div
-                className="w-12 h-12 bg-gradient-to-r from-teal-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg"
-                animate={{ 
-                  rotate: [0, 5, 0, -5, 0],
-                  y: [0, -2, 0]
-                }}
-                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-              >
+              <div className="w-12 h-12 bg-gradient-to-r from-teal-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
                 <FaLeaf className="text-white text-xl" />
-              </motion.div>
+              </div>
               <div>
                 <h3 className="text-lg sm:text-xl font-bold text-gray-800">Quick Relaxation</h3>
                 <p className="text-sm text-gray-600">Instant calm in minutes</p>

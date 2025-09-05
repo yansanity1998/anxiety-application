@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaVideo, FaArrowLeft, FaClock, FaCheck, FaPlay, FaExternalLinkAlt, FaSearch, FaFilter, FaTimes, FaHeart, FaCalendarAlt, FaTrophy, FaEye } from 'react-icons/fa';
+import { FaVideo, FaArrowLeft, FaClock, FaCheck, FaPlay, FaExternalLinkAlt, FaSearch, FaFilter, FaTimes, FaHeart, FaCalendarAlt, FaEye } from 'react-icons/fa';
 import { anxietyVideoService } from '../../lib/anxietyVideoService';
 import type { AnxietyVideo } from '../../lib/anxietyVideoService';
 import { useNavigate } from 'react-router-dom';
@@ -277,37 +277,33 @@ const AnxietyVideos = () => {
                 whileHover={{ y: -8, scale: 1.02 }}
                 className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl shadow-red-500/10 border border-white/40 overflow-hidden hover:shadow-2xl hover:shadow-red-500/20 transition-all duration-500"
               >
-                {/* Large Video Thumbnail Placeholder */}
-                <div className="relative h-64 overflow-hidden cursor-pointer" onClick={() => openVideoDetail(video)}>
-                  <div className="h-full bg-gradient-to-br from-red-400 via-pink-500 to-purple-600 flex flex-col items-center justify-center">
-                    {/* Video Play Icon */}
-                    <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-4 border-2 border-white/30">
-                      <FaPlay className="text-white text-2xl ml-1" />
+                {/* Video Header with Title and Status */}
+                <div className="p-6 pb-4 bg-gradient-to-r from-white/95 to-gray-50/95 backdrop-blur-sm border-b border-gray-100/50">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-3 leading-tight">
+                        {video.video_title}
+                      </h3>
+                      <p className="text-gray-600 text-base leading-relaxed">
+                        {video.video_description}
+                      </p>
+                      {/* Duration Badge */}
+                      {video.video_duration && (
+                        <div className="mt-3">
+                          <span className="inline-flex items-center px-3 py-1 rounded-xl text-sm font-semibold bg-gradient-to-r from-red-100 to-pink-100 text-red-700 border border-red-200/50">
+                            <FaClock className="mr-2" />
+                            {formatDuration(video.video_duration)}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    
-                    {/* Video Title Overlay */}
-                    <h3 className="text-2xl font-bold text-white text-center px-4 drop-shadow-lg">
-                      {video.video_title}
-                    </h3>
-                    
-                    {/* Duration Badge */}
-                    {video.video_duration && (
-                      <div className="absolute top-4 left-4">
-                        <span className="inline-flex items-center px-3 py-1 rounded-2xl text-sm font-bold bg-black/40 backdrop-blur-md text-white border border-white/20">
-                          <FaClock className="mr-2" />
-                          {formatDuration(video.video_duration)}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {/* Status Badge */}
-                    <div className="absolute top-4 right-4">
-                      <span className={`inline-flex items-center px-4 py-2 rounded-2xl text-sm font-bold backdrop-blur-md border ${
+                    <div className="flex-shrink-0">
+                      <span className={`inline-flex items-center px-4 py-2 rounded-2xl text-sm font-bold shadow-lg ${
                         video.video_status === 'completed' 
-                          ? 'text-emerald-700 bg-emerald-100/80 border-emerald-300/50' 
+                          ? 'text-emerald-700 bg-gradient-to-r from-emerald-100 to-emerald-200 border border-emerald-300/50' 
                           : video.video_status === 'in_progress'
-                          ? 'text-amber-700 bg-amber-100/80 border-amber-300/50'
-                          : 'text-slate-700 bg-slate-100/80 border-slate-300/50'
+                          ? 'text-amber-700 bg-gradient-to-r from-amber-100 to-amber-200 border border-amber-300/50'
+                          : 'text-slate-700 bg-gradient-to-r from-slate-100 to-slate-200 border border-slate-300/50'
                       }`}>
                         {getStatusIcon(video.video_status)}
                         <span className="ml-2 capitalize">{video.video_status.replace('_', ' ')}</span>
@@ -316,64 +312,82 @@ const AnxietyVideos = () => {
                   </div>
                 </div>
 
-                {/* Video Content - Minimized */}
-                <div className="p-6">
-                  {/* Description */}
-                  <p className="text-gray-600 text-lg leading-relaxed mb-6 line-clamp-2">
-                    {video.video_description}
-                  </p>
+                {/* Large Video Thumbnail */}
+                <div className="relative h-64 overflow-hidden cursor-pointer" onClick={() => openVideoDetail(video)}>
+                  <div className="h-full bg-gradient-to-br from-red-400 via-pink-500 to-purple-600 flex flex-col items-center justify-center group">
+                    {/* Video Play Icon */}
+                    <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-4 border-2 border-white/30 group-hover:scale-110 transition-transform duration-300">
+                      <FaPlay className="text-white text-2xl ml-1" />
+                    </div>
+                    
+                    {/* View Video Indicator */}
+                    <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-2 flex items-center gap-2 text-white font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <FaEye />
+                      <span>Watch Video</span>
+                    </div>
+                  </div>
+                </div>
 
-                  {/* Dates - Compact */}
+                {/* Video Content */}
+                <div className="p-6 pt-4">
+
+                  {/* Viewing Timeline */}
                   {(video.video_date_started || video.video_date_completed) && (
-                    <div className="flex items-center gap-6 mb-6 text-sm text-gray-500">
-                      {video.video_date_started && (
-                        <div className="flex items-center gap-2">
-                          <FaCalendarAlt className="text-red-500" />
-                          <span>Started {formatDate(video.video_date_started)}</span>
-                        </div>
-                      )}
-                      {video.video_date_completed && (
-                        <div className="flex items-center gap-2">
-                          <FaTrophy className="text-amber-500" />
-                          <span>Completed {formatDate(video.video_date_completed)}</span>
-                        </div>
-                      )}
+                    <div className="bg-gradient-to-r from-gray-50 to-white rounded-2xl p-4 mb-6 border border-gray-100/50">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <FaCalendarAlt className="text-red-500" />
+                        Viewing History
+                      </h4>
+                      <div className="space-y-2">
+                        {video.video_date_started && (
+                          <div className="flex items-center gap-3 text-sm text-gray-600">
+                            <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></div>
+                            <span>Started on {formatDate(video.video_date_started)}</span>
+                          </div>
+                        )}
+                        {video.video_date_completed && (
+                          <div className="flex items-center gap-3 text-sm text-gray-600">
+                            <div className="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0"></div>
+                            <span>Completed on {formatDate(video.video_date_completed)}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
 
                   {/* Action Buttons */}
-                  <div className="flex gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <motion.button
                       onClick={() => openVideoDetail(video)}
-                      className="flex-1 py-4 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-slate-200 hover:to-slate-300 text-slate-700 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-3"
-                      whileHover={{ scale: 1.02 }}
+                      className="py-4 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-700 rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 shadow-md hover:shadow-lg border border-gray-200/50"
+                      whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <FaEye />
-                      View Details
+                      <FaEye className="text-lg" />
+                      <span>View Details</span>
                     </motion.button>
                     
                     {video.video_status !== 'in_progress' && (
                       <motion.button
                         onClick={() => handleStatusChange(video, 'in_progress')}
-                        className="flex-1 py-4 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 shadow-lg"
-                        whileHover={{ scale: 1.02 }}
+                        className="py-4 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl"
+                        whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        <FaPlay />
-                        {video.video_status === 'completed' ? 'Rewatch' : 'Start'}
+                        <FaPlay className="text-lg" />
+                        <span>{video.video_status === 'completed' ? 'Rewatch Video' : 'Start Video'}</span>
                       </motion.button>
                     )}
                     
                     {video.video_status !== 'completed' && (
                       <motion.button
                         onClick={() => handleStatusChange(video, 'completed')}
-                        className="flex-1 py-4 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 shadow-lg"
-                        whileHover={{ scale: 1.02 }}
+                        className="py-4 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-2xl font-semibold transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl"
+                        whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        <FaCheck />
-                        Complete
+                        <FaCheck className="text-lg" />
+                        <span>Mark Complete</span>
                       </motion.button>
                     )}
                   </div>
