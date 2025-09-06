@@ -24,7 +24,6 @@ import {
   FaChevronRight,
   FaChevronLeft,
   // FaPlus,
-  FaArrowUp,
   FaTasks,
   FaCheck,
   FaSignOutAlt,
@@ -421,7 +420,7 @@ const MainNavCarousel = ({ navigate }: { navigate: any }) => {
     },
     {
       id: 'activities',
-      title: 'Activities',
+      title: 'Gamification',
       subtitle: 'Fun wellness challenges',
       icon: FaGamepad,
       gradient: 'from-orange-500 to-amber-600',
@@ -865,7 +864,7 @@ const Dashboard = () => {
   const closeNotificationPopover = () => setActiveNotification(null);
 
   return (
-    <div className="min-h-screen bg-[#800000]/5 w-full" style={{ maxWidth: '100vw' }}>
+    <div className="min-h-screen bg-[#800000]/20 w-full" style={{ maxWidth: '100vw' }}>
       {/* Header */}
       <div 
         ref={headerRef}
@@ -1082,7 +1081,6 @@ const Dashboard = () => {
                 {/* Status Section */}
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-green-200">
                   <h4 className="font-semibold text-green-800 mb-2 flex items-center text-sm sm:text-base">
-                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-full mr-1 sm:mr-2"></div>
                     Status
                   </h4>
                   <div className="flex items-start sm:items-center justify-between gap-2">
@@ -1183,13 +1181,6 @@ const Dashboard = () => {
         </>
       )}
 
-      {/* Scroll To Top Button */}
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-20 sm:bottom-24 right-3 sm:right-4 z-40 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-[#800000] to-[#a00000] hover:from-[#660000] hover:to-[#800000] text-white rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 hover:shadow-3xl border-2 border-white/20 hover:scale-110 hover:-translate-y-1"
-        >
-          <FaArrowUp className="text-lg sm:text-xl" />
-        </button>
 
       {/* Main Content */}
       <div className="w-full max-w-full px-3 sm:px-4 py-4 sm:py-6 pb-20 overflow-x-hidden">
@@ -1236,7 +1227,6 @@ const Dashboard = () => {
               <StreakPet streak={userStreak} className="animate-bounce-slow" showLabel={false} />
             </div>
             <div className="mt-1 sm:mt-2 flex items-center gap-1 justify-center">
-              <FaArrowUp className={`text-xs ${getFireColor(userStreak)}`} />
               <span className={`text-xs font-medium ${getFireColor(userStreak)} text-center leading-tight`}>
                 {userStreak > 0 ? `${userStreak} days!` : 'Start today!'}
               </span>
@@ -1359,7 +1349,6 @@ const Dashboard = () => {
                             : 'bg-red-100 text-red-700 border border-red-300'
                         }`}
                       >
-                        {calculateImprovement()!.isPositive ? <FaArrowUp className="text-xs" /> : <FaArrowUp className="text-xs rotate-180" />}
                         {calculateImprovement()!.isPositive ? '+' : ''}{calculateImprovement()!.value}%
                       </span>
                     )}
@@ -1407,7 +1396,7 @@ const Dashboard = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-200/50 shadow-2xl z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-[#800000] border-t border-white/10 shadow-2xl z-50 backdrop-blur-sm">
         <div className="flex justify-around py-1.5 sm:py-2 px-2 w-full max-w-full">
           {[
             { id: 'home', icon: FaHeart, label: 'Home', color: 'text-pink-500', action: () => {
@@ -1442,13 +1431,10 @@ const Dashboard = () => {
                   : 'hover:bg-gray-50'
               }`}
             >
-              <tab.icon className={`text-base sm:text-lg ${selectedTab === tab.id ? tab.color : 'text-gray-400'}`} />
-              <span className={`text-xs mt-0.5 sm:mt-1 truncate ${selectedTab === tab.id ? tab.color : 'text-gray-400'}`}>
+              <tab.icon className={`text-base sm:text-lg ${selectedTab === tab.id ? tab.color : 'text-white/70'}`} />
+              <span className={`text-xs mt-0.5 sm:mt-1 truncate ${selectedTab === tab.id ? 'text-white' : 'text-white/70'}`}>
                 {tab.label}
               </span>
-              {selectedTab === tab.id && (
-                <div className="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-[#800000]" />
-              )}
             </button>
           ))}
         </div>

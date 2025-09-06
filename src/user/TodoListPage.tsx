@@ -6,7 +6,7 @@ const TodoListPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-[#800000]/20 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center mb-6">

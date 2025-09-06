@@ -36,6 +36,14 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
   const [highScore, setHighScore] = useState(0);
   const [matches, setMatches] = useState(0);
   const [attempts, setAttempts] = useState(0);
+  const [finalScore, setFinalScore] = useState(0);
+  const [scoreBreakdown, setScoreBreakdown] = useState({
+    matchPoints: 0,
+    timeBonus: 0,
+    levelBonus: 0,
+    accuracyBonus: 0,
+    completionBonus: 0
+  });
 
   // Memory symbols with colors
   const symbols = [
@@ -71,12 +79,23 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
   // Check for game completion
   useEffect(() => {
     if (cards.length > 0 && cards.every(card => card.isMatched)) {
-      // Level completed
-      const timeBonus = Math.max(0, 60 - gameTime) * 10;
-      const levelBonus = level * 100;
-      const totalScore = score + timeBonus + levelBonus;
+      // Calculate precise level completion bonuses
+      const timeBonus = Math.max(0, (60 - gameTime)) * 15; // 15 points per second saved
+      const levelBonus = level * 150; // 150 points per level
+      const accuracy = getAccuracy();
+      const accuracyBonus = accuracy >= 80 ? 200 : accuracy >= 60 ? 100 : accuracy >= 40 ? 50 : 0;
       
-      setScore(totalScore);
+      const levelScore = timeBonus + levelBonus + accuracyBonus;
+      const newTotalScore = score + levelScore;
+      
+      setScore(newTotalScore);
+      setScoreBreakdown({
+        matchPoints: score,
+        timeBonus: timeBonus,
+        levelBonus: levelBonus,
+        accuracyBonus: accuracyBonus,
+        completionBonus: 0
+      });
       
       if (level < 5) {
         // Next level
@@ -88,11 +107,19 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
           initializeCards(level + 1);
         }, 1500);
       } else {
-        // Game completed
+        // Game completed - calculate final score
+        const completionBonus = 500; // Bonus for completing all levels
+        const finalTotalScore = newTotalScore + completionBonus;
+        setFinalScore(finalTotalScore);
+        setScore(finalTotalScore);
+        setScoreBreakdown(prev => ({
+          ...prev,
+          completionBonus: completionBonus
+        }));
         endGame();
       }
     }
-  }, [cards, score, level, gameTime]);
+  }, [cards, score, level, gameTime, matches, attempts]);
 
   const initializeCards = useCallback((currentLevel: number) => {
     const pairsCount = Math.min(4 + currentLevel, 8); // 5-8 pairs based on level
@@ -157,7 +184,9 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
             )
           );
           setMatches(prev => prev + 1);
-          setScore(prev => prev + 50 + (level * 10));
+          // Precise match scoring: base 75 points + level multiplier
+          const matchPoints = 75 + (level * 25);
+          setScore(prev => prev + matchPoints);
         } else {
           // No match - flip cards back
           setCards(prevCards => 
@@ -182,6 +211,8 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
     setGameTime(0);
     setMatches(0);
     setAttempts(0);
+    setFinalScore(0);
+    setScoreBreakdown({ matchPoints: 0, timeBonus: 0, levelBonus: 0, accuracyBonus: 0, completionBonus: 0 });
     setShowInstructions(false);
     initializeCards(1);
   };
@@ -198,10 +229,13 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
     setGameActive(false);
     setGameOver(true);
     
-    // Update high score
-    if (score > highScore) {
-      setHighScore(score);
-      localStorage.setItem('brainGameHighScore', score.toString());
+    // Ensure final score is set and precise
+    const currentFinalScore = finalScore > 0 ? finalScore : score;
+    
+    // Update high score with final precise score
+    if (currentFinalScore > highScore) {
+      setHighScore(currentFinalScore);
+      localStorage.setItem('brainGameHighScore', currentFinalScore.toString());
     }
   };
 
@@ -213,6 +247,8 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
     setGameTime(0);
     setMatches(0);
     setAttempts(0);
+    setFinalScore(0);
+    setScoreBreakdown({ matchPoints: 0, timeBonus: 0, levelBonus: 0, accuracyBonus: 0, completionBonus: 0 });
     setCards([]);
     setFlippedCards([]);
     setShowInstructions(true);
@@ -300,40 +336,41 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
           )}
         </div>
 
-        {/* Instructions */}
+        {/* Compact Instructions */}
         {showInstructions && (
-          <div className="bg-gradient-to-br from-white/90 to-indigo-50/90 backdrop-blur-md rounded-3xl p-6 mb-6 border border-white/60 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-indigo-200/30 to-transparent rounded-full translate-x-10 -translate-y-10"></div>
-            <h3 className="font-bold text-xl text-gray-800 mb-4 flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center">
-                <FaBrain className="text-white text-sm" />
-              </div>
-              <span className="bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent">How to Play</span>
-            </h3>
-            <div className="text-sm text-gray-700 space-y-3">
-              <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-2xl border border-blue-200">
-                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <FaEye className="text-white text-xs" />
-                </div>
-                <p><strong className="text-blue-700">Flip cards</strong> - Tap any card to reveal what's underneath</p>
-              </div>
-              <div className="flex items-start gap-3 p-3 bg-purple-50 rounded-2xl border border-purple-200">
-                <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+          <div className="bg-gradient-to-br from-white/90 to-indigo-50/90 backdrop-blur-md rounded-2xl p-4 mb-4 border border-white/60 shadow-xl relative overflow-hidden">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
+                <div className="w-6 h-6 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center">
                   <FaBrain className="text-white text-xs" />
                 </div>
-                <p><strong className="text-purple-700">Remember locations</strong> - Use your memory to recall card positions</p>
+                <span className="bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent">Quick Guide</span>
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-center gap-3 sm:gap-6 text-xs text-gray-700 px-2">
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
+                <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <FaEye className="text-white text-xs" />
+                </div>
+                <span className="font-medium text-blue-700">Flip</span>
               </div>
-              <div className="flex items-start gap-3 p-3 bg-green-50 rounded-2xl border border-green-200">
-                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
+                <div className="w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <FaBrain className="text-white text-xs" />
+                </div>
+                <span className="font-medium text-purple-700">Remember</span>
+              </div>
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
+                <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
                   <FaStar className="text-white text-xs" />
                 </div>
-                <p><strong className="text-green-700">Match pairs</strong> - Find all matching symbols to advance levels</p>
+                <span className="font-medium text-green-700">Match</span>
               </div>
-              <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-2xl border border-orange-200">
-                <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
+                <div className="w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
                   <FaClock className="text-white text-xs" />
                 </div>
-                <p><strong className="text-orange-700">Speed bonus</strong> - Complete levels faster for extra points!</p>
+                <span className="font-medium text-orange-700">Speed!</span>
               </div>
             </div>
           </div>
@@ -387,32 +424,49 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
 
           {/* Game Over Overlay */}
           {gameOver && (
-            <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-indigo-900/40 to-purple-900/40 backdrop-blur-md flex items-center justify-center">
-              <div className="bg-gradient-to-br from-white via-indigo-50 to-purple-50 rounded-3xl p-8 text-center shadow-3xl border border-white/50 max-w-sm mx-4 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-100/30 to-purple-100/30 rounded-3xl"></div>
-                <div className="relative z-10">
-                  <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl animate-bounce">
-                    <FaTrophy className="text-white text-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-indigo-900/50 to-purple-900/50 backdrop-blur-md flex items-center justify-center p-3 z-50">
+              <div className="bg-gradient-to-br from-white via-indigo-50 to-purple-50 rounded-xl p-3 text-center shadow-3xl border border-white/50 w-full max-w-[280px] relative overflow-hidden transform scale-100 animate-in fade-in zoom-in duration-300 mx-2">
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-100/30 to-purple-100/30 rounded-xl"></div>
+                <div className="relative z-20">
+                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-2xl animate-bounce">
+                    <FaTrophy className="text-white text-lg" />
                   </div>
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent mb-4">Training Complete!</h3>
-                  <div className="space-y-2 mb-6">
-                    <p className="text-gray-700">Final Score: <span className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{score}</span></p>
-                    <p className="text-gray-600">Accuracy: <span className="font-bold text-green-600">{getAccuracy()}%</span></p>
-                    <p className="text-gray-600">Total Time: <span className="font-bold text-blue-600">{formatTime(gameTime)}</span></p>
-                    <p className="text-gray-600">Levels Completed: <span className="font-bold text-purple-600">{level}</span></p>
+                  <h3 className="text-lg font-bold bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent mb-3">Training Complete!</h3>
+                  <div className="space-y-2 mb-4">
+                    <p className="text-xs text-gray-700">Final Score:</p>
+                    <div className="font-bold text-2xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{finalScore > 0 ? finalScore : score}</div>
+                    
+                    {/* Score Breakdown */}
+                    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-2 mt-2">
+                      <p className="text-xs font-semibold text-gray-700 mb-1">Score Breakdown:</p>
+                      <div className="grid grid-cols-2 gap-1 text-xs">
+                        <div className="text-blue-600">Matches: <span className="font-bold">{scoreBreakdown.matchPoints}</span></div>
+                        <div className="text-green-600">Time: <span className="font-bold">{scoreBreakdown.timeBonus}</span></div>
+                        <div className="text-purple-600">Level: <span className="font-bold">{scoreBreakdown.levelBonus}</span></div>
+                        <div className="text-orange-600">Accuracy: <span className="font-bold">{scoreBreakdown.accuracyBonus}</span></div>
+                        {scoreBreakdown.completionBonus && (
+                          <div className="col-span-2 text-yellow-600 text-center font-bold">Completion Bonus: {scoreBreakdown.completionBonus}</div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-center gap-3 text-xs text-gray-600 mt-2">
+                      <span>Accuracy: <span className="font-bold text-green-600">{getAccuracy()}%</span></span>
+                      <span>Levels: <span className="font-bold text-purple-600">{level}/5</span></span>
+                    </div>
                   </div>
-                  {score === highScore && score > 0 && (
-                    <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-300 rounded-2xl p-3 mb-6">
-                      <p className="text-lg font-bold text-yellow-700 flex items-center justify-center gap-2">
-                        <FaStar className="text-yellow-500" />
-                        🎉 New High Score! 🎉
-                        <FaStar className="text-yellow-500" />
+                  {(finalScore > 0 ? finalScore : score) === highScore && (finalScore > 0 ? finalScore : score) > 0 && (
+                    <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-300 rounded-lg p-2 mb-3">
+                      <p className="text-xs font-bold text-yellow-700 flex items-center justify-center gap-1">
+                        <FaStar className="text-yellow-500 text-xs" />
+                        <span>🎉 New High Score! 🎉</span>
+                        <FaStar className="text-yellow-500 text-xs" />
                       </p>
                     </div>
                   )}
                   <button
                     onClick={resetGame}
-                    className="bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 text-white px-8 py-3 rounded-2xl font-bold hover:from-indigo-600 hover:via-purple-600 hover:to-blue-600 transition-all duration-300 shadow-2xl hover:shadow-3xl hover:scale-105 transform"
+                    className="bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 text-white px-4 py-2.5 rounded-lg font-bold hover:from-indigo-600 hover:via-purple-600 hover:to-blue-600 transition-all duration-300 shadow-2xl hover:shadow-3xl hover:scale-105 transform text-sm w-full"
                   >
                     Train Again
                   </button>
@@ -466,31 +520,24 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
           )}
         </div>
 
-        {/* Game Benefits */}
-        <div className="mt-6 bg-gradient-to-br from-white/80 via-indigo-50/80 to-purple-50/80 backdrop-blur-md rounded-3xl p-6 border border-white/60 shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-indigo-200/20 to-transparent rounded-full translate-x-12 -translate-y-12"></div>
-          <h4 className="font-bold text-xl text-gray-800 mb-4 flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl flex items-center justify-center">
-              <FaBrain className="text-white text-sm" />
-            </div>
-            <span className="bg-gradient-to-r from-indigo-700 to-purple-700 bg-clip-text text-transparent">Cognitive Benefits</span>
-          </h4>
-          <div className="text-sm text-gray-700 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 p-3 bg-white/60 rounded-2xl border border-indigo-200">
+        {/* Compact Benefits */}
+        <div className="mt-4 bg-gradient-to-r from-indigo-50/80 to-purple-50/80 backdrop-blur-md rounded-xl p-3 border border-indigo-200/50 shadow-lg">
+          <div className="flex items-center justify-center gap-4 text-xs text-gray-700">
+            <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-              <span className="font-medium">Enhances working memory</span>
+              <span className="font-medium text-indigo-700">Memory</span>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-white/60 rounded-2xl border border-purple-200">
+            <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              <span className="font-medium">Improves concentration</span>
+              <span className="font-medium text-purple-700">Focus</span>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-white/60 rounded-2xl border border-blue-200">
+            <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="font-medium">Boosts pattern recognition</span>
+              <span className="font-medium text-blue-700">Pattern</span>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-white/60 rounded-2xl border border-cyan-200">
+            <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
-              <span className="font-medium">Strengthens visual processing</span>
+              <span className="font-medium text-cyan-700">Visual</span>
             </div>
           </div>
         </div>

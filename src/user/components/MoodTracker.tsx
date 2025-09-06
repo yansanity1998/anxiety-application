@@ -153,7 +153,7 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 min-h-screen p-4 animate-pulse">
+      <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 min-h-0 p-4 pb-8 animate-pulse">
         <div className="h-6 bg-purple-200 rounded mb-4"></div>
         <div className="flex gap-3 mb-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -170,20 +170,20 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
   }
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 min-h-screen">
+    <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 min-h-0 pb-4">
 
       {/* How's Your Mood Today Section */}
-      <div className="px-4 mb-8 pt-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">How's Your Mood Today</h2>
+      <div className="px-3 sm:px-4 mb-6 sm:mb-8 pt-4 sm:pt-6">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">How's Your Mood Today</h2>
         
         {/* Mood Selection - Horizontal Layout */}
-        <div className="w-full overflow-x-auto scrollbar-hide pl-1 pr-4 py-3">
-          <div className="flex items-center gap-4 pb-2" style={{ minWidth: 'max-content' }}>
+        <div className="w-full overflow-x-auto scrollbar-hide pl-1 pr-3 sm:pr-4 py-2 sm:py-3">
+          <div className="flex items-center gap-3 sm:gap-4 pb-2" style={{ minWidth: 'max-content' }}>
             {MOOD_OPTIONS.map((mood) => (
               <motion.button
                 key={mood.level}
                 onClick={() => handleMoodSelect(mood.level)}
-                className={`relative flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 overflow-hidden ${
+                className={`relative flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition-all duration-300 overflow-hidden ${
                   selectedMood === mood.level
                     ? 'scale-110 shadow-2xl bg-gradient-to-br from-purple-100 to-pink-100'
                     : 'hover:scale-105 shadow-lg bg-white hover:bg-gradient-to-br hover:from-gray-50 hover:to-purple-50'
@@ -194,7 +194,7 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: mood.level * 0.1 }}
               >
-                <span className="filter drop-shadow-sm relative z-10 text-2xl leading-none">{mood.emoji}</span>
+                <span className="filter drop-shadow-sm relative z-10 text-xl sm:text-2xl leading-none">{mood.emoji}</span>
                 {selectedMood === mood.level && (
                   <motion.div
                     className="absolute inset-0 rounded-full border-4 border-purple-400 bg-purple-50 bg-opacity-20"
@@ -210,9 +210,9 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
       </div>
 
       {/* Monthly Stats Section */}
-      <div className="px-4 mb-8">
+      <div className="px-3 sm:px-4 mb-6 sm:mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold text-gray-800">Monthly Stats</h3>
+          <h3 className="text-base sm:text-lg font-bold text-gray-800">Monthly Stats</h3>
           <button 
             onClick={() => setShowHistory(true)}
             className="text-purple-600 text-sm font-medium flex items-center gap-1 hover:text-purple-700 transition-colors"
@@ -223,7 +223,7 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
         </div>
         
         {/* Date Pills */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide pl-1 pr-4 py-3">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide pl-1 pr-3 sm:pr-4 py-2 sm:py-3">
           {monthlyStats.map((stat, index) => {
             const colors = [
               'from-yellow-400 to-orange-500',
@@ -239,17 +239,17 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
               <motion.button
                 key={`${stat.day}-${index}`}
                 onClick={() => handleDateClick(stat)}
-                className={`flex-shrink-0 w-18 h-36 rounded-3xl bg-gradient-to-b ${colors[index]} flex flex-col items-center justify-center text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer ${
+                className={`flex-shrink-0 w-16 h-32 sm:w-18 sm:h-36 rounded-2xl sm:rounded-3xl bg-gradient-to-b ${colors[index]} flex flex-col items-center justify-center text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer ${
                   stat.isToday ? 'ring-4 ring-white ring-opacity-70 scale-110 shadow-2xl' : ''
                 }`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <span className="text-xl font-bold">{stat.day}</span>
-                <span className="text-sm font-medium">{stat.dayName}</span>
+                <span className="text-lg sm:text-xl font-bold">{stat.day}</span>
+                <span className="text-xs sm:text-sm font-medium">{stat.dayName}</span>
                 {stat.hasRecord && (
-                  <span className="text-2xl mt-2">{stat.mood}</span>
+                  <span className="text-xl sm:text-2xl mt-1 sm:mt-2">{stat.mood}</span>
                 )}
               </motion.button>
             );
@@ -261,7 +261,7 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
       {/* Notes Section - Hidden by default, shown when mood selected */}
       {selectedMood && (
         <motion.div
-          className="px-4 mb-8"
+          className="px-3 sm:px-4 mb-6 sm:mb-8"
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}

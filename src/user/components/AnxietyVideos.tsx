@@ -131,7 +131,7 @@ const AnxietyVideos = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-pink-100 flex items-center justify-center">
+      <div className="min-h-screen bg-[#800000]/20 flex items-center justify-center">
         <div className="text-center">
           <motion.div
             className="w-20 h-20 border-4 border-red-200 border-t-red-600 rounded-full mx-auto mb-6"
@@ -152,7 +152,7 @@ const AnxietyVideos = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-pink-100">
+    <div className="min-h-screen bg-[#800000]/20">
       {/* Modern Header */}
       <motion.div 
         className="bg-white/95 backdrop-blur-xl border-b border-white/20 sticky top-0 z-20 shadow-lg shadow-red-500/10"

@@ -190,7 +190,7 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
     fetchAppointments();
   }, []);
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside or scrolling
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
@@ -200,9 +200,21 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
       }
     };
 
+    const handleScroll = () => {
+      if (expandedAppointment !== null) {
+        setExpandedAppointment(null);
+        setDropdownPosition(null);
+      }
+    };
+
     document.addEventListener('click', handleClickOutside);
+    document.addEventListener('scroll', handleScroll, true); // Use capture to catch all scroll events
+    window.addEventListener('resize', handleScroll);
+    
     return () => {
       document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleScroll);
     };
   }, [expandedAppointment]);
 
@@ -820,10 +832,13 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
       {/* Dropdown rendered using Portal to ensure it's above everything */}
       {expandedAppointment && dropdownPosition && createPortal(
         <div 
-          className="dropdown-container fixed bg-white border border-gray-300 rounded-md shadow-md z-[99999] min-w-20 py-0.5" 
+          className="dropdown-container fixed bg-white border border-gray-300 rounded-md shadow-md z-[99999] py-0.5" 
           style={{
             top: `${dropdownPosition.top}px`,
             left: `${dropdownPosition.left}px`,
+            width: '100%',
+            maxWidth: '200px',
+            minWidth: '160px',
             transform: 'translateX(-50%)'
           }}
         >

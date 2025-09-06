@@ -22,7 +22,7 @@ const Activities = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#800000]/5 w-full" style={{ maxWidth: '100vw' }}>
+    <div className="min-h-screen bg-[#800000]/20 w-full" style={{ maxWidth: '100vw' }}>
       {/* Header */}
       <div className="bg-[#800000] border-b border-white/10 sticky top-0 z-50 shadow-lg w-full backdrop-blur-sm">
         <div className="relative px-3 sm:px-4 md:px-6 py-3 sm:py-4 w-full max-w-full">

@@ -133,7 +133,7 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
       bgColor: selectedItem.bgColor,
       x: Math.random() * 80 + 10, // Random x position (10-90%)
       y: -5,
-      speed: Math.random() * 2 + 1 + (level * 0.5), // Speed increases with level
+      speed: Math.random() * 3 + 2.5 + (level * 0.8), // Speed increases with level
       collected: false
     };
 
@@ -141,33 +141,34 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
   }, [level]);
 
   const collectItem = (itemId: number) => {
-    setGameItems(prevItems => 
-      prevItems.map(item => {
-        if (item.id === itemId && !item.collected) {
-          if (item.type === 'positive') {
-            const basePoints = positiveItems.find(p => p.icon === item.icon)?.points || 10;
-            const comboMultiplier = Math.floor(combo / 5) + 1;
-            const points = basePoints * comboMultiplier;
-            
-            setScore(prev => prev + points);
-            setCombo(prev => prev + 1);
-            setShowCombo(true);
-            setTimeout(() => setShowCombo(false), 1000);
-          } else {
-            setLives(prev => {
-              const newLives = prev - 1;
-              if (newLives <= 0) {
-                endGame();
-              }
-              return newLives;
-            });
-            setCombo(0); // Reset combo on negative item
+    setGameItems(prevItems => {
+      const targetItem = prevItems.find(item => item.id === itemId && !item.collected);
+      if (!targetItem) return prevItems;
+      
+      if (targetItem.type === 'positive') {
+        const basePoints = positiveItems.find(p => p.icon === targetItem.icon)?.points || 10;
+        const comboMultiplier = Math.floor(combo / 5) + 1;
+        const points = basePoints * comboMultiplier;
+        
+        setScore(prev => prev + points);
+        setCombo(prev => prev + 1);
+        setShowCombo(true);
+        setTimeout(() => setShowCombo(false), 1000);
+      } else {
+        setLives(prev => {
+          const newLives = prev - 1;
+          if (newLives <= 0) {
+            endGame();
           }
-          return { ...item, collected: true };
-        }
-        return item;
-      })
-    );
+          return newLives;
+        });
+        setCombo(0); // Reset combo on negative item
+      }
+      
+      return prevItems.map(item => 
+        item.id === itemId ? { ...item, collected: true } : item
+      );
+    });
   };
 
   const startGame = () => {
@@ -289,34 +290,35 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
           )}
         </div>
 
-        {/* Instructions */}
+        {/* Compact Instructions */}
         {showInstructions && (
-          <div className="bg-gradient-to-br from-white/90 to-purple-50/90 backdrop-blur-md rounded-3xl p-6 mb-6 border border-white/60 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-purple-200/30 to-transparent rounded-full translate-x-10 -translate-y-10"></div>
-            <h3 className="font-bold text-xl text-gray-800 mb-4 flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
-                <FaGamepad className="text-white text-sm" />
-              </div>
-              <span className="bg-gradient-to-r from-purple-700 to-pink-700 bg-clip-text text-transparent">How to Play</span>
-            </h3>
-            <div className="text-sm text-gray-700 space-y-3">
-              <div className="flex items-start gap-3 p-3 bg-green-50 rounded-2xl border border-green-200">
-                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+          <div className="bg-gradient-to-br from-white/90 to-purple-50/90 backdrop-blur-md rounded-2xl p-4 mb-4 border border-white/60 shadow-xl relative overflow-hidden">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
+                <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                  <FaGamepad className="text-white text-xs" />
+                </div>
+                <span className="bg-gradient-to-r from-purple-700 to-pink-700 bg-clip-text text-transparent">Quick Guide</span>
+              </h3>
+            </div>
+            <div className="flex items-center justify-center gap-6 text-xs text-gray-700">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
                   <FaHeart className="text-white text-xs" />
                 </div>
-                <p><strong className="text-green-700">Collect positive items</strong> - Hearts, smiles, leaves, stars, and suns give you points</p>
+                <span className="font-medium text-green-700">Collect +</span>
               </div>
-              <div className="flex items-start gap-3 p-3 bg-red-50 rounded-2xl border border-red-200">
-                <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
                   <FaCloud className="text-white text-xs" />
                 </div>
-                <p><strong className="text-red-700">Avoid negative items</strong> - Clouds and snowflakes will cost you precious lives</p>
+                <span className="font-medium text-red-700">Avoid -</span>
               </div>
-              <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-2xl border border-orange-200">
-                <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
                   <FaFire className="text-white text-xs" />
                 </div>
-                <p><strong className="text-orange-700">Build combos</strong> - Consecutive positive collections multiply your score!</p>
+                <span className="font-medium text-orange-700">Combo!</span>
               </div>
             </div>
           </div>
@@ -355,32 +357,34 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
 
           {/* Game Over Overlay */}
           {gameOver && (
-            <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-purple-900/40 to-pink-900/40 backdrop-blur-md flex items-center justify-center p-6">
-              <div className="bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 text-center shadow-3xl border border-white/50 w-full max-w-64 sm:max-w-xs relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-purple-100/30 to-pink-100/30 rounded-xl sm:rounded-2xl"></div>
-                <div className="relative z-10">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-2 sm:mb-3 shadow-2xl animate-bounce">
-                    <FaTrophy className="text-white text-lg sm:text-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-purple-900/50 to-pink-900/50 backdrop-blur-md flex items-center justify-center p-3 z-50">
+              <div className="bg-gradient-to-br from-white via-purple-50 to-pink-50 rounded-xl p-3 text-center shadow-3xl border border-white/50 w-full max-w-[280px] relative overflow-hidden transform scale-100 animate-in fade-in zoom-in duration-300 mx-2">
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-purple-100/30 to-pink-100/30 rounded-xl"></div>
+                <div className="relative z-20">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-2xl animate-bounce">
+                    <FaTrophy className="text-white text-lg" />
                   </div>
-                  <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-purple-700 to-pink-700 bg-clip-text text-transparent mb-2 sm:mb-3">Game Complete!</h3>
-                  <div className="space-y-1 sm:space-y-1.5 mb-3 sm:mb-4">
-                    <p className="text-xs sm:text-sm text-gray-700">Final Score:</p>
-                    <div className="font-bold text-lg sm:text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent break-all">{score}</div>
-                    <p className="text-xs text-gray-600">Level: <span className="font-bold text-indigo-600">{level}</span></p>
-                    <p className="text-xs text-gray-600">Combo: <span className="font-bold text-orange-600">{combo}x</span></p>
+                  <h3 className="text-lg font-bold bg-gradient-to-r from-purple-700 to-pink-700 bg-clip-text text-transparent mb-3">Game Complete!</h3>
+                  <div className="space-y-1 mb-4">
+                    <p className="text-xs text-gray-700">Final Score:</p>
+                    <div className="font-bold text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{score}</div>
+                    <div className="flex justify-center gap-3 text-xs text-gray-600">
+                      <span>Level: <span className="font-bold text-indigo-600">{level}</span></span>
+                      <span>Combo: <span className="font-bold text-orange-600">{combo}x</span></span>
+                    </div>
                   </div>
                   {score === highScore && score > 0 && (
-                    <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-300 rounded-lg sm:rounded-xl p-1.5 sm:p-2 mb-3 sm:mb-4">
-                      <p className="text-xs sm:text-sm font-bold text-yellow-700 flex items-center justify-center gap-1">
+                    <div className="bg-gradient-to-r from-yellow-100 to-orange-100 border border-yellow-300 rounded-lg p-2 mb-3">
+                      <p className="text-xs font-bold text-yellow-700 flex items-center justify-center gap-1">
                         <FaStar className="text-yellow-500 text-xs" />
-                        <span className="text-xs">🎉 New High Score! 🎉</span>
+                        <span>🎉 New High Score! 🎉</span>
                         <FaStar className="text-yellow-500 text-xs" />
                       </p>
                     </div>
                   )}
                   <button
                     onClick={resetGame}
-                    className="bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 transition-all duration-300 shadow-2xl hover:shadow-3xl hover:scale-105 transform text-xs sm:text-sm w-full"
+                    className="bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white px-4 py-2.5 rounded-lg font-bold hover:from-purple-600 hover:via-pink-600 hover:to-rose-600 transition-all duration-300 shadow-2xl hover:shadow-3xl hover:scale-105 transform text-sm w-full"
                   >
                     Play Again
                   </button>
@@ -434,31 +438,24 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
           )}
         </div>
 
-        {/* Game Benefits */}
-        <div className="mt-6 bg-gradient-to-br from-white/80 via-green-50/80 to-emerald-50/80 backdrop-blur-md rounded-3xl p-6 border border-white/60 shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-green-200/20 to-transparent rounded-full translate-x-12 -translate-y-12"></div>
-          <h4 className="font-bold text-xl text-gray-800 mb-4 flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center">
-              <FaLeaf className="text-white text-sm" />
-            </div>
-            <span className="bg-gradient-to-r from-green-700 to-emerald-700 bg-clip-text text-transparent">Mindfulness Benefits</span>
-          </h4>
-          <div className="text-sm text-gray-700 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 p-3 bg-white/60 rounded-2xl border border-green-200">
+        {/* Compact Benefits */}
+        <div className="mt-4 bg-gradient-to-r from-green-50/80 to-emerald-50/80 backdrop-blur-md rounded-xl p-3 border border-green-200/50 shadow-lg">
+          <div className="flex items-center justify-center gap-4 text-xs text-gray-700">
+            <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="font-medium">Improves focus and attention</span>
+              <span className="font-medium text-green-700">Focus</span>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-white/60 rounded-2xl border border-blue-200">
+            <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="font-medium">Reduces anxiety through play</span>
+              <span className="font-medium text-blue-700">Calm</span>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-white/60 rounded-2xl border border-purple-200">
+            <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              <span className="font-medium">Practices positive thinking</span>
+              <span className="font-medium text-purple-700">Positive</span>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-white/60 rounded-2xl border border-orange-200">
+            <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-              <span className="font-medium">Enhances coordination</span>
+              <span className="font-medium text-orange-700">Coordination</span>
             </div>
           </div>
         </div>
