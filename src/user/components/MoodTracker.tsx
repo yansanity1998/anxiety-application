@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaTimes, FaHistory } from 'react-icons/fa';
+import { FaTimes, FaHistory, FaSave, FaEdit } from 'react-icons/fa';
 import { moodService, MOOD_OPTIONS } from '../../lib/moodService';
 import type { MoodEntry } from '../../lib/moodService';
 
@@ -17,6 +17,11 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
   const [showHistory, setShowHistory] = useState(false);
   const [showDateModal, setShowDateModal] = useState(false);
   const [selectedDateData, setSelectedDateData] = useState<{date: string, mood: any, notes?: string} | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [savedMood, setSavedMood] = useState<number | null>(null);
+  const [savedNotes, setSavedNotes] = useState('');
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   
   
   // Generate monthly stats (last 7 days) - Today in middle
@@ -54,6 +59,7 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
     }
   }, [userData]);
 
+
   const loadMoodData = async () => {
     if (!userData?.id) return;
     
@@ -66,6 +72,11 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
       if (todayMood) {
         setSelectedMood(todayMood.mood_level);
         setNotes(todayMood.notes || '');
+        setSavedMood(todayMood.mood_level);
+        setSavedNotes(todayMood.notes || '');
+        setLastUpdated(todayMood.updated_at || todayMood.created_at);
+        setIsEditing(false);
+        setHasUnsavedChanges(false);
       }
 
       // Load recent moods (last 7 days)
@@ -78,25 +89,16 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
     }
   };
 
-  const handleMoodSelect = async (moodLevel: number) => {
+  const handleMoodSelect = (moodLevel: number) => {
     if (!userData?.id) return;
     
-    // Immediate UI feedback
+    // Set mood without auto-saving
     setSelectedMood(moodLevel);
+    setIsEditing(true);
     
-    try {
-      const moodEntry = await moodService.setTodaysMood(userData.id, moodLevel, notes);
-      if (moodEntry) {
-        setTodaysMood(moodEntry);
-        
-        // Immediately update recent moods for instant feedback
-        await updateRecentMoods();
-      }
-    } catch (error) {
-      console.error('Error saving mood:', error);
-      // Revert UI state on error
-      setSelectedMood(null);
-    }
+    // Check if there are unsaved changes
+    const hasChanges = moodLevel !== savedMood || notes !== savedNotes;
+    setHasUnsavedChanges(hasChanges);
   };
 
   const updateRecentMoods = async () => {
@@ -110,21 +112,51 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
     }
   };
 
-  const handleNotesChange = async (newNotes: string) => {
+  const handleNotesChange = (newNotes: string) => {
     setNotes(newNotes);
+    setIsEditing(true);
     
-    if (selectedMood && userData?.id) {
-      try {
-        const moodEntry = await moodService.setTodaysMood(userData.id, selectedMood, newNotes);
-        if (moodEntry) {
-          setTodaysMood(moodEntry);
-          // Update recent moods when notes change too
-          await updateRecentMoods();
-        }
-      } catch (error) {
-        console.error('Error updating notes:', error);
+    // Check if there are unsaved changes
+    const hasChanges = selectedMood !== savedMood || newNotes !== savedNotes;
+    setHasUnsavedChanges(hasChanges);
+  };
+
+  const handleSave = async () => {
+    if (!userData?.id || !selectedMood) return;
+    
+    try {
+      // Set the timestamp to current time immediately for instant UI feedback
+      const saveTime = new Date().toISOString();
+      setLastUpdated(saveTime);
+      
+      const moodEntry = await moodService.setTodaysMood(userData.id, selectedMood, notes);
+      if (moodEntry) {
+        setTodaysMood(moodEntry);
+        setSavedMood(selectedMood);
+        setSavedNotes(notes);
+        // Update with the actual timestamp from the database
+        setLastUpdated(moodEntry.updated_at || moodEntry.created_at);
+        setIsEditing(false);
+        setHasUnsavedChanges(false);
+        
+        // Update recent moods after saving
+        await updateRecentMoods();
       }
+    } catch (error) {
+      console.error('Error saving mood:', error);
     }
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    // Revert to saved values
+    setSelectedMood(savedMood);
+    setNotes(savedNotes);
+    setIsEditing(false);
+    setHasUnsavedChanges(false);
   };
 
   const handleDateClick = (stat: any) => {
@@ -170,7 +202,7 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
   }
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 min-h-0 pb-4">
+    <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 min-h-0 pb-4 rounded-2xl sm:rounded-3xl overflow-hidden">
 
       {/* How's Your Mood Today Section */}
       <div className="px-3 sm:px-4 mb-6 sm:mb-8 pt-4 sm:pt-6">
@@ -261,27 +293,94 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
       {/* Notes Section - Hidden by default, shown when mood selected */}
       {selectedMood && (
         <motion.div
-          className="px-3 sm:px-4 mb-6 sm:mb-8"
+          className="px-3 sm:px-4 mb-4 sm:mb-6"
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
         >
-          <div className="bg-gradient-to-br from-white to-purple-50 rounded-3xl p-6 shadow-xl border border-purple-100">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
-                <span className="text-white text-lg">📝</span>
+          <div className="bg-gradient-to-br from-white to-purple-50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-lg sm:shadow-xl border border-purple-100">
+            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-sm sm:text-lg">📝</span>
               </div>
-              <h3 className="text-lg font-semibold text-gray-800">Share your thoughts</h3>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800">Share your thoughts</h3>
             </div>
             <textarea
               value={notes}
               onChange={(e) => handleNotesChange(e.target.value)}
               placeholder="How are you feeling today? What's on your mind? (optional)"
-              className="w-full h-24 bg-transparent border-0 resize-none focus:outline-none text-gray-700 placeholder-gray-400 text-base leading-relaxed"
+              className={`w-full h-20 sm:h-24 bg-transparent border-0 resize-none focus:outline-none text-gray-700 placeholder-gray-400 text-sm sm:text-base leading-relaxed ${
+                !isEditing ? 'cursor-default' : ''
+              }`}
+              disabled={!isEditing}
+              maxLength={500}
             />
-            <div className="flex justify-between items-center mt-3 pt-3 border-t border-purple-100">
-              <span className="text-xs text-gray-500">Your thoughts are private and secure</span>
-              <span className="text-xs text-purple-500 font-medium">{notes.length}/500</span>
+            
+            {/* Mobile-first responsive footer */}
+            <div className="mt-3 pt-3 border-t border-purple-100 space-y-2 sm:space-y-0">
+              {/* Top row on mobile: Privacy text and unsaved indicator */}
+              <div className="flex items-center justify-between sm:justify-start sm:gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 flex-shrink-0">Private & secure</span>
+                  {lastUpdated && !isEditing && (
+                    <span className="text-xs text-gray-400 flex-shrink-0">
+                      • Updated {new Date(lastUpdated).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                      })}
+                    </span>
+                  )}
+                </div>
+                {hasUnsavedChanges && (
+                  <span className="text-xs text-amber-500 font-medium flex items-center gap-1">
+                    <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+                    <span className="hidden xs:inline">Unsaved changes</span>
+                    <span className="xs:hidden">Unsaved</span>
+                  </span>
+                )}
+              </div>
+              
+              {/* Bottom row on mobile: Character count and buttons */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs text-purple-500 font-medium">{notes.length}/500</span>
+                
+                {/* Action Buttons - Responsive sizing */}
+                <div className="flex gap-1.5 sm:gap-2">
+                  {!isEditing ? (
+                    <motion.button
+                      onClick={handleEdit}
+                      className="flex items-center gap-1 px-2.5 py-1.5 sm:px-3 sm:py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-medium rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm hover:shadow-md min-w-0"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <FaEdit className="text-xs flex-shrink-0" />
+                      <span className="hidden xs:inline">Edit</span>
+                    </motion.button>
+                  ) : (
+                    <>
+                      <motion.button
+                        onClick={handleCancel}
+                        className="flex items-center gap-1 px-2 py-1.5 sm:px-3 sm:py-1.5 bg-gradient-to-r from-gray-400 to-gray-500 text-white text-xs font-medium rounded-lg hover:from-gray-500 hover:to-gray-600 transition-all duration-200 shadow-sm hover:shadow-md min-w-0"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <FaTimes className="text-xs flex-shrink-0" />
+                        <span className="hidden xs:inline">Cancel</span>
+                      </motion.button>
+                      <motion.button
+                        onClick={handleSave}
+                        className="flex items-center gap-1 px-2.5 py-1.5 sm:px-3 sm:py-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-xs font-medium rounded-lg hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 shadow-sm hover:shadow-md min-w-0"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <FaSave className="text-xs flex-shrink-0" />
+                        <span className="hidden xs:inline">Save</span>
+                      </motion.button>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -325,9 +424,10 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
                     {selectedDateData.mood.mood_label}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {new Date(selectedDateData.mood.created_at).toLocaleTimeString('en-US', {
+                    {new Date(selectedDateData.mood.updated_at || selectedDateData.mood.created_at).toLocaleTimeString('en-US', {
                       hour: '2-digit',
-                      minute: '2-digit'
+                      minute: '2-digit',
+                      second: '2-digit'
                     })}
                   </div>
                 </div>
@@ -402,13 +502,15 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
                     else if (isYesterday) dayLabel = 'Yesterday';
                     else dayLabel = date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
 
-                    // Format the full date
-                    const fullDate = date.toLocaleDateString('en-US', { 
+                    // Format the full date - use updated_at if available, otherwise created_at
+                    const displayDate = new Date(mood.updated_at || mood.created_at);
+                    const fullDate = displayDate.toLocaleDateString('en-US', { 
                       year: 'numeric', 
                       month: 'short', 
                       day: 'numeric',
                       hour: '2-digit',
-                      minute: '2-digit'
+                      minute: '2-digit',
+                      second: '2-digit'
                     });
 
                     return (

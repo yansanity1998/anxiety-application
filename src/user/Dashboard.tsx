@@ -602,6 +602,7 @@ const Dashboard = () => {
   // ...existing code...
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [todaysActivities, setTodaysActivities] = useState<any[]>([]);
 
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -641,6 +642,117 @@ const Dashboard = () => {
     };
     fetchNotifications();
   }, [userData]);
+
+  // Fetch today's activities for notifications
+  useEffect(() => {
+    const fetchTodaysActivitiesForNotifications = async () => {
+      if (!userData?.id) {
+        setTodaysActivities([]);
+        return;
+      }
+
+      try {
+        const activityItems: any[] = [];
+
+        // Fetch CBT modules assigned to this user (show in_progress and not_started)
+        const { data: cbtModules } = await supabase
+          .from('cbt_module')
+          .select('*')
+          .eq('profile_id', userData.id)
+          .in('module_status', ['in_progress', 'not_started'])
+          .limit(5);
+
+        // Add CBT modules if found
+        if (cbtModules && cbtModules.length > 0) {
+          cbtModules.forEach((module: any) => {
+            activityItems.push({
+              id: `cbt-${module.id}`,
+              type: 'cbt',
+              title: module.module_title || 'CBT Module',
+              subtitle: module.module_status === 'in_progress' ? 'Continue your progress' : 'Start this module',
+              status: module.module_status,
+              icon: FaBrain,
+              color: 'blue',
+              bgColor: 'bg-blue-50',
+              iconBg: 'bg-blue-100',
+              iconColor: 'text-blue-600',
+              action: () => {
+                setShowNotifications(false);
+                navigate('/cbt-modules');
+              }
+            });
+          });
+        }
+
+        // Fetch todo items (active todos)
+        const { data: todos } = await supabase
+          .from('todo_items')
+          .select('*')
+          .eq('profile_id', userData.id)
+          .in('status', ['in_progress', 'pending'])
+          .limit(5);
+
+        // Add todo items if found
+        if (todos && todos.length > 0) {
+          todos.forEach((todo: any) => {
+            activityItems.push({
+              id: `todo-${todo.id}`,
+              type: 'todo',
+              title: todo.title || 'Task',
+              subtitle: todo.description || 'Complete this task',
+              status: 'pending',
+              icon: FaTasks,
+              color: 'green',
+              bgColor: 'bg-green-50',
+              iconBg: 'bg-green-100',
+              iconColor: 'text-green-600',
+              action: () => {
+                setShowNotifications(false);
+                navigate('/todo-list');
+              }
+            });
+          });
+        }
+
+        // Check for anxiety videos assigned to this user
+        const { data: anxietyVideos } = await supabase
+          .from('anxiety_video')
+          .select('*')
+          .eq('profile_id', userData.id)
+          .in('video_status', ['not_started', 'in_progress'])
+          .limit(5);
+
+        // Add anxiety videos if found
+        if (anxietyVideos && anxietyVideos.length > 0) {
+          anxietyVideos.forEach((video: any) => {
+            activityItems.push({
+              id: `video-${video.id}`,
+              type: 'video',
+              title: video.video_title || 'Anxiety Video',
+              subtitle: video.video_status === 'in_progress' ? 'Continue watching' : 'Watch helpful content',
+              status: video.video_status,
+              icon: FaPlay,
+              color: 'red',
+              bgColor: 'bg-red-50',
+              iconBg: 'bg-red-100',
+              iconColor: 'text-red-600',
+              action: () => {
+                setShowNotifications(false);
+                navigate('/anxiety-videos');
+              }
+            });
+          });
+        }
+
+        setTodaysActivities(activityItems);
+      } catch (error) {
+        console.error('Error fetching activities for notifications:', error);
+        setTodaysActivities([]);
+      }
+    };
+
+    fetchTodaysActivitiesForNotifications();
+  }, [userData, navigate]);
 
   const headerRef = useRef<HTMLDivElement | null>(null);
 
@@ -927,19 +1039,13 @@ const Dashboard = () => {
               {/* Notification Button */}
               <button 
                 className="relative bg-white/10 hover:bg-white/20 rounded-full transition-colors w-10 h-10 flex items-center justify-center border border-white/20"
-                onClick={() => {
-                  if (notifications && notifications.length > 0) {
-                    openNotificationPopover(notifications[0]);
-                  } else {
-                    setShowNotifications((prev) => !prev);
-                  }
-                }}
+                onClick={() => setShowNotifications((prev) => !prev)}
                 aria-label="Show notifications"
               >
                 <FaBell className="text-white text-base" />
-                {notifications.length > 0 && (
+                {(notifications.length > 0 || todaysActivities.length > 0) && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-[16px] flex items-center justify-center font-medium">
-                    {notifications.length > 9 ? '9+' : notifications.length}
+                    {(notifications.length + todaysActivities.length) > 9 ? '9+' : (notifications.length + todaysActivities.length)}
                   </span>
                 )}
               </button>
@@ -962,52 +1068,128 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-[#800000] text-lg flex items-center">
                     <FaBell className="mr-2" /> 
-                    Notifications
+                    Today's Updates
                   </h3>
-                  <button
-                    className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-                    onClick={() => setShowNotifications(false)}
-                  >
-                    <span className="text-gray-400 text-xl">×</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {(notifications.length > 0 || todaysActivities.length > 0) && (
+                      <button
+                        className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium rounded-lg transition-colors border border-red-200"
+                        onClick={() => {
+                          setNotifications([]);
+                          setTodaysActivities([]);
+                        }}
+                      >
+                        Clear All
+                      </button>
+                    )}
+                    <button
+                      className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                      onClick={() => setShowNotifications(false)}
+                    >
+                      <span className="text-gray-400 text-xl">×</span>
+                    </button>
+                  </div>
                 </div>
                 
-                {notifications.length === 0 ? (
+                {(notifications.length === 0 && todaysActivities.length === 0) ? (
                   <div className="text-center py-8">
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
                       <FaBell className="text-gray-400 text-xl" />
                     </div>
-                    <p className="text-gray-500 text-sm">No upcoming appointments.</p>
+                    <p className="text-gray-500 text-sm">No updates for today.</p>
+                    <p className="text-gray-400 text-xs mt-1">Check back later for new activities and appointments.</p>
                   </div>
                 ) : (
-                  <div className="space-y-3 max-h-64 overflow-y-auto">
-                    {notifications.map((appt) => (
-                      <div 
-                        key={appt.id} 
-                        className="cursor-pointer bg-gradient-to-r from-[#800000]/5 to-[#800000]/10 rounded-xl p-3 border border-[#800000]/10 hover:border-[#800000]/20 transition-all duration-200"
-                        onClick={() => openNotificationPopover(appt)}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                              <span className="font-semibold text-[#800000] text-sm">Appointment Scheduled</span>
-                              <span className="text-[10px] text-gray-500 ml-2">{new Date(appt.appointment_date).toLocaleDateString()}</span>
-                            </div>
-                            <div className="text-xs text-gray-700 mt-1">
-                              <div className="flex items-center">
-                                <FaCalendarAlt className="mr-1 text-[#800000]" />
-                                {appt.appointment_time} • Status: {appt.status}
+                  <div className="space-y-4 max-h-80 overflow-y-auto">
+                    {/* Appointments Section */}
+                    {notifications.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-gray-700 text-sm mb-2 flex items-center">
+                          <FaCalendarAlt className="mr-2 text-[#800000]" />
+                          Appointments ({notifications.length})
+                        </h4>
+                        <div className="space-y-2">
+                          {notifications.map((appt) => (
+                            <div 
+                              key={appt.id} 
+                              className="cursor-pointer bg-gradient-to-r from-[#800000]/5 to-[#800000]/10 rounded-xl p-3 border border-[#800000]/10 hover:border-[#800000]/20 transition-all duration-200"
+                              onClick={() => openNotificationPopover(appt)}
+                            >
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-semibold text-[#800000] text-sm">Appointment Scheduled</span>
+                                    <span className="text-[10px] text-gray-500 ml-2">{new Date(appt.appointment_date).toLocaleDateString()}</span>
+                                  </div>
+                                  <div className="text-xs text-gray-700 mt-1">
+                                    <div className="flex items-center">
+                                      <FaCalendarAlt className="mr-1 text-[#800000]" />
+                                      {appt.appointment_time} • Status: {appt.status}
+                                    </div>
+                                  </div>
+                                  {appt.notes && (
+                                    <div className="text-xs text-gray-600 mt-2 p-2 bg-white/60 rounded-lg">
+                                      Notes: {appt.notes}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                            {appt.notes && (
-                              <div className="text-xs text-gray-600 mt-2 p-2 bg-white/60 rounded-lg">
-                                Notes: {appt.notes}
-                              </div>
-                            )}
-                          </div>
+                          ))}
                         </div>
                       </div>
-                    ))}
+                    )}
+
+                    {/* Today's Activities Section */}
+                    {todaysActivities.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-gray-700 text-sm mb-2 flex items-center">
+                          <FaTasks className="mr-2 text-indigo-500" />
+                          Today's Activities ({todaysActivities.length})
+                        </h4>
+                        <div className="space-y-2">
+                          {todaysActivities.map((activity) => (
+                            <div
+                              key={activity.id}
+                              className={`cursor-pointer ${activity.bgColor} rounded-xl p-3 border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-sm`}
+                              onClick={activity.action}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className={`w-8 h-8 ${activity.iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                                  <activity.icon className={`${activity.iconColor} text-sm`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <h5 className="font-semibold text-gray-800 text-sm truncate">
+                                      {activity.title}
+                                    </h5>
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                      activity.type === 'cbt' ? 'bg-blue-100 text-blue-700' :
+                                      activity.type === 'video' ? 'bg-red-100 text-red-700' :
+                                      activity.type === 'todo' ? 'bg-green-100 text-green-700' :
+                                      'bg-gray-100 text-gray-700'
+                                    }`}>
+                                      {activity.type === 'cbt' ? '🧠 CBT' :
+                                       activity.type === 'video' ? '🎥 Video' :
+                                       activity.type === 'todo' ? '✅ Task' : 'Activity'}
+                                    </span>
+                                  </div>
+                                  <p className="text-gray-600 text-xs truncate">
+                                    {activity.subtitle}
+                                  </p>
+                                  {activity.status === 'in_progress' && (
+                                    <div className="flex items-center gap-1 mt-1">
+                                      <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                                      <span className="text-xs text-yellow-600 font-medium">In Progress</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
