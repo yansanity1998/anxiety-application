@@ -157,6 +157,7 @@ export default function AdminDashboard() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [yearFilter, setYearFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [activeView, setActiveViewState] = useState(() => {
     return localStorage.getItem('adminActiveView') || 'dashboard';
   });
@@ -166,6 +167,15 @@ export default function AdminDashboard() {
   useEffect(() => {
     localStorage.setItem('adminActiveView', activeView);
   }, [activeView]);
+
+  // Update clock every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   // Custom setter to update both state and localStorage
   const setActiveView = (view: string) => {
@@ -709,7 +719,7 @@ export default function AdminDashboard() {
             <!-- Help Text -->
             <div class="text-center">
               <p class="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}">
-                <svg class="inline w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="inline w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 You can schedule multiple appointments for the same student
@@ -1087,6 +1097,21 @@ export default function AdminDashboard() {
               <p className={`${darkMode ? 'text-gray-300' : 'text-red-900'} mt-1 text-m`}>Welcome, Admin!</p>
             </div>
             <div className="flex items-center gap-2">
+              {/* Real-time Clock */}
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12,6 12,12 16,14"></polyline>
+                </svg>
+                <span className="text-sm font-medium">
+                  {currentTime.toLocaleTimeString('en-US', { 
+                    hour12: true, 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    second: '2-digit'
+                  })}
+                </span>
+              </div>
               <button
                 onClick={toggleDarkMode}
                 className={`p-1.5 rounded-full ${darkMode ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
@@ -1094,12 +1119,12 @@ export default function AdminDashboard() {
               >
                 {darkMode ? <FaSun /> : <FaMoon />}
               </button>
-                              <div className="relative">
-                  <Notifications darkMode={darkMode} />
-                </div>
+              <div className="relative">
+                <Notifications darkMode={darkMode} />
+              </div>
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-1 px-2 py-1.5 bg-red-900 text-white rounded-md hover:bg-red-700 transition-colors hover:cursor-pointer text-xs"
+                className={`flex items-center gap-1 px-2 py-1.5 bg-red-900 text-white rounded-md hover:bg-red-700 transition-colors hover:cursor-pointer text-xs`}
               >
                 <FaSignOutAlt />
                 Sign Out

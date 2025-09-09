@@ -30,7 +30,6 @@ export default function Notifications({ darkMode }: NotificationsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const lastLoginTimes = useRef<Map<string, string>>(new Map());
-  const lastSignInValues = useRef<Map<string, string>>(new Map());
 
   // Save notifications to localStorage whenever they change
   useEffect(() => {
@@ -42,10 +41,14 @@ export default function Notifications({ darkMode }: NotificationsProps) {
 
     const setupSubscription = async () => {
       try {
-        console.log('🔔 Setting up notification subscriptions...');
+        console.log('🔔 [ADMIN] Setting up notification subscriptions...');
+        
+        // Create a unique channel name to avoid conflicts
+        const channelName = `admin_notifications_${Math.random().toString(36).substr(2, 9)}`;
+        console.log('🔔 [ADMIN] Channel name:', channelName);
         
         profilesSubscription = supabase
-          .channel('profiles_changes')
+          .channel(channelName)
           .on(
             'postgres_changes',
             {
@@ -54,13 +57,15 @@ export default function Notifications({ darkMode }: NotificationsProps) {
               table: 'profiles'
             },
             async (payload: any) => {
+              console.log('📡 [ADMIN] Raw payload received:', payload);
+              
               // Type guard to ensure payload has the expected structure
               if (!payload.new || typeof payload.new !== 'object') {
-                console.log('⚠️ Invalid payload structure:', payload);
+                console.log('⚠️ [ADMIN] Invalid payload structure:', payload);
                 return;
               }
 
-              console.log('📡 Profiles change detected:', {
+              console.log('📡 [ADMIN] Profiles change detected:', {
                 eventType: payload.eventType,
                 userId: payload.new.user_id,
                 email: payload.new.email,
@@ -72,7 +77,7 @@ export default function Notifications({ darkMode }: NotificationsProps) {
               if (payload.eventType === 'INSERT') {
                 // New registration - only notify for non-admin users
                 if (payload.new.role !== 'admin') {
-                  console.log('✅ New registration detected:', payload.new.email);
+                  console.log('✅ [ADMIN] New registration detected:', payload.new.email);
                   const newNotification: Notification = {
                     id: `reg_${payload.new.id}_${Date.now()}`,
                     type: 'registration',
@@ -112,12 +117,22 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                 const newLastSignIn = payload.new.last_sign_in;
                 const oldLastSignIn = payload.old?.last_sign_in;
                 
+                console.log('🔐 [ADMIN] Checking login conditions:', {
+                  userId,
+                  email: payload.new.email,
+                  role: payload.new.role,
+                  newLastSignIn,
+                  oldLastSignIn,
+                  hasLastSignInChanged: newLastSignIn !== oldLastSignIn,
+                  isNotAdmin: payload.new.role !== 'admin'
+                });
+                
                 // Only process if last_sign_in actually changed and user is not admin
                 if (newLastSignIn && 
                     newLastSignIn !== oldLastSignIn && 
                     payload.new.role !== 'admin') {
                   
-                  console.log('🔐 Potential login detected:', {
+                  console.log('🔐 [ADMIN] Login detected for role:', payload.new.role, {
                     userId,
                     email: payload.new.email,
                     newLastSignIn,
@@ -126,25 +141,24 @@ export default function Notifications({ darkMode }: NotificationsProps) {
 
                   const currentTime = new Date().toISOString();
                   const lastLoginTime = lastLoginTimes.current.get(userId);
-                  const lastSignInValue = lastSignInValues.current.get(userId);
                   
-                  // Check if this is a real login (not just a dashboard visit)
-                  // Real login: last_sign_in value is significantly different (more than 1 minute)
-                  // Dashboard visit: last_sign_in value is very close to previous value
-                  const isRealLogin = !lastSignInValue || 
-                    Math.abs(new Date(newLastSignIn).getTime() - new Date(lastSignInValue).getTime()) > 60000; // 1 minute
-                  
-                  // Also check if it's been more than 2 minutes since last notification
+                  // Check if it's been more than 30 seconds since last notification (reduced from 2 minutes)
                   const timeSinceLastNotification = lastLoginTime ? 
                     new Date(currentTime).getTime() - new Date(lastLoginTime).getTime() : 
                     Infinity;
                   
-                  const shouldNotify = isRealLogin && timeSinceLastNotification > 120000; // 2 minutes
+                  const shouldNotify = timeSinceLastNotification > 30000; // 30 seconds
+                  
+                  console.log('🔐 [ADMIN] Login notification check:', {
+                    shouldNotify,
+                    timeSinceLastNotification,
+                    lastLoginTime,
+                    role: payload.new.role
+                  });
                   
                   if (shouldNotify) {
-                    console.log('✅ Real login confirmed, sending notification');
+                    console.log('✅ [ADMIN] Sending login notification for:', payload.new.role);
                     lastLoginTimes.current.set(userId, currentTime);
-                    lastSignInValues.current.set(userId, newLastSignIn);
                     
                     const newNotification: Notification = {
                       id: `login_${userId}_${Date.now()}`,
@@ -158,17 +172,23 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                       read: false
                     };
                     setNotifications(prev => [newNotification, ...prev]);
+                    showLoginAlert(newNotification.user.full_name, newNotification.user.email, newNotification.user.role);
                     const loginType = payload.new.role === 'guidance' ? 'Guidance Login' : 'Student Login';
                     showNotificationToast(loginType, `${newNotification.user.full_name} has logged in!`);
                   } else {
-                    console.log('⏭️ Skipping notification - likely dashboard visit or too recent');
+                    console.log('⏭️ [ADMIN] Skipping notification - too recent or duplicate');
                   }
                 }
               }
             }
           )
           .subscribe((status: any) => {
-            console.log('🔔 Subscription status:', status);
+            console.log('🔔 [ADMIN] Subscription status:', status);
+            if (status === 'SUBSCRIBED') {
+              console.log('✅ [ADMIN] Successfully subscribed to profile changes!');
+            } else if (status === 'CHANNEL_ERROR') {
+              console.error('❌ [ADMIN] Channel subscription error!');
+            }
           });
 
         console.log('✅ Notification subscriptions set up successfully');
@@ -216,6 +236,64 @@ export default function Notifications({ darkMode }: NotificationsProps) {
       icon: 'info',
       title,
       text
+    });
+  };
+
+  const showLoginAlert = (studentName: string, studentEmail: string, userRole?: string) => {
+    console.log('🔔 Showing student login alert:', { studentName, studentEmail, userRole });
+    const isGuidance = userRole === 'guidance';
+    const alertTitle = isGuidance ? '👨‍🏫 Guidance Counselor Login' : '🎓 Student Login Alert';
+    const roleText = isGuidance ? 'Guidance Counselor' : 'Student';
+    const iconColor = isGuidance ? 'text-purple-600' : 'text-blue-600';
+    const bgColor = isGuidance ? (darkMode ? 'bg-purple-900/20' : 'bg-purple-100') : (darkMode ? 'bg-blue-900/20' : 'bg-blue-100');
+    const statusColor = isGuidance ? (darkMode ? 'bg-purple-900 text-purple-300' : 'bg-purple-100 text-purple-800') : (darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-800');
+    
+    Swal.fire({
+      title: alertTitle,
+      html: `
+        <div class="text-center space-y-4">
+          <div class="inline-flex items-center justify-center w-16 h-16 ${bgColor} rounded-full mb-3">
+            <svg class="w-8 h-8 ${darkMode ? iconColor.replace('600', '400') : iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          <div class="${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-xl p-4 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
+            <h3 class="text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-2">${studentName}</h3>
+            <p class="text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-3">${studentEmail}</p>
+            <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor}">
+              <div class="w-2 h-2 ${isGuidance ? 'bg-purple-500' : 'bg-green-500'} rounded-full mr-2 animate-pulse"></div>
+              ${roleText} Online
+            </div>
+          </div>
+          <p class="text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}">This ${roleText.toLowerCase()} has just logged into the system.</p>
+        </div>
+      `,
+      confirmButtonText: 'Got it!',
+      confirmButtonColor: isGuidance ? '#9333ea' : '#3b82f6',
+      background: darkMode ? '#1f2937' : '#ffffff',
+      color: darkMode ? '#f3f4f6' : '#111827',
+      customClass: {
+        popup: `rounded-2xl shadow-2xl border-2 ${isGuidance ? (darkMode ? 'border-purple-600/30' : 'border-purple-200') : (darkMode ? 'border-blue-600/30' : 'border-blue-200')} max-w-md`,
+        title: `text-xl font-bold ${isGuidance ? (darkMode ? 'text-purple-400' : 'text-purple-600') : (darkMode ? 'text-blue-400' : 'text-blue-600')} mb-4`,
+        htmlContainer: `${darkMode ? 'text-gray-200' : 'text-gray-700'}`,
+        confirmButton: `bg-gradient-to-r ${isGuidance ? 'from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700' : 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'} text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105`
+      },
+      showClass: {
+        popup: 'animate__animated animate__fadeInDown animate__faster'
+      },
+      hideClass: {
+        popup: 'animate__animated animate__fadeOutUp animate__faster'
+      },
+      // Prevent body scrollbar compensation
+      scrollbarPadding: false,
+      didOpen: () => {
+        // Prevent body from getting padding-right but keep scrolling enabled
+        document.body.style.paddingRight = '0px !important';
+      },
+      didClose: () => {
+        // Restore body styles
+        document.body.style.paddingRight = '';
+      }
     });
   };
 

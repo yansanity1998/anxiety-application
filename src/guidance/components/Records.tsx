@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaFileAlt, FaCalendarAlt, FaBrain, FaVideo, FaTasks, FaSearch, FaTimes, FaSpinner, FaUser, FaEnvelope, FaSchool, FaCheck, FaPlay, FaPause, FaBookOpen, FaEye, FaUsers, FaFileCsv, FaFileWord, FaFileExcel, FaClipboardList } from 'react-icons/fa';
+import { FaFileAlt, FaCalendarAlt, FaBrain, FaVideo, FaTasks, FaSearch, FaTimes, FaSpinner, FaUser, FaEnvelope, FaSchool, FaCheck, FaPlay, FaPause, FaBookOpen, FaEye, FaUsers, FaFileCsv, FaFileWord, FaFileExcel, FaClipboardList, FaFilePdf } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
 
 interface RecordsProps {
@@ -284,27 +284,27 @@ const Records = ({ darkMode }: RecordsProps) => {
         `Status: ${video.video_status}`
       ]),
       ['', ''],
-      ['=== ANXIETY ASSESSMENTS ===', ''],
+      ['ANXIETY ASSESSMENTS', ''],
       ...student.anxietyAssessments.map(assessment => [
         `Assessment ${assessment.id.substring(0, 8)}`,
         `Level: ${assessment.anxiety_level} | Score: ${assessment.total_score}/21 (${assessment.percentage}%) | Date: ${new Date(assessment.created_at).toLocaleDateString()}`
       ]),
       ['', ''],
-      ['=== TODO ITEMS ===', ''],
+      ['TODO ITEMS', ''],
       ...student.todoItems.map(todo => [
         todo.title,
         `Status: ${todo.status} | Priority: ${getPriorityText(todo.priority)} | Due: ${todo.due_at ? new Date(todo.due_at).toLocaleDateString() : 'No due date'}${todo.description ? ` | Description: ${todo.description}` : ''}`
       ])
     ];
 
-    const csvContent = csvData.map(row => 
-      row.map(field => `"${field?.toString().replace(/"/g, '""') || ''}"`).join(',')
-    ).join('\n');
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      csvData.map(row => 
+        row.map(field => `"${field?.toString().replace(/"/g, '""') || ''}"`).join(',')
+      ).join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
+    link.setAttribute('href', encodedUri);
     link.setAttribute('download', `${student.profile.full_name.replace(/\s+/g, '_')}_record.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
@@ -313,53 +313,145 @@ const Records = ({ darkMode }: RecordsProps) => {
   };
 
   const exportToExcel = (student: StudentRecord) => {
-    // Create HTML table for Excel
-    const htmlTable = `
-      <table>
-        <tr><th colspan="2" style="background-color: #800000; color: white; font-weight: bold;">Student Information</th></tr>
-        <tr><td><strong>Full Name</strong></td><td>${student.profile.full_name}</td></tr>
-        <tr><td><strong>Email</strong></td><td>${student.profile.email}</td></tr>
-        <tr><td><strong>ID Number</strong></td><td>${student.profile.id_number}</td></tr>
-        <tr><td><strong>Age</strong></td><td>${student.profile.age || ''}</td></tr>
-        <tr><td><strong>Gender</strong></td><td>${student.profile.gender}</td></tr>
-        <tr><td><strong>School</strong></td><td>${student.profile.school}</td></tr>
-        <tr><td><strong>Course</strong></td><td>${student.profile.course}</td></tr>
-        <tr><td><strong>Year Level</strong></td><td>${student.profile.year_level || ''}</td></tr>
-        <tr><td><strong>Phone</strong></td><td>${student.profile.phone_number || ''}</td></tr>
-        <tr><td><strong>Guardian</strong></td><td>${student.profile.guardian_name || ''}</td></tr>
-        <tr><td><strong>Guardian Phone</strong></td><td>${student.profile.guardian_phone_number || ''}</td></tr>
-        <tr><td><strong>Address</strong></td><td>${student.profile.address || ''}</td></tr>
-        <tr><td><strong>Last Activity</strong></td><td>${new Date(student.profile.last_activity_date).toLocaleDateString()}</td></tr>
-        <tr><td><strong>Streak</strong></td><td>${student.profile.streak || 0}</td></tr>
-        
-        <tr><th colspan="2" style="background-color: #800000; color: white; font-weight: bold;">Appointments</th></tr>
-        ${student.appointments.map(apt => `
-          <tr><td><strong>Appointment ${apt.id}</strong></td><td>${new Date(apt.appointment_date).toLocaleDateString()} at ${apt.appointment_time} - ${apt.status}</td></tr>
-        `).join('')}
-        
-        <tr><th colspan="2" style="background-color: #800000; color: white; font-weight: bold;">CBT Modules</th></tr>
-        ${student.cbtModules.map(module => `
-          <tr><td><strong>${module.module_title}</strong></td><td>Status: ${module.module_status} | Started: ${module.module_date_started ? new Date(module.module_date_started).toLocaleDateString() : 'Not started'}</td></tr>
-        `).join('')}
-        
-        <tr><th colspan="2" style="background-color: #800000; color: white; font-weight: bold;">Anxiety Videos</th></tr>
-        ${student.anxietyVideos.map(video => `
-          <tr><td><strong>${video.video_title}</strong></td><td>Status: ${video.video_status}</td></tr>
-        `).join('')}
-        
-        <tr><th colspan="2" style="background-color: #800000; color: white; font-weight: bold;">Anxiety Assessments</th></tr>
-        ${student.anxietyAssessments.map(assessment => `
-          <tr><td><strong>Assessment ${assessment.id.substring(0, 8)}</strong></td><td>Level: ${assessment.anxiety_level} | Score: ${assessment.total_score}/21 (${assessment.percentage}%) | Date: ${new Date(assessment.created_at).toLocaleDateString()}</td></tr>
-        `).join('')}
-        
-        <tr><th colspan="2" style="background-color: #800000; color: white; font-weight: bold;">Todo Items</th></tr>
-        ${student.todoItems.map(todo => `
-          <tr><td><strong>${todo.title}</strong></td><td>Status: ${todo.status} | Priority: ${getPriorityText(todo.priority)} | Due: ${todo.due_at ? new Date(todo.due_at).toLocaleDateString() : 'No due date'}</td></tr>
-        `).join('')}
-      </table>
+    // Create proper Excel workbook with enhanced styling
+    const excelContent = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="ProgId" content="Excel.Sheet">
+        <meta name="Generator" content="Microsoft Excel 15">
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:ExcelWorksheet>
+                <x:Name>Student Record</x:Name>
+                <x:WorksheetSource HRef="sheet001.htm"/>
+              </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+        <style>
+          .header { background-color: #2563eb; color: white; font-weight: bold; text-align: center; font-size: 14pt; padding: 10px; }
+          .section-header { background-color: #3b82f6; color: white; font-weight: bold; text-align: center; font-size: 12pt; padding: 8px; }
+          .label { background-color: #f1f5f9; font-weight: bold; padding: 6px; border: 1px solid #cbd5e1; }
+          .value { padding: 6px; border: 1px solid #cbd5e1; }
+          .table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+          .assessment-minimal { background-color: #dcfce7; color: #166534; }
+          .assessment-mild { background-color: #dbeafe; color: #1e40af; }
+          .assessment-moderate { background-color: #fef3c7; color: #92400e; }
+          .assessment-severe { background-color: #fee2e2; color: #dc2626; }
+          .status-completed { background-color: #dcfce7; color: #166534; }
+          .status-in-progress { background-color: #dbeafe; color: #1e40af; }
+          .status-pending { background-color: #fef3c7; color: #92400e; }
+        </style>
+      </head>
+      <body>
+        <table class="table">
+          <tr><td colspan="2" class="header">STUDENT RECORD - ${student.profile.full_name.toUpperCase()}</td></tr>
+          <tr><td colspan="2" style="text-align: center; padding: 10px; font-style: italic;">Generated on ${new Date().toLocaleDateString()}</td></tr>
+        </table>
+
+        <table class="table">
+          <tr><td colspan="2" class="section-header">PERSONAL INFORMATION</td></tr>
+          <tr><td class="label">Full Name</td><td class="value">${student.profile.full_name}</td></tr>
+          <tr><td class="label">Student ID</td><td class="value">${student.profile.id_number}</td></tr>
+          <tr><td class="label">Email Address</td><td class="value">${student.profile.email}</td></tr>
+          <tr><td class="label">Age</td><td class="value">${student.profile.age || 'Not provided'}</td></tr>
+          <tr><td class="label">Gender</td><td class="value">${student.profile.gender}</td></tr>
+          <tr><td class="label">School</td><td class="value">${student.profile.school}</td></tr>
+          <tr><td class="label">Course</td><td class="value">${student.profile.course}</td></tr>
+          <tr><td class="label">Year Level</td><td class="value">${student.profile.year_level || 'Not provided'}</td></tr>
+          <tr><td class="label">Phone Number</td><td class="value">${student.profile.phone_number || 'Not provided'}</td></tr>
+          <tr><td class="label">Guardian Name</td><td class="value">${student.profile.guardian_name || 'Not provided'}</td></tr>
+          <tr><td class="label">Guardian Phone</td><td class="value">${student.profile.guardian_phone_number || 'Not provided'}</td></tr>
+          <tr><td class="label">Address</td><td class="value">${student.profile.address || 'Not provided'}</td></tr>
+          <tr><td class="label">Last Activity</td><td class="value">${new Date(student.profile.last_activity_date).toLocaleDateString()}</td></tr>
+          <tr><td class="label">Activity Streak</td><td class="value">${student.profile.streak || 0} days</td></tr>
+        </table>
+
+        <table class="table">
+          <tr><td colspan="3" class="section-header">COUNSELING APPOINTMENTS (${student.appointments.length})</td></tr>
+          ${student.appointments.length > 0 ? `
+            <tr><td class="label">Date</td><td class="label">Time</td><td class="label">Status</td></tr>
+            ${student.appointments.map(apt => `
+              <tr>
+                <td class="value">${new Date(apt.appointment_date).toLocaleDateString()}</td>
+                <td class="value">${apt.appointment_time}</td>
+                <td class="value status-${apt.status.toLowerCase().replace(' ', '-')}">${apt.status}</td>
+              </tr>
+            `).join('')}
+          ` : '<tr><td colspan="3" class="value" style="text-align: center; font-style: italic;">No appointments scheduled</td></tr>'}
+        </table>
+
+        <table class="table">
+          <tr><td colspan="3" class="section-header">CBT MODULES (${student.cbtModules.length})</td></tr>
+          ${student.cbtModules.length > 0 ? `
+            <tr><td class="label">Module Title</td><td class="label">Status</td><td class="label">Date Started</td></tr>
+            ${student.cbtModules.map(module => `
+              <tr>
+                <td class="value">${module.module_title}</td>
+                <td class="value status-${module.module_status.replace('_', '-')}">${module.module_status.replace('_', ' ')}</td>
+                <td class="value">${module.module_date_started ? new Date(module.module_date_started).toLocaleDateString() : 'Not started'}</td>
+              </tr>
+            `).join('')}
+          ` : '<tr><td colspan="3" class="value" style="text-align: center; font-style: italic;">No CBT modules assigned</td></tr>'}
+        </table>
+
+        <table class="table">
+          <tr><td colspan="2" class="section-header">ANXIETY VIDEOS (${student.anxietyVideos.length})</td></tr>
+          ${student.anxietyVideos.length > 0 ? `
+            <tr><td class="label">Video Title</td><td class="label">Status</td></tr>
+            ${student.anxietyVideos.map(video => `
+              <tr>
+                <td class="value">${video.video_title}</td>
+                <td class="value status-${video.video_status.replace('_', '-')}">${video.video_status.replace('_', ' ')}</td>
+              </tr>
+            `).join('')}
+          ` : '<tr><td colspan="2" class="value" style="text-align: center; font-style: italic;">No videos assigned</td></tr>'}
+        </table>
+
+        <table class="table">
+          <tr><td colspan="4" class="section-header">ANXIETY ASSESSMENTS (${student.anxietyAssessments.length})</td></tr>
+          ${student.anxietyAssessments.length > 0 ? `
+            <tr><td class="label">Date</td><td class="label">Anxiety Level</td><td class="label">Score</td><td class="label">Percentage</td></tr>
+            ${student.anxietyAssessments.map(assessment => `
+              <tr>
+                <td class="value">${new Date(assessment.created_at).toLocaleDateString()}</td>
+                <td class="value assessment-${assessment.anxiety_level.toLowerCase()}">${assessment.anxiety_level}</td>
+                <td class="value">${assessment.total_score}/21</td>
+                <td class="value">${assessment.percentage}%</td>
+              </tr>
+            `).join('')}
+          ` : '<tr><td colspan="4" class="value" style="text-align: center; font-style: italic;">No assessments completed</td></tr>'}
+        </table>
+
+        <table class="table">
+          <tr><td colspan="4" class="section-header">ASSIGNED TASKS (${student.todoItems.length})</td></tr>
+          ${student.todoItems.length > 0 ? `
+            <tr><td class="label">Task Title</td><td class="label">Status</td><td class="label">Priority</td><td class="label">Due Date</td></tr>
+            ${student.todoItems.map(todo => `
+              <tr>
+                <td class="value">${todo.title}</td>
+                <td class="value status-${todo.status.replace('_', '-')}">${todo.status.replace('_', ' ')}</td>
+                <td class="value">${getPriorityText(todo.priority)}</td>
+                <td class="value">${todo.due_at ? new Date(todo.due_at).toLocaleDateString() : 'No due date'}</td>
+              </tr>
+            `).join('')}
+          ` : '<tr><td colspan="4" class="value" style="text-align: center; font-style: italic;">No tasks assigned</td></tr>'}
+        </table>
+
+        <table class="table">
+          <tr><td style="text-align: center; padding: 15px; font-size: 10pt; color: #666;">
+            This document was generated by the Anxiety Management System on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}
+          </td></tr>
+        </table>
+      </body>
+      </html>
     `;
 
-    const blob = new Blob([htmlTable], { type: 'application/vnd.ms-excel' });
+    const blob = new Blob([excelContent], { type: 'application/vnd.ms-excel' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
@@ -370,6 +462,408 @@ const Records = ({ darkMode }: RecordsProps) => {
     document.body.removeChild(link);
   };
 
+  const exportToPDF = (student: StudentRecord) => {
+    const currentDate = new Date();
+    const pdfContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Student Record - ${student.profile.full_name}</title>
+        <style>
+          @page { 
+            margin: 0.75in; 
+            size: A4;
+          }
+          * {
+            box-sizing: border-box;
+          }
+          body { 
+            font-family: 'Arial', sans-serif; 
+            font-size: 11pt; 
+            line-height: 1.4; 
+            color: #333; 
+            margin: 0; 
+            padding: 0;
+            background: white;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 3px solid #800000;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 100%);
+            padding: 20px;
+            border-radius: 8px;
+          }
+          .logo {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #800000;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+          }
+          .subtitle {
+            font-size: 14pt;
+            color: #991b1b;
+            margin-bottom: 15px;
+            font-style: italic;
+          }
+          .document-title {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #450a0a;
+            margin: 15px 0;
+          }
+          .student-name {
+            font-size: 20pt;
+            font-weight: bold;
+            color: #800000;
+            margin: 10px 0;
+          }
+          .generation-info {
+            font-size: 10pt;
+            color: #991b1b;
+            margin-top: 10px;
+          }
+          .section {
+            margin: 20px 0;
+            page-break-inside: avoid;
+          }
+          .section-header {
+            font-size: 14pt;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(90deg, #800000, #991b1b);
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+          }
+          .info-item {
+            background: #fdf2f8;
+            border: 1px solid #f3e8ff;
+            border-radius: 6px;
+            padding: 12px;
+          }
+          .info-label {
+            font-weight: bold;
+            color: #800000;
+            font-size: 10pt;
+            margin-bottom: 4px;
+          }
+          .info-value {
+            color: #450a0a;
+            font-size: 11pt;
+          }
+          .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(128,0,0,0.1);
+          }
+          .data-table th {
+            background: linear-gradient(90deg, #800000, #991b1b);
+            color: white;
+            font-weight: bold;
+            padding: 12px 10px;
+            text-align: left;
+            font-size: 10pt;
+            border-bottom: 2px solid #800000;
+          }
+          .data-table td {
+            padding: 10px;
+            border-bottom: 1px solid #f3e8ff;
+            font-size: 10pt;
+            vertical-align: top;
+          }
+          .data-table tr:nth-child(even) {
+            background-color: #fdf2f8;
+          }
+          .data-table tr:hover {
+            background-color: #f8fafc;
+          }
+          .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 9pt;
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+          .status-completed { background-color: #dcfce7; color: #166534; }
+          .status-in-progress { background-color: #dbeafe; color: #1e40af; }
+          .status-pending { background-color: #fef3c7; color: #92400e; }
+          .status-scheduled { background-color: #dbeafe; color: #1e40af; }
+          .anxiety-minimal { background-color: #dcfce7; color: #166534; }
+          .anxiety-mild { background-color: #dbeafe; color: #1e40af; }
+          .anxiety-moderate { background-color: #fef3c7; color: #92400e; }
+          .anxiety-severe { background-color: #fee2e2; color: #dc2626; }
+          .priority-urgent { background-color: #fee2e2; color: #dc2626; }
+          .priority-high { background-color: #fed7aa; color: #ea580c; }
+          .priority-medium { background-color: #fef3c7; color: #92400e; }
+          .priority-low { background-color: #dbeafe; color: #1e40af; }
+          .priority-very-low { background-color: #f1f5f9; color: #64748b; }
+          .no-data {
+            text-align: center;
+            font-style: italic;
+            color: #991b1b;
+            padding: 20px;
+            background: #fdf2f8;
+            border-radius: 6px;
+            border: 1px dashed #f3e8ff;
+          }
+          .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #f3e8ff;
+            text-align: center;
+            font-size: 9pt;
+            color: #991b1b;
+            page-break-inside: avoid;
+          }
+          .confidential {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-bottom: 10px;
+          }
+          @media print {
+            body { print-color-adjust: exact; }
+            .section { page-break-inside: avoid; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="logo">Anxiety Management System</div>
+          <div class="subtitle">Student Mental Health & Wellness Program</div>
+          <div class="document-title">Official Student Record</div>
+          <div class="student-name">${student.profile.full_name}</div>
+          <div class="generation-info">
+            <strong>Student ID:</strong> ${student.profile.id_number} | 
+            <strong>Generated:</strong> ${currentDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at ${currentDate.toLocaleTimeString()}
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">Personal Information</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Full Name</div>
+              <div class="info-value">${student.profile.full_name}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Student ID</div>
+              <div class="info-value">${student.profile.id_number}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Email Address</div>
+              <div class="info-value">${student.profile.email}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Age</div>
+              <div class="info-value">${student.profile.age || 'Not provided'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Gender</div>
+              <div class="info-value">${student.profile.gender}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">School</div>
+              <div class="info-value">${student.profile.school}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Course</div>
+              <div class="info-value">${student.profile.course}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Year Level</div>
+              <div class="info-value">${student.profile.year_level || 'Not provided'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Phone Number</div>
+              <div class="info-value">${student.profile.phone_number || 'Not provided'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Guardian</div>
+              <div class="info-value">${student.profile.guardian_name || 'Not provided'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Guardian Phone</div>
+              <div class="info-value">${student.profile.guardian_phone_number || 'Not provided'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Last Activity</div>
+              <div class="info-value">${new Date(student.profile.last_activity_date).toLocaleDateString()}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">Counseling Appointments (${student.appointments.length})</div>
+          ${student.appointments.length > 0 ? `
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Status</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${student.appointments.map(apt => `
+                  <tr>
+                    <td>${new Date(apt.appointment_date).toLocaleDateString()}</td>
+                    <td>${apt.appointment_time}</td>
+                    <td><span class="status-badge status-${apt.status.toLowerCase().replace(' ', '-')}">${apt.status}</span></td>
+                    <td>${apt.notes || apt.meeting_notes || 'No notes'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          ` : '<div class="no-data">No counseling appointments scheduled or completed.</div>'}
+        </div>
+
+        <div class="section">
+          <div class="section-header">CBT Modules (${student.cbtModules.length})</div>
+          ${student.cbtModules.length > 0 ? `
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Module Title</th>
+                  <th>Status</th>
+                  <th>Date Started</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${student.cbtModules.map(module => `
+                  <tr>
+                    <td><strong>${module.module_title}</strong></td>
+                    <td><span class="status-badge status-${module.module_status.replace('_', '-')}">${module.module_status.replace('_', ' ')}</span></td>
+                    <td>${module.module_date_started ? new Date(module.module_date_started).toLocaleDateString() : 'Not started'}</td>
+                    <td>${module.module_description}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          ` : '<div class="no-data">No CBT modules have been assigned to this student.</div>'}
+        </div>
+
+        <div class="section">
+          <div class="section-header">Educational Videos (${student.anxietyVideos.length})</div>
+          ${student.anxietyVideos.length > 0 ? `
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Video Title</th>
+                  <th>Status</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${student.anxietyVideos.map(video => `
+                  <tr>
+                    <td><strong>${video.video_title}</strong></td>
+                    <td><span class="status-badge status-${video.video_status.replace('_', '-')}">${video.video_status.replace('_', ' ')}</span></td>
+                    <td>${video.video_description}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          ` : '<div class="no-data">No educational videos have been assigned to this student.</div>'}
+        </div>
+
+        <div class="section">
+          <div class="section-header">Anxiety Assessments (${student.anxietyAssessments.length})</div>
+          ${student.anxietyAssessments.length > 0 ? `
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Anxiety Level</th>
+                  <th>Score</th>
+                  <th>Percentage</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${student.anxietyAssessments.map(assessment => `
+                  <tr>
+                    <td>${new Date(assessment.created_at).toLocaleDateString()}</td>
+                    <td><span class="status-badge anxiety-${assessment.anxiety_level.toLowerCase()}">${assessment.anxiety_level}</span></td>
+                    <td>${assessment.total_score}/21</td>
+                    <td>${assessment.percentage}%</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          ` : '<div class="no-data">No anxiety assessments have been completed by this student.</div>'}
+        </div>
+
+        <div class="section">
+          <div class="section-header">Assigned Tasks (${student.todoItems.length})</div>
+          ${student.todoItems.length > 0 ? `
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Task Title</th>
+                  <th>Status</th>
+                  <th>Priority</th>
+                  <th>Due Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${student.todoItems.map(todo => `
+                  <tr>
+                    <td><strong>${todo.title}</strong>${todo.description ? `<br><small style="color: #64748b;">${todo.description}</small>` : ''}</td>
+                    <td><span class="status-badge status-${todo.status.replace('_', '-')}">${todo.status.replace('_', ' ')}</span></td>
+                    <td><span class="status-badge priority-${getPriorityText(todo.priority).toLowerCase().replace(' ', '-')}">${getPriorityText(todo.priority)}</span></td>
+                    <td>${todo.due_at ? new Date(todo.due_at).toLocaleDateString() : 'No due date'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          ` : '<div class="no-data">No tasks or activities have been assigned to this student.</div>'}
+        </div>
+
+        <div class="footer">
+          <div class="confidential">CONFIDENTIAL DOCUMENT</div>
+          <p>This document contains sensitive mental health information and should be handled in accordance with privacy regulations.</p>
+          <p><strong>Generated by:</strong> Anxiety Management System | <strong>Date:</strong> ${currentDate.toLocaleDateString()} | <strong>Time:</strong> ${currentDate.toLocaleTimeString()}</p>
+          <p><strong>Document ID:</strong> ${student.profile.id_number}-${currentDate.getFullYear()}${(currentDate.getMonth() + 1).toString().padStart(2, '0')}${currentDate.getDate().toString().padStart(2, '0')}</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Create downloadable PDF using HTML content
+    const blob = new Blob([pdfContent], { type: 'text/html' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${student.profile.full_name.replace(/\s+/g, '_')}_record.html`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const exportToWord = (student: StudentRecord) => {
     const currentDate = new Date();
     const wordContent = `
@@ -378,38 +872,50 @@ const Records = ({ darkMode }: RecordsProps) => {
           <meta charset="utf-8">
           <title>Official Student Record - ${student.profile.full_name}</title>
           <style>
-            @page { margin: 1in; }
+            @page { 
+              margin: 0.75in; 
+              size: A4;
+            }
+            * {
+              box-sizing: border-box;
+            }
             body { 
-              font-family: 'Times New Roman', serif; 
-              font-size: 12pt; 
-              line-height: 1.6; 
-              color: #000; 
+              font-family: 'Arial', sans-serif; 
+              font-size: 11pt; 
+              line-height: 1.4; 
+              color: #333; 
               margin: 0; 
               padding: 0;
+              background: white;
             }
             .header {
               text-align: center;
-              border-bottom: 3px double #000;
+              border-bottom: 3px solid #800000;
               padding-bottom: 20px;
-              margin-bottom: 30px;
+              margin-bottom: 25px;
+              background: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 100%);
+              padding: 20px;
+              border-radius: 8px;
             }
-            .letterhead {
-              font-size: 18pt;
+            .logo {
+              font-size: 24pt;
               font-weight: bold;
               color: #800000;
-              margin-bottom: 5px;
+              margin-bottom: 8px;
+              text-transform: uppercase;
+              letter-spacing: 2px;
             }
             .subtitle {
               font-size: 14pt;
-              color: #666;
-              margin-bottom: 10px;
+              color: #991b1b;
+              margin-bottom: 15px;
+              font-style: italic;
             }
             .document-title {
-              font-size: 16pt;
+              font-size: 18pt;
               font-weight: bold;
-              text-transform: uppercase;
-              letter-spacing: 1px;
-              margin: 20px 0;
+              color: #450a0a;
+              margin: 15px 0;
             }
             .student-name {
               font-size: 20pt;
@@ -417,75 +923,121 @@ const Records = ({ darkMode }: RecordsProps) => {
               color: #800000;
               margin: 10px 0;
             }
+            .generation-info {
+              font-size: 10pt;
+              color: #991b1b;
+              margin-top: 10px;
+            }
             .section {
-              margin: 25px 0;
+              margin: 20px 0;
               page-break-inside: avoid;
             }
             .section-header {
               font-size: 14pt;
               font-weight: bold;
-              color: #800000;
-              text-transform: uppercase;
-              border-bottom: 2px solid #800000;
-              padding-bottom: 5px;
+              color: white;
+              background: linear-gradient(90deg, #800000, #991b1b);
+              padding: 10px 15px;
               margin-bottom: 15px;
-              letter-spacing: 0.5px;
+              border-radius: 6px;
+              text-transform: uppercase;
+              letter-spacing: 1px;
             }
-            .info-table {
+            .info-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 15px;
+              margin-bottom: 20px;
+            }
+            .info-item {
+              background: #fdf2f8;
+              border: 1px solid #f3e8ff;
+              border-radius: 6px;
+              padding: 12px;
+            }
+            .info-label {
+              font-weight: bold;
+              color: #800000;
+              font-size: 10pt;
+              margin-bottom: 4px;
+            }
+            .info-value {
+              color: #450a0a;
+              font-size: 11pt;
+            }
+            .data-table {
               width: 100%;
               border-collapse: collapse;
               margin-bottom: 20px;
+              background: white;
+              border-radius: 8px;
+              overflow: hidden;
+              box-shadow: 0 1px 3px rgba(128,0,0,0.1);
             }
-            .info-table td {
-              padding: 8px 12px;
-              border: 1px solid #ccc;
+            .data-table th {
+              background: linear-gradient(90deg, #800000, #991b1b);
+              color: white;
+              font-weight: bold;
+              padding: 12px 10px;
+              text-align: left;
+              font-size: 10pt;
+              border-bottom: 2px solid #800000;
+            }
+            .data-table td {
+              padding: 10px;
+              border-bottom: 1px solid #f3e8ff;
+              font-size: 10pt;
               vertical-align: top;
             }
-            .info-table .label {
-              font-weight: bold;
-              background-color: #f8f8f8;
-              width: 30%;
-            }
-            .info-table .value {
-              width: 70%;
-            }
-            .appointment-item, .module-item, .video-item, .assessment-item, .todo-item {
-              border: 1px solid #ddd;
-              border-radius: 5px;
-              padding: 15px;
-              margin-bottom: 15px;
-              background-color: #fafafa;
-            }
-            .item-title {
-              font-weight: bold;
-              font-size: 13pt;
-              color: #800000;
-              margin-bottom: 8px;
-            }
-            .item-details {
-              margin-left: 15px;
-            }
-            .item-details p {
-              margin: 5px 0;
+            .data-table tr:nth-child(even) {
+              background-color: #fdf2f8;
             }
             .status-badge {
               display: inline-block;
-              padding: 3px 8px;
-              border-radius: 3px;
-              font-size: 10pt;
+              padding: 4px 8px;
+              border-radius: 12px;
+              font-size: 9pt;
               font-weight: bold;
               text-transform: uppercase;
             }
-            .status-completed { background-color: #d4edda; color: #155724; }
-            .status-in-progress { background-color: #d1ecf1; color: #0c5460; }
-            .status-pending { background-color: #fff3cd; color: #856404; }
-            .footer {
-              margin-top: 50px;
-              padding-top: 20px;
-              border-top: 1px solid #ccc;
+            .status-completed { background-color: #dcfce7; color: #166534; }
+            .status-in-progress { background-color: #dbeafe; color: #1e40af; }
+            .status-pending { background-color: #fef3c7; color: #92400e; }
+            .status-scheduled { background-color: #dbeafe; color: #1e40af; }
+            .anxiety-minimal { background-color: #dcfce7; color: #166534; }
+            .anxiety-mild { background-color: #dbeafe; color: #1e40af; }
+            .anxiety-moderate { background-color: #fef3c7; color: #92400e; }
+            .anxiety-severe { background-color: #fee2e2; color: #dc2626; }
+            .priority-urgent { background-color: #fee2e2; color: #dc2626; }
+            .priority-high { background-color: #fed7aa; color: #ea580c; }
+            .priority-medium { background-color: #fef3c7; color: #92400e; }
+            .priority-low { background-color: #dbeafe; color: #1e40af; }
+            .priority-very-low { background-color: #f1f5f9; color: #64748b; }
+            .no-data {
               text-align: center;
-              font-size: 10pt;
-              color: #666;
+              font-style: italic;
+              color: #991b1b;
+              padding: 20px;
+              background: #fdf2f8;
+              border-radius: 6px;
+              border: 1px dashed #f3e8ff;
+            }
+            .footer {
+              margin-top: 30px;
+              padding-top: 20px;
+              border-top: 2px solid #f3e8ff;
+              text-align: center;
+              font-size: 9pt;
+              color: #991b1b;
+              page-break-inside: avoid;
+            }
+            .confidential {
+              background: #fee2e2;
+              color: #dc2626;
+              padding: 8px;
+              border-radius: 4px;
+              font-weight: bold;
+              margin-bottom: 10px;
             }
             .signature-section {
               margin-top: 40px;
@@ -494,123 +1046,240 @@ const Records = ({ darkMode }: RecordsProps) => {
             }
             .signature-box {
               width: 45%;
-              border-top: 1px solid #000;
+              border-top: 1px solid #800000;
               padding-top: 10px;
               text-align: center;
             }
-            .no-data {
-              font-style: italic;
-              color: #666;
-              text-align: center;
-              padding: 20px;
+            @media print {
+              body { print-color-adjust: exact; }
+              .section { page-break-inside: avoid; }
             }
           </style>
         </head>
         <body>
           <div class="header">
-            <div class="letterhead">ANXIETY MANAGEMENT SYSTEM</div>
+            <div class="logo">ANXIETY MANAGEMENT SYSTEM</div>
             <div class="subtitle">Student Mental Health & Wellness Program</div>
-            <div class="document-title">Official Student Record</div>
+            <div class="document-title">OFFICIAL STUDENT RECORD</div>
             <div class="student-name">${student.profile.full_name}</div>
-            <p><strong>Student ID:</strong> ${student.profile.id_number} | <strong>Generated:</strong> ${currentDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <div class="generation-info">
+              <strong>Student ID:</strong> ${student.profile.id_number} | 
+              <strong>Generated:</strong> ${currentDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </div>
           </div>
 
-          <div class="section">
-            <div class="section-header">I. Personal Information</div>
-            <table class="info-table">
-              <tr><td class="label">Full Name</td><td class="value">${student.profile.full_name}</td></tr>
-              <tr><td class="label">Student ID Number</td><td class="value">${student.profile.id_number}</td></tr>
-              <tr><td class="label">Email Address</td><td class="value">${student.profile.email}</td></tr>
-              <tr><td class="label">Age</td><td class="value">${student.profile.age || 'Not provided'}</td></tr>
-              <tr><td class="label">Gender</td><td class="value">${student.profile.gender}</td></tr>
-              <tr><td class="label">Educational Institution</td><td class="value">${student.profile.school}</td></tr>
-              <tr><td class="label">Course/Program</td><td class="value">${student.profile.course}</td></tr>
-              <tr><td class="label">Year Level</td><td class="value">${student.profile.year_level || 'Not provided'}</td></tr>
-              <tr><td class="label">Contact Number</td><td class="value">${student.profile.phone_number || 'Not provided'}</td></tr>
-              <tr><td class="label">Guardian/Emergency Contact</td><td class="value">${student.profile.guardian_name || 'Not provided'}</td></tr>
-              <tr><td class="label">Guardian Contact Number</td><td class="value">${student.profile.guardian_phone_number || 'Not provided'}</td></tr>
-              <tr><td class="label">Address</td><td class="value">${student.profile.address || 'Not provided'}</td></tr>
-              <tr><td class="label">Last System Activity</td><td class="value">${new Date(student.profile.last_activity_date).toLocaleDateString()}</td></tr>
-              <tr><td class="label">Engagement Streak</td><td class="value">${student.profile.streak || 0} consecutive days</td></tr>
-            </table>
+          <div class="confidential">
+            ⚠️ CONFIDENTIAL STUDENT RECORD - For Authorized Personnel Only
           </div>
 
+          <!-- Basic Information -->
           <div class="section">
-            <div class="section-header">II. Counseling Appointments${student.appointments.length > 1 ? ` (${student.appointments.length} Sessions)` : ''}</div>
-            ${student.appointments.length > 0 ? student.appointments.map((apt, index) => `
-              <div class="appointment-item">
-                <div class="item-title">Session ${index + 1} - Appointment #${apt.id}</div>
-                <div class="item-details">
-                  <p><strong>Date:</strong> ${new Date(apt.appointment_date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                  <p><strong>Time:</strong> ${apt.appointment_time}</p>
-                  <p><strong>Status:</strong> <span class="status-badge status-${apt.status.toLowerCase().replace(' ', '-')}">${apt.status}</span></p>
-                  ${apt.notes ? `<p><strong>Session Notes:</strong> ${apt.notes}</p>` : ''}
-                  ${apt.meeting_notes ? `<p><strong>Counselor Notes:</strong> ${apt.meeting_notes}</p>` : ''}
-                  ${apt.meeting_duration_minutes ? `<p><strong>Duration:</strong> ${apt.meeting_duration_minutes} minutes</p>` : ''}
+            <div class="section-header">📋 Personal Information</div>
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">Full Name</div>
+                <div class="info-value">${student.profile.full_name}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Email Address</div>
+                <div class="info-value">${student.profile.email}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Student ID</div>
+                <div class="info-value">${student.profile.id_number}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Phone Number</div>
+                <div class="info-value">${student.profile.phone_number || 'Not provided'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Emergency Contact</div>
+                <div class="info-value">${student.profile.guardian_name || 'Not provided'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Emergency Phone</div>
+                <div class="info-value">${student.profile.guardian_phone_number || 'Not provided'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Registration Date</div>
+                <div class="info-value">${new Date(student.profile.created_at).toLocaleDateString()}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Account Status</div>
+                <div class="info-value">
+                  <span class="status-badge status-completed">
+                    Active
+                  </span>
                 </div>
               </div>
-            `).join('') : '<div class="no-data">No counseling appointments scheduled or completed.</div>'}
+            </div>
           </div>
 
           <div class="section">
-            <div class="section-header">III. Cognitive Behavioral Therapy (CBT) Modules</div>
-            ${student.cbtModules.length > 0 ? student.cbtModules.map((module, index) => `
-              <div class="module-item">
-                <div class="item-title">Module ${index + 1}: ${module.module_title}</div>
-                <div class="item-details">
-                  <p><strong>Status:</strong> <span class="status-badge status-${module.module_status.toLowerCase().replace(' ', '-')}">${module.module_status}</span></p>
-                  ${module.module_date_started ? `<p><strong>Date Started:</strong> ${new Date(module.module_date_started).toLocaleDateString()}</p>` : ''}
-                  ${module.module_date_complete ? `<p><strong>Date Completed:</strong> ${new Date(module.module_date_complete).toLocaleDateString()}</p>` : ''}
-                  <p><strong>Description:</strong> ${module.module_description}</p>
-                </div>
-              </div>
-            `).join('') : '<div class="no-data">No CBT modules have been assigned to this student.</div>'}
+            <div class="section-header">📅 Counseling Appointments${student.appointments.length > 1 ? ` (${student.appointments.length} Sessions)` : ''}</div>
+            ${student.appointments.length > 0 ? `
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Session</th>
+                    <th>Date & Time</th>
+                    <th>Status</th>
+                    <th>Duration</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${student.appointments.map((apt, index) => `
+                    <tr>
+                      <td>Session ${index + 1}</td>
+                      <td>${new Date(apt.appointment_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}<br>${apt.appointment_time}</td>
+                      <td><span class="status-badge status-${apt.status.toLowerCase().replace(' ', '-')}">${apt.status}</span></td>
+                      <td>${apt.meeting_duration_minutes ? `${apt.meeting_duration_minutes} min` : 'N/A'}</td>
+                      <td>${apt.meeting_notes || apt.notes || 'No notes recorded'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : '<div class="no-data">📅 No counseling appointments scheduled or completed.</div>'}
           </div>
 
           <div class="section">
-            <div class="section-header">IV. Educational Video Resources</div>
-            ${student.anxietyVideos.length > 0 ? student.anxietyVideos.map((video, index) => `
-              <div class="video-item">
-                <div class="item-title">Video ${index + 1}: ${video.video_title}</div>
-                <div class="item-details">
-                  <p><strong>Status:</strong> <span class="status-badge status-${video.video_status.toLowerCase().replace(' ', '-')}">${video.video_status}</span></p>
-                  ${video.video_date_started ? `<p><strong>Date Started:</strong> ${new Date(video.video_date_started).toLocaleDateString()}</p>` : ''}
-                  ${video.video_date_completed ? `<p><strong>Date Completed:</strong> ${new Date(video.video_date_completed).toLocaleDateString()}</p>` : ''}
-                  <p><strong>Description:</strong> ${video.video_description}</p>
-                </div>
-              </div>
-            `).join('') : '<div class="no-data">No educational videos have been assigned to this student.</div>'}
+            <div class="section-header">🧠 Cognitive Behavioral Therapy (CBT) Modules</div>
+            ${student.cbtModules.length > 0 ? `
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Module</th>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Date Started</th>
+                    <th>Date Completed</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${student.cbtModules.map((module, index) => `
+                    <tr>
+                      <td>Module ${index + 1}</td>
+                      <td>${module.module_title}</td>
+                      <td><span class="status-badge status-${module.module_status.toLowerCase().replace(' ', '-')}">${module.module_status}</span></td>
+                      <td>${module.module_date_started ? new Date(module.module_date_started).toLocaleDateString() : 'Not started'}</td>
+                      <td>${module.module_date_complete ? new Date(module.module_date_complete).toLocaleDateString() : 'Not completed'}</td>
+                      <td>${module.module_description}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : '<div class="no-data">🧠 No CBT modules have been assigned to this student.</div>'}
           </div>
 
           <div class="section">
-            <div class="section-header">V. Anxiety Assessment History</div>
-            ${student.anxietyAssessments.length > 0 ? student.anxietyAssessments.map((assessment, index) => `
-              <div class="assessment-item">
-                <div class="item-title">Assessment ${index + 1} (ID: ${assessment.id.substring(0, 8)})</div>
-                <div class="item-details">
-                  <p><strong>Date Completed:</strong> ${new Date(assessment.created_at).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                  <p><strong>Anxiety Level:</strong> ${assessment.anxiety_level}</p>
-                  <p><strong>Total Score:</strong> ${assessment.total_score}/21 points</p>
-                  <p><strong>Percentage:</strong> ${assessment.percentage}%</p>
-                </div>
-              </div>
-            `).join('') : '<div class="no-data">No anxiety assessments have been completed by this student.</div>'}
+            <div class="section-header">📺 Educational Video Resources</div>
+            ${student.anxietyVideos.length > 0 ? `
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Video</th>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Date Started</th>
+                    <th>Date Completed</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${student.anxietyVideos.map((video, index) => `
+                    <tr>
+                      <td>Video ${index + 1}</td>
+                      <td>${video.video_title}</td>
+                      <td><span class="status-badge status-${video.video_status.toLowerCase().replace(' ', '-')}">${video.video_status}</span></td>
+                      <td>${video.video_date_started ? new Date(video.video_date_started).toLocaleDateString() : 'Not started'}</td>
+                      <td>${video.video_date_completed ? new Date(video.video_date_completed).toLocaleDateString() : 'Not completed'}</td>
+                      <td>${video.video_description}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : '<div class="no-data">📺 No educational videos have been assigned to this student.</div>'}
           </div>
 
           <div class="section">
-            <div class="section-header">VI. Assigned Tasks & Activities</div>
-            ${student.todoItems.length > 0 ? student.todoItems.map((todo, index) => `
-              <div class="todo-item">
-                <div class="item-title">Task ${index + 1}: ${todo.title}</div>
-                <div class="item-details">
-                  <p><strong>Status:</strong> <span class="status-badge status-${todo.status.toLowerCase().replace(' ', '-')}">${todo.status}</span></p>
-                  <p><strong>Priority Level:</strong> ${getPriorityText(todo.priority)}</p>
-                  ${todo.description ? `<p><strong>Description:</strong> ${todo.description}</p>` : ''}
-                  ${todo.due_at ? `<p><strong>Due Date:</strong> ${new Date(todo.due_at).toLocaleDateString()}</p>` : ''}
-                  ${todo.completed_at ? `<p><strong>Completed Date:</strong> ${new Date(todo.completed_at).toLocaleDateString()}</p>` : ''}
-                </div>
-              </div>
-            `).join('') : '<div class="no-data">No tasks or activities have been assigned to this student.</div>'}
+            <div class="section-header">📊 Anxiety Assessment History</div>
+            ${student.anxietyAssessments.length > 0 ? `
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Assessment</th>
+                    <th>Date Completed</th>
+                    <th>Anxiety Level</th>
+                    <th>Score</th>
+                    <th>Percentage</th>
+                    <th>Assessment ID</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${student.anxietyAssessments.map((assessment, index) => {
+                    const getAnxietyClass = (level: string): string => {
+                      const levelLower = level.toLowerCase();
+                      if (levelLower.includes('minimal')) return 'anxiety-minimal';
+                      if (levelLower.includes('mild')) return 'anxiety-mild';
+                      if (levelLower.includes('moderate')) return 'anxiety-moderate';
+                      if (levelLower.includes('severe')) return 'anxiety-severe';
+                      return 'anxiety-minimal';
+                    };
+                    return `
+                    <tr>
+                      <td>Assessment ${index + 1}</td>
+                      <td>${new Date(assessment.created_at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                      <td><span class="status-badge ${getAnxietyClass(assessment.anxiety_level)}">${assessment.anxiety_level}</span></td>
+                      <td>${assessment.total_score}/21</td>
+                      <td>${assessment.percentage}%</td>
+                      <td>${assessment.id.substring(0, 8)}</td>
+                    </tr>
+                  `}).join('')}
+                </tbody>
+              </table>
+            ` : '<div class="no-data">📊 No anxiety assessments have been completed by this student.</div>'}
+          </div>
+
+          <div class="section">
+            <div class="section-header">✅ Assigned Tasks & Activities</div>
+            ${student.todoItems.length > 0 ? `
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Task</th>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Due Date</th>
+                    <th>Completed</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${student.todoItems.map((todo, index) => {
+                    const getPriorityClass = (priority: number): string => {
+                      if (priority >= 5) return 'priority-urgent';
+                      if (priority >= 4) return 'priority-high';
+                      if (priority >= 3) return 'priority-medium';
+                      if (priority >= 2) return 'priority-low';
+                      return 'priority-very-low';
+                    };
+                    return `
+                    <tr>
+                      <td>Task ${index + 1}</td>
+                      <td>${todo.title}</td>
+                      <td><span class="status-badge status-${todo.status.toLowerCase().replace(' ', '-')}">${todo.status}</span></td>
+                      <td><span class="status-badge ${getPriorityClass(todo.priority)}">${getPriorityText(todo.priority)}</span></td>
+                      <td>${todo.due_at ? new Date(todo.due_at).toLocaleDateString() : 'No due date'}</td>
+                      <td>${todo.completed_at ? new Date(todo.completed_at).toLocaleDateString() : 'Not completed'}</td>
+                      <td>${todo.description || 'No description provided'}</td>
+                    </tr>
+                  `}).join('')}
+                </tbody>
+              </table>
+            ` : '<div class="no-data">✅ No tasks or activities have been assigned to this student.</div>'}
           </div>
 
           <div class="signature-section">
@@ -1031,41 +1700,54 @@ const Records = ({ darkMode }: RecordsProps) => {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => exportToCSV(selectedStudent)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 hover:scale-105 ${
+                    className={`flex items-center gap-0.5 px-1.5 py-1 rounded-md transition-all duration-200 hover:scale-105 ${
                       darkMode 
                         ? 'bg-green-600/20 hover:bg-green-600/30 text-green-300 border border-green-500/30' 
                         : 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
                     }`}
                     title="Export to CSV"
                   >
-                    <FaFileCsv className="text-sm" />
-                    <span className="text-xs font-medium">CSV</span>
+                    <FaFileCsv className="text-xs" />
+                    <span className="text-xs">CSV</span>
                   </button>
                   
                   <button
                     onClick={() => exportToExcel(selectedStudent)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 hover:scale-105 ${
+                    className={`flex items-center gap-0.5 px-1.5 py-1 rounded-md transition-all duration-200 hover:scale-105 ${
                       darkMode 
                         ? 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30' 
                         : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
                     }`}
                     title="Export to Excel"
                   >
-                    <FaFileExcel className="text-sm" />
-                    <span className="text-xs font-medium">Excel</span>
+                    <FaFileExcel className="text-xs" />
+                    <span className="text-xs">Excel</span>
                   </button>
                   
                   <button
                     onClick={() => exportToWord(selectedStudent)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 hover:scale-105 ${
+                    className={`flex items-center gap-0.5 px-1.5 py-1 rounded-md transition-all duration-200 hover:scale-105 ${
                       darkMode 
                         ? 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30' 
                         : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
                     }`}
                     title="Export to Word"
                   >
-                    <FaFileWord className="text-sm" />
-                    <span className="text-xs font-medium">Word</span>
+                    <FaFileWord className="text-xs" />
+                    <span className="text-xs">Word</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => exportToPDF(selectedStudent)}
+                    className={`flex items-center gap-0.5 px-1.5 py-1 rounded-md transition-all duration-200 hover:scale-105 ${
+                      darkMode 
+                        ? 'bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30' 
+                        : 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
+                    }`}
+                    title="Export to PDF"
+                  >
+                    <FaFilePdf className="text-xs" />
+                    <span className="text-xs">PDF</span>
                   </button>
                 </div>
                 

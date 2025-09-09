@@ -157,6 +157,7 @@ export default function GuidanceDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   const [yearFilter, setYearFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -169,6 +170,15 @@ export default function GuidanceDashboard() {
   useEffect(() => {
     localStorage.setItem('guidanceActiveView', activeView);
   }, [activeView]);
+
+  // Update clock every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   // Custom setter to update both state and localStorage
   const setActiveView = (view: string) => {
@@ -254,8 +264,6 @@ export default function GuidanceDashboard() {
               return user;
             });
           });
-          
-          // Real-time profile update processed silently
         }
       }
     });
@@ -943,6 +951,21 @@ export default function GuidanceDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {/* Real-time Clock */}
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12,6 12,12 16,14"></polyline>
+                </svg>
+                <span className="text-sm font-medium">
+                  {currentTime.toLocaleTimeString('en-US', { 
+                    hour12: true, 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    second: '2-digit'
+                  })}
+                </span>
+              </div>
               <button
                 onClick={toggleDarkMode}
                 className={`p-1.5 rounded-full ${darkMode ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
@@ -1714,4 +1737,4 @@ export default function GuidanceDashboard() {
       <Footer darkMode={darkMode} />
     </div>
   );
-} 
+}
