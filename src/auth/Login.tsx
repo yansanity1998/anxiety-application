@@ -356,7 +356,7 @@
     };
 
     return (
-      <div className="p-6 relative text-sm sm:text-base">
+      <div className="p-6 relative text-sm sm:text-base animate-fade-in">
         <div className="w-full relative">
           {/* Header */}
           <div className="text-center mb-8">

@@ -3,18 +3,148 @@ import { FaBrain, FaHeart, FaUsers, FaShieldAlt, FaChevronLeft, FaChevronRight, 
 import Login from '../auth/Login';
 import Register from '../auth/Register';
 
+// CSS-in-JS styles for smooth animations
+const animationStyles = `
+  @keyframes fadeInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeInLeft {
+    0% {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes fadeInRight {
+    0% {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes fadeInScale {
+    0% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  @keyframes slideInFromTop {
+    0% {
+      opacity: 0;
+      transform: translateY(-50px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+  
+  .animate-fade-in-left {
+    animation: fadeInLeft 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+  
+  .animate-fade-in-right {
+    animation: fadeInRight 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+  
+  .animate-fade-in-scale {
+    animation: fadeInScale 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+  
+  .animate-slide-in-top {
+    animation: slideInFromTop 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+  
+  .animation-delay-200 {
+    animation-delay: 0.2s;
+  }
+  
+  .animation-delay-400 {
+    animation-delay: 0.4s;
+  }
+  
+  .animation-delay-600 {
+    animation-delay: 0.6s;
+  }
+  
+  .animation-delay-800 {
+    animation-delay: 0.8s;
+  }
+  
+  .animation-delay-1000 {
+    animation-delay: 1s;
+  }
+`;
+
 export default function LandingPage() {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isVisible, setIsVisible] = useState<{[key: string]: boolean}>({});
+  const [isPageLoaded, setIsPageLoaded] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  
+  // Inject animation styles
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = animationStyles;
+    document.head.appendChild(styleElement);
+    
+    // Trigger page load animations
+    const timer = setTimeout(() => {
+      setIsPageLoaded(true);
+    }, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      document.head.removeChild(styleElement);
+    };
+  }, []);
+
+  // Prevent background scrolling when modals are open
+  useEffect(() => {
+    if (showLogin || showRegister) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showLogin, showRegister]);
 
   const carouselImages = [
     {
-      src: '/guidance 1.jpg',
-      title: 'Professional Guidance Support',
-      description: 'Connect with certified counselors who understand your journey'
+      src: '/guidance 5.png',
+      title: 'Personalized Care Approach',
+      description: 'Experience tailored support designed specifically for your needs'
     },
     {
       src: '/guidance 2.jpg',
@@ -27,14 +157,14 @@ export default function LandingPage() {
       description: 'Join a supportive community focused on mental wellness'
     },
     {
+      src: '/guidance 1.jpg',
+      title: 'Professional Guidance Support',
+      description: 'Connect with certified counselors who understand your journey'
+    },
+    {
       src: '/guidance 4.jpg',
       title: 'Mindful Wellness Journey',
       description: 'Discover inner peace through guided mindfulness and meditation'
-    },
-    {
-      src: '/guidance 5.png',
-      title: 'Personalized Care Approach',
-      description: 'Experience tailored support designed specifically for your needs'
     }
   ];
 
@@ -42,7 +172,7 @@ export default function LandingPage() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
-    }, 2000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [carouselImages.length]);
@@ -92,7 +222,7 @@ export default function LandingPage() {
       {/* Full-Width Hero Section */}
       <section className="relative h-screen w-full overflow-hidden">
         {/* Hero Image with Enhanced Animations */}
-        <div className="absolute inset-0 overflow-hidden">
+        <div className={`absolute inset-0 overflow-hidden ${isPageLoaded ? 'animate-carousel-entrance' : 'opacity-0'}`}>
           {carouselImages.map((image, index) => (
             <div
               key={index}
@@ -116,24 +246,24 @@ export default function LandingPage() {
 
         {/* Floating Header */}
         <header className="absolute top-0 left-0 right-0 z-20 flex flex-wrap sm:flex-nowrap justify-between items-center p-3 sm:p-6 gap-3 backdrop-blur-md bg-white/10">
-  <div className="flex items-center gap-2 sm:gap-3 flex-shrink min-w-0">
+  <div className={`flex items-center gap-2 sm:gap-3 flex-shrink min-w-0 opacity-0 ${isPageLoaded ? 'animate-fade-in-left' : ''}`}>
     <img 
       src="/spc-guidance.png" 
       alt="spc-guidance Logo" 
-      className="w-8 h-8 sm:w-15 sm:h-15 object-contain"
+      className={`w-8 h-8 sm:w-15 sm:h-15 object-contain opacity-0 ${isPageLoaded ? 'animate-fade-in-scale animation-delay-200' : ''}`}
     />
     <div className="min-w-0">
-      <h1 className="text-base sm:text-lg md:text-3xl font-bold text-white drop-shadow-lg truncate">
+      <h1 className={`text-base sm:text-lg md:text-3xl font-bold text-white drop-shadow-lg truncate opacity-0 ${isPageLoaded ? 'animate-slide-in-top animation-delay-400' : ''}`}>
         Anxiety Support System
       </h1>
-      <p className="text-[10px] sm:text-xs md:text-sm text-white/90 drop-shadow">
+      <p className={`text-[10px] sm:text-xs md:text-sm text-white/90 drop-shadow opacity-0 ${isPageLoaded ? 'animate-fade-in-up animation-delay-600' : ''}`}>
         Your journey to wellness starts here
       </p>
     </div>
   </div>
   <button
     onClick={() => setShowLogin(true)}
-    className="bg-red-900 text-white border-red-900 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-xl text-xs sm:text-sm md:text-base font-semibold shadow-lg hover:bg-red-800 transform hover:scale-105 transition-all duration-300"
+    className={`bg-red-900 text-white border-red-900 px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-xl text-xs sm:text-sm md:text-base font-semibold shadow-lg hover:bg-red-800 transform hover:scale-105 transition-all duration-300 opacity-0 ${isPageLoaded ? 'animate-fade-in-right animation-delay-800' : ''}`}
   >
     Login
   </button>
@@ -144,17 +274,17 @@ export default function LandingPage() {
         <div className="absolute inset-0 flex flex-col justify-center items-center text-center px-4 z-10">
           <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
             <h2 className="text-2xl sm:text-2xl md:text-5xl lg:text-5xl font-bold text-white drop-shadow-2xl leading-tight transition-all duration-700 ease-in-out">
-              <span className="block mb-2 sm:mb-2 animate-fade-in">Manage Anxiety</span>
-              <span className="text-1xl sm:text-2xl md:text-3xl lg:text-3xl font-light text-white/90 animate-fade-in" style={{animationDelay: '0.2s'}}>
+              <span className={`block mb-2 sm:mb-2 opacity-0 ${isPageLoaded ? 'animate-fade-in-up animation-delay-400' : ''}`}>Manage Anxiety</span>
+              <span className={`text-1xl sm:text-2xl md:text-3xl lg:text-3xl font-light text-white/90 opacity-0 ${isPageLoaded ? 'animate-fade-in-up animation-delay-600' : ''}`}>
                 with Professional Guidance
               </span>
             </h2>
             <div className="transition-all duration-500 ease-in-out transform">
-              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed drop-shadow-lg animate-fade-in" style={{animationDelay: '0.4s'}}>
+              <p className={`text-base sm:text-lg md:text-xl lg:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed drop-shadow-lg opacity-0 ${isPageLoaded ? 'animate-fade-in-up animation-delay-800' : ''}`}>
                 {carouselImages[currentSlide].description}
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
+            <div className={`flex flex-col sm:flex-row gap-4 justify-center items-center mt-8 opacity-0 ${isPageLoaded ? 'animate-fade-in-up animation-delay-1000' : ''}`}>
               <button
                 onClick={() => setShowLogin(true)}
                 className="bg-gradient-to-r from-[#800000] to-[#a00000] text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 min-w-[200px]"
@@ -174,19 +304,19 @@ export default function LandingPage() {
         {/* Carousel Controls */}
         <button
           onClick={prevSlide}
-          className="absolute left-4 sm:left-8 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white p-3 sm:p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-20"
+          className={`absolute left-4 sm:left-8 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white p-3 sm:p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-20 opacity-0 ${isPageLoaded ? 'animate-fade-in-left animation-delay-1000' : ''}`}
         >
           <FaChevronLeft className="text-lg sm:text-xl" />
         </button>
         <button
           onClick={nextSlide}
-          className="absolute right-4 sm:right-8 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white p-3 sm:p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-20"
+          className={`absolute right-4 sm:right-8 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-md hover:bg-white/30 text-white p-3 sm:p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-20 opacity-0 ${isPageLoaded ? 'animate-fade-in-right animation-delay-1000' : ''}`}
         >
           <FaChevronRight className="text-lg sm:text-xl" />
         </button>
 
         {/* Carousel Indicators */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-3 z-20">
+        <div className={`absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-3 z-20 opacity-0 ${isPageLoaded ? 'animate-fade-in-up animation-delay-1000' : ''}`}>
           {carouselImages.map((_, index) => (
             <button
               key={index}

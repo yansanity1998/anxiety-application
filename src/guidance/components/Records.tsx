@@ -343,8 +343,8 @@ const Records = ({ darkMode }: RecordsProps) => {
           .assessment-moderate { background-color: #fef3c7; color: #92400e; }
           .assessment-severe { background-color: #fee2e2; color: #dc2626; }
           .status-completed { background-color: #dcfce7; color: #166534; }
-          .status-in-progress { background-color: #dbeafe; color: #1e40af; }
-          .status-pending { background-color: #fef3c7; color: #92400e; }
+          .status-in-progress { background-color: #fef3c7; color: #92400e; }
+          .status-pending { background-color: #fee2e2; color: #dc2626; }
         </style>
       </head>
       <body>
@@ -603,8 +603,8 @@ const Records = ({ darkMode }: RecordsProps) => {
             text-transform: uppercase;
           }
           .status-completed { background-color: #dcfce7; color: #166534; }
-          .status-in-progress { background-color: #dbeafe; color: #1e40af; }
-          .status-pending { background-color: #fef3c7; color: #92400e; }
+          .status-in-progress { background-color: #fef3c7; color: #92400e; }
+          .status-pending { background-color: #fee2e2; color: #dc2626; }
           .status-scheduled { background-color: #dbeafe; color: #1e40af; }
           .anxiety-minimal { background-color: #dcfce7; color: #166534; }
           .anxiety-mild { background-color: #dbeafe; color: #1e40af; }
@@ -1001,8 +1001,8 @@ const Records = ({ darkMode }: RecordsProps) => {
               text-transform: uppercase;
             }
             .status-completed { background-color: #dcfce7; color: #166534; }
-            .status-in-progress { background-color: #dbeafe; color: #1e40af; }
-            .status-pending { background-color: #fef3c7; color: #92400e; }
+            .status-in-progress { background-color: #fef3c7; color: #92400e; }
+            .status-pending { background-color: #fee2e2; color: #dc2626; }
             .status-scheduled { background-color: #dbeafe; color: #1e40af; }
             .anxiety-minimal { background-color: #dcfce7; color: #166534; }
             .anxiety-mild { background-color: #dbeafe; color: #1e40af; }

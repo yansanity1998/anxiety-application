@@ -230,7 +230,7 @@ export default function Register({ onSwitch }: RegisterProps) {
   };
 
   return (
-    <div className="p-6 relative text-xs sm:text-sm">
+    <div className="p-6 relative text-xs sm:text-sm animate-slide-up-in">
       <div className="w-full relative">
         {/* Header */}
         <div className="text-center mb-6">
