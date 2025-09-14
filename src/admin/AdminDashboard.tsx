@@ -39,6 +39,7 @@ type UserProfile = {
   guardian_phone_number?: string;
   address?: string;
   id_number?: string;
+  is_verified?: boolean;
 };
 
 type Assessment = {
@@ -1143,11 +1144,15 @@ export default function AdminDashboard() {
 
             {activeView === 'users' && (
               <>
-                {/* Student count summary card - restored to original size, keep icon */}
-                <div className={`mb-4 flex items-center ${darkMode ? 'bg-gray-700' : 'bg-[#800000]/5'} rounded-lg px-4 py-3 border ${darkMode ? 'border-gray-600' : 'border-[#800000]/30'} w-fit`}> 
-                  <FaUser className={`mr-2 text-xl ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`} />
-                  <span className={`font-semibold text-base ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`}>Active Students:</span>
-                  <span className={`ml-2 text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{activeUsers.filter(u => u.role === 'student').length}</span>
+                {/* Student count summary cards */}
+                <div className="mb-4 flex flex-wrap gap-3">
+                  {/* Active Students Card */}
+                  <div className={`flex items-center ${darkMode ? 'bg-gray-700' : 'bg-[#800000]/5'} rounded-lg px-4 py-3 border ${darkMode ? 'border-gray-600' : 'border-[#800000]/30'} w-fit`}> 
+                    <FaUser className={`mr-2 text-xl ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`} />
+                    <span className={`font-semibold text-base ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`}>Active Students:</span>
+                    <span className={`ml-2 text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{activeUsers.filter(u => u.role === 'student').length}</span>
+                  </div>
+                  
                 </div>
                 <div className="mb-3">
                   <div className="flex gap-2">

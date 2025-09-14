@@ -864,6 +864,915 @@ const Records = ({ darkMode }: RecordsProps) => {
     URL.revokeObjectURL(url);
   };
 
+  // Individual section export functions
+  const exportStudentInfoToCSV = (student: StudentRecord) => {
+    const csvData = [
+      ['Field', 'Value'],
+      ['Full Name', student.profile.full_name],
+      ['Email', student.profile.email],
+      ['ID Number', student.profile.id_number],
+      ['Age', student.profile.age?.toString() || ''],
+      ['Gender', student.profile.gender],
+      ['School', student.profile.school],
+      ['Course', student.profile.course],
+      ['Year Level', student.profile.year_level?.toString() || ''],
+      ['Phone', student.profile.phone_number || ''],
+      ['Guardian', student.profile.guardian_name || ''],
+      ['Guardian Phone', student.profile.guardian_phone_number || ''],
+      ['Address', student.profile.address || ''],
+      ['Last Activity', new Date(student.profile.last_activity_date).toLocaleDateString()],
+      ['Streak', student.profile.streak?.toString() || '0']
+    ];
+
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      csvData.map(row => 
+        row.map(field => `"${field?.toString().replace(/"/g, '""') || ''}"`).join(',')
+      ).join('\n');
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `${student.profile.full_name.replace(/\s+/g, '_')}_student_info.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportAppointmentsToCSV = (student: StudentRecord) => {
+    const csvData = [
+      ['Date', 'Time', 'Status', 'Notes', 'Duration (minutes)'],
+      ...student.appointments.map(apt => [
+        new Date(apt.appointment_date).toLocaleDateString(),
+        apt.appointment_time,
+        apt.status,
+        apt.notes || apt.meeting_notes || '',
+        apt.meeting_duration_minutes?.toString() || ''
+      ])
+    ];
+
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      csvData.map(row => 
+        row.map(field => `"${field?.toString().replace(/"/g, '""') || ''}"`).join(',')
+      ).join('\n');
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `${student.profile.full_name.replace(/\s+/g, '_')}_appointments.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportCBTModulesToCSV = (student: StudentRecord) => {
+    const csvData = [
+      ['Module Title', 'Status', 'Description', 'Date Started', 'Date Completed'],
+      ...student.cbtModules.map(module => [
+        module.module_title,
+        module.module_status,
+        module.module_description,
+        module.module_date_started ? new Date(module.module_date_started).toLocaleDateString() : '',
+        module.module_date_complete ? new Date(module.module_date_complete).toLocaleDateString() : ''
+      ])
+    ];
+
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      csvData.map(row => 
+        row.map(field => `"${field?.toString().replace(/"/g, '""') || ''}"`).join(',')
+      ).join('\n');
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `${student.profile.full_name.replace(/\s+/g, '_')}_cbt_modules.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportAnxietyVideosToCSV = (student: StudentRecord) => {
+    const csvData = [
+      ['Video Title', 'Status', 'Description', 'URL', 'Date Started', 'Date Completed'],
+      ...student.anxietyVideos.map(video => [
+        video.video_title,
+        video.video_status,
+        video.video_description,
+        video.video_url,
+        video.video_date_started ? new Date(video.video_date_started).toLocaleDateString() : '',
+        video.video_date_completed ? new Date(video.video_date_completed).toLocaleDateString() : ''
+      ])
+    ];
+
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      csvData.map(row => 
+        row.map(field => `"${field?.toString().replace(/"/g, '""') || ''}"`).join(',')
+      ).join('\n');
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `${student.profile.full_name.replace(/\s+/g, '_')}_anxiety_videos.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportTodoItemsToCSV = (student: StudentRecord) => {
+    const csvData = [
+      ['Title', 'Description', 'Status', 'Priority', 'Category', 'Due Date', 'Completed Date'],
+      ...student.todoItems.map(todo => [
+        todo.title,
+        todo.description || '',
+        todo.status,
+        getPriorityText(todo.priority),
+        todo.category || '',
+        todo.due_at ? new Date(todo.due_at).toLocaleDateString() : '',
+        todo.completed_at ? new Date(todo.completed_at).toLocaleDateString() : ''
+      ])
+    ];
+
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      csvData.map(row => 
+        row.map(field => `"${field?.toString().replace(/"/g, '""') || ''}"`).join(',')
+      ).join('\n');
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `${student.profile.full_name.replace(/\s+/g, '_')}_todo_items.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportAnxietyAssessmentsToCSV = (student: StudentRecord) => {
+    const csvData = [
+      ['Assessment ID', 'Date', 'Anxiety Level', 'Total Score', 'Percentage', 'Answers'],
+      ...student.anxietyAssessments.map(assessment => [
+        assessment.id.substring(0, 8),
+        new Date(assessment.created_at).toLocaleDateString(),
+        assessment.anxiety_level,
+        `${assessment.total_score}/21`,
+        `${assessment.percentage}%`,
+        assessment.answers.join(', ')
+      ])
+    ];
+
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      csvData.map(row => 
+        row.map(field => `"${field?.toString().replace(/"/g, '""') || ''}"`).join(',')
+      ).join('\n');
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `${student.profile.full_name.replace(/\s+/g, '_')}_anxiety_assessments.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Generic section export functions for Excel, Word, and PDF
+  const exportSectionToExcel = (student: StudentRecord, sectionType: string) => {
+    let tableContent = '';
+    let fileName = '';
+    let sectionTitle = '';
+
+    switch (sectionType) {
+      case 'student_info':
+        sectionTitle = 'STUDENT INFORMATION';
+        fileName = 'student_info';
+        tableContent = `
+          <table class="table">
+            <tr><td colspan="2" class="section-header">${sectionTitle}</td></tr>
+            <tr><td class="label">Full Name</td><td class="value">${student.profile.full_name}</td></tr>
+            <tr><td class="label">Student ID</td><td class="value">${student.profile.id_number}</td></tr>
+            <tr><td class="label">Email Address</td><td class="value">${student.profile.email}</td></tr>
+            <tr><td class="label">School</td><td class="value">${student.profile.school}</td></tr>
+            <tr><td class="label">Course</td><td class="value">${student.profile.course}</td></tr>
+            <tr><td class="label">Year Level</td><td class="value">${student.profile.year_level || 'Not provided'}</td></tr>
+            <tr><td class="label">Phone Number</td><td class="value">${student.profile.phone_number || 'Not provided'}</td></tr>
+            <tr><td class="label">Guardian Name</td><td class="value">${student.profile.guardian_name || 'Not provided'}</td></tr>
+            <tr><td class="label">Last Activity</td><td class="value">${new Date(student.profile.last_activity_date).toLocaleDateString()}</td></tr>
+          </table>`;
+        break;
+
+      case 'appointments':
+        sectionTitle = 'COUNSELING APPOINTMENTS';
+        fileName = 'appointments';
+        tableContent = `
+          <table class="table">
+            <tr><td colspan="4" class="section-header">${sectionTitle} (${student.appointments.length})</td></tr>
+            ${student.appointments.length > 0 ? `
+              <tr><td class="label">Date</td><td class="label">Time</td><td class="label">Status</td><td class="label">Notes</td></tr>
+              ${student.appointments.map(apt => `
+                <tr>
+                  <td class="value">${new Date(apt.appointment_date).toLocaleDateString()}</td>
+                  <td class="value">${apt.appointment_time}</td>
+                  <td class="value status-${apt.status.toLowerCase().replace(' ', '-')}">${apt.status}</td>
+                  <td class="value">${apt.notes || apt.meeting_notes || 'No notes'}</td>
+                </tr>
+              `).join('')}
+            ` : '<tr><td colspan="4" class="value" style="text-align: center; font-style: italic;">No appointments scheduled</td></tr>'}
+          </table>`;
+        break;
+
+      case 'cbt_modules':
+        sectionTitle = 'CBT MODULES';
+        fileName = 'cbt_modules';
+        tableContent = `
+          <table class="table">
+            <tr><td colspan="4" class="section-header">${sectionTitle} (${student.cbtModules.length})</td></tr>
+            ${student.cbtModules.length > 0 ? `
+              <tr><td class="label">Module Title</td><td class="label">Status</td><td class="label">Date Started</td><td class="label">Description</td></tr>
+              ${student.cbtModules.map(module => `
+                <tr>
+                  <td class="value">${module.module_title}</td>
+                  <td class="value status-${module.module_status.replace('_', '-')}">${module.module_status.replace('_', ' ')}</td>
+                  <td class="value">${module.module_date_started ? new Date(module.module_date_started).toLocaleDateString() : 'Not started'}</td>
+                  <td class="value">${module.module_description}</td>
+                </tr>
+              `).join('')}
+            ` : '<tr><td colspan="4" class="value" style="text-align: center; font-style: italic;">No CBT modules assigned</td></tr>'}
+          </table>`;
+        break;
+
+      case 'anxiety_videos':
+        sectionTitle = 'ANXIETY VIDEOS';
+        fileName = 'anxiety_videos';
+        tableContent = `
+          <table class="table">
+            <tr><td colspan="3" class="section-header">${sectionTitle} (${student.anxietyVideos.length})</td></tr>
+            ${student.anxietyVideos.length > 0 ? `
+              <tr><td class="label">Video Title</td><td class="label">Status</td><td class="label">Description</td></tr>
+              ${student.anxietyVideos.map(video => `
+                <tr>
+                  <td class="value">${video.video_title}</td>
+                  <td class="value status-${video.video_status.replace('_', '-')}">${video.video_status.replace('_', ' ')}</td>
+                  <td class="value">${video.video_description}</td>
+                </tr>
+              `).join('')}
+            ` : '<tr><td colspan="3" class="value" style="text-align: center; font-style: italic;">No videos assigned</td></tr>'}
+          </table>`;
+        break;
+
+      case 'todo_items':
+        sectionTitle = 'ASSIGNED TASKS';
+        fileName = 'todo_items';
+        tableContent = `
+          <table class="table">
+            <tr><td colspan="5" class="section-header">${sectionTitle} (${student.todoItems.length})</td></tr>
+            ${student.todoItems.length > 0 ? `
+              <tr><td class="label">Task Title</td><td class="label">Status</td><td class="label">Priority</td><td class="label">Due Date</td><td class="label">Description</td></tr>
+              ${student.todoItems.map(todo => `
+                <tr>
+                  <td class="value">${todo.title}</td>
+                  <td class="value status-${todo.status.replace('_', '-')}">${todo.status.replace('_', ' ')}</td>
+                  <td class="value">${getPriorityText(todo.priority)}</td>
+                  <td class="value">${todo.due_at ? new Date(todo.due_at).toLocaleDateString() : 'No due date'}</td>
+                  <td class="value">${todo.description || 'No description'}</td>
+                </tr>
+              `).join('')}
+            ` : '<tr><td colspan="5" class="value" style="text-align: center; font-style: italic;">No tasks assigned</td></tr>'}
+          </table>`;
+        break;
+
+      case 'anxiety_assessments':
+        sectionTitle = 'ANXIETY ASSESSMENTS';
+        fileName = 'anxiety_assessments';
+        tableContent = `
+          <table class="table">
+            <tr><td colspan="4" class="section-header">${sectionTitle} (${student.anxietyAssessments.length})</td></tr>
+            ${student.anxietyAssessments.length > 0 ? `
+              <tr><td class="label">Date</td><td class="label">Anxiety Level</td><td class="label">Score</td><td class="label">Percentage</td></tr>
+              ${student.anxietyAssessments.map(assessment => `
+                <tr>
+                  <td class="value">${new Date(assessment.created_at).toLocaleDateString()}</td>
+                  <td class="value assessment-${assessment.anxiety_level.toLowerCase()}">${assessment.anxiety_level}</td>
+                  <td class="value">${assessment.total_score}/21</td>
+                  <td class="value">${assessment.percentage}%</td>
+                </tr>
+              `).join('')}
+            ` : '<tr><td colspan="4" class="value" style="text-align: center; font-style: italic;">No assessments completed</td></tr>'}
+          </table>`;
+        break;
+    }
+
+    const excelContent = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <style>
+          .header { background-color: #2563eb; color: white; font-weight: bold; text-align: center; font-size: 14pt; padding: 10px; }
+          .section-header { background-color: #3b82f6; color: white; font-weight: bold; text-align: center; font-size: 12pt; padding: 8px; }
+          .label { background-color: #f1f5f9; font-weight: bold; padding: 6px; border: 1px solid #cbd5e1; }
+          .value { padding: 6px; border: 1px solid #cbd5e1; }
+          .table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+          .assessment-minimal { background-color: #dcfce7; color: #166534; }
+          .assessment-mild { background-color: #dbeafe; color: #1e40af; }
+          .assessment-moderate { background-color: #fef3c7; color: #92400e; }
+          .assessment-severe { background-color: #fee2e2; color: #dc2626; }
+          .status-completed { background-color: #dcfce7; color: #166534; }
+          .status-in-progress { background-color: #fef3c7; color: #92400e; }
+          .status-pending { background-color: #fee2e2; color: #dc2626; }
+        </style>
+      </head>
+      <body>
+        <table class="table">
+          <tr><td colspan="5" class="header">${sectionTitle} - ${student.profile.full_name.toUpperCase()}</td></tr>
+          <tr><td colspan="5" style="text-align: center; padding: 10px; font-style: italic;">Generated on ${new Date().toLocaleDateString()}</td></tr>
+        </table>
+        ${tableContent}
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([excelContent], { type: 'application/vnd.ms-excel' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${student.profile.full_name.replace(/\s+/g, '_')}_${fileName}.xls`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportSectionToWord = (student: StudentRecord, section: string) => {
+    const currentDate = new Date();
+    let sectionContent = '';
+    let fileName = '';
+    let sectionTitle = '';
+
+    switch (section) {
+      case 'student_info':
+        sectionTitle = 'STUDENT INFORMATION';
+        fileName = 'student_info';
+        sectionContent = `
+          <table class="data-table">
+            <tr><th>Field</th><th>Value</th></tr>
+            <tr><td>Full Name</td><td>${student.profile.full_name}</td></tr>
+            <tr><td>Student ID</td><td>${student.profile.id_number}</td></tr>
+            <tr><td>Email Address</td><td>${student.profile.email}</td></tr>
+            <tr><td>School</td><td>${student.profile.school}</td></tr>
+            <tr><td>Course</td><td>${student.profile.course}</td></tr>
+            <tr><td>Year Level</td><td>${student.profile.year_level || 'Not provided'}</td></tr>
+            <tr><td>Phone Number</td><td>${student.profile.phone_number || 'Not provided'}</td></tr>
+            <tr><td>Guardian Name</td><td>${student.profile.guardian_name || 'Not provided'}</td></tr>
+            <tr><td>Last Activity</td><td>${new Date(student.profile.last_activity_date).toLocaleDateString()}</td></tr>
+          </table>`;
+        break;
+
+      case 'appointments':
+        sectionTitle = 'COUNSELING APPOINTMENTS';
+        fileName = 'appointments';
+        sectionContent = `
+          <table class="data-table">
+            <tr><th>Date</th><th>Time</th><th>Status</th><th>Notes</th></tr>
+            ${student.appointments.length > 0 ? 
+              student.appointments.map(apt => `
+                <tr>
+                  <td>${new Date(apt.appointment_date).toLocaleDateString()}</td>
+                  <td>${apt.appointment_time}</td>
+                  <td><span class="status-badge status-${apt.status.toLowerCase().replace(' ', '-')}">${apt.status}</span></td>
+                  <td>${apt.notes || apt.meeting_notes || 'No notes'}</td>
+                </tr>
+              `).join('') : 
+              '<tr><td colspan="4" style="text-align: center; font-style: italic;">No appointments scheduled</td></tr>'
+            }
+          </table>`;
+        break;
+
+      case 'cbt_modules':
+        sectionTitle = 'CBT MODULES';
+        fileName = 'cbt_modules';
+        sectionContent = `
+          <table class="data-table">
+            <tr><th>Module Title</th><th>Status</th><th>Date Started</th><th>Description</th></tr>
+            ${student.cbtModules.length > 0 ? 
+              student.cbtModules.map(module => `
+                <tr>
+                  <td>${module.module_title}</td>
+                  <td><span class="status-badge status-${module.module_status.replace('_', '-')}">${module.module_status.replace('_', ' ')}</span></td>
+                  <td>${module.module_date_started ? new Date(module.module_date_started).toLocaleDateString() : 'Not started'}</td>
+                  <td>${module.module_description}</td>
+                </tr>
+              `).join('') : 
+              '<tr><td colspan="4" style="text-align: center; font-style: italic;">No CBT modules assigned</td></tr>'
+            }
+          </table>`;
+        break;
+
+      case 'anxiety_videos':
+        sectionTitle = 'ANXIETY VIDEOS';
+        fileName = 'anxiety_videos';
+        sectionContent = `
+          <table class="data-table">
+            <tr><th>Video Title</th><th>Status</th><th>Description</th></tr>
+            ${student.anxietyVideos.length > 0 ? 
+              student.anxietyVideos.map(video => `
+                <tr>
+                  <td>${video.video_title}</td>
+                  <td><span class="status-badge status-${video.video_status.replace('_', '-')}">${video.video_status.replace('_', ' ')}</span></td>
+                  <td>${video.video_description}</td>
+                </tr>
+              `).join('') : 
+              '<tr><td colspan="3" style="text-align: center; font-style: italic;">No videos assigned</td></tr>'
+            }
+          </table>`;
+        break;
+
+      case 'todo_items':
+        sectionTitle = 'ASSIGNED TASKS';
+        fileName = 'todo_items';
+        sectionContent = `
+          <table class="data-table">
+            <tr><th>Task Title</th><th>Status</th><th>Priority</th><th>Due Date</th><th>Description</th></tr>
+            ${student.todoItems.length > 0 ? 
+              student.todoItems.map(todo => `
+                <tr>
+                  <td>${todo.title}</td>
+                  <td><span class="status-badge status-${todo.status.replace('_', '-')}">${todo.status.replace('_', ' ')}</span></td>
+                  <td>${getPriorityText(todo.priority)}</td>
+                  <td>${todo.due_at ? new Date(todo.due_at).toLocaleDateString() : 'No due date'}</td>
+                  <td>${todo.description || 'No description'}</td>
+                </tr>
+              `).join('') : 
+              '<tr><td colspan="5" style="text-align: center; font-style: italic;">No tasks assigned</td></tr>'
+            }
+          </table>`;
+        break;
+
+      case 'anxiety_assessments':
+        sectionTitle = 'ANXIETY ASSESSMENTS';
+        fileName = 'anxiety_assessments';
+        sectionContent = `
+          <table class="data-table">
+            <tr><th>Date</th><th>Anxiety Level</th><th>Score</th><th>Percentage</th></tr>
+            ${student.anxietyAssessments.length > 0 ? 
+              student.anxietyAssessments.map(assessment => `
+                <tr>
+                  <td>${new Date(assessment.created_at).toLocaleDateString()}</td>
+                  <td><span class="status-badge anxiety-${assessment.anxiety_level.toLowerCase()}">${assessment.anxiety_level}</span></td>
+                  <td>${assessment.total_score}/21</td>
+                  <td>${assessment.percentage}%</td>
+                </tr>
+              `).join('') : 
+              '<tr><td colspan="4" style="text-align: center; font-style: italic;">No assessments completed</td></tr>'
+            }
+          </table>`;
+        break;
+    }
+
+    const wordContent = `
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${sectionTitle} - ${student.profile.full_name}</title>
+          <style>
+            body { font-family: 'Arial', sans-serif; font-size: 11pt; line-height: 1.4; color: #333; margin: 0; padding: 20px; }
+            .header { text-align: center; border-bottom: 3px solid #800000; padding-bottom: 20px; margin-bottom: 25px; }
+            .section-header { font-size: 14pt; font-weight: bold; color: white; background: linear-gradient(90deg, #800000, #991b1b); padding: 10px 15px; margin-bottom: 15px; }
+            .data-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            .data-table th { background: linear-gradient(90deg, #800000, #991b1b); color: white; font-weight: bold; padding: 12px 10px; text-align: left; }
+            .data-table td { padding: 10px; border-bottom: 1px solid #f3e8ff; }
+            .status-badge { display: inline-block; padding: 4px 8px; border-radius: 12px; font-size: 9pt; font-weight: bold; }
+            .status-completed { background-color: #dcfce7; color: #166534; }
+            .status-in-progress { background-color: #fef3c7; color: #92400e; }
+            .status-pending { background-color: #fee2e2; color: #dc2626; }
+            .anxiety-minimal { background-color: #dcfce7; color: #166534; }
+            .anxiety-mild { background-color: #dbeafe; color: #1e40af; }
+            .anxiety-moderate { background-color: #fef3c7; color: #92400e; }
+            .anxiety-severe { background-color: #fee2e2; color: #dc2626; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>ANXIETY MANAGEMENT SYSTEM</h1>
+            <h2>${sectionTitle}</h2>
+            <h3>${student.profile.full_name}</h3>
+            <p>Generated: ${currentDate.toLocaleDateString()}</p>
+          </div>
+          ${sectionContent}
+        </body>
+      </html>
+    `;
+
+    const blob = new Blob([wordContent], { type: 'application/msword' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${student.profile.full_name.replace(/\s+/g, '_')}_${fileName}.doc`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportSectionToPDF = (student: StudentRecord, sectionType: string) => {
+    const currentDate = new Date();
+    let sectionContent = '';
+    let fileName = '';
+    let sectionTitle = '';
+
+    switch (sectionType) {
+      case 'student_info':
+        sectionTitle = 'STUDENT INFORMATION';
+        fileName = 'student_info';
+        sectionContent = `
+          <div class="section">
+            <div class="section-header">📋 Personal Information</div>
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">Full Name</div>
+                <div class="info-value">${student.profile.full_name}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Student ID</div>
+                <div class="info-value">${student.profile.id_number}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Email Address</div>
+                <div class="info-value">${student.profile.email}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">School</div>
+                <div class="info-value">${student.profile.school}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Course</div>
+                <div class="info-value">${student.profile.course}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">Year Level</div>
+                <div class="info-value">${student.profile.year_level || 'Not provided'}</div>
+              </div>
+            </div>
+          </div>`;
+        break;
+
+      case 'appointments':
+        sectionTitle = 'COUNSELING APPOINTMENTS';
+        fileName = 'appointments';
+        sectionContent = `
+          <div class="section">
+            <div class="section-header">📅 Counseling Appointments (${student.appointments.length})</div>
+            ${student.appointments.length > 0 ? `
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${student.appointments.map(apt => `
+                    <tr>
+                      <td>${new Date(apt.appointment_date).toLocaleDateString()}</td>
+                      <td>${apt.appointment_time}</td>
+                      <td><span class="status-badge status-${apt.status.toLowerCase().replace(' ', '-')}">${apt.status}</span></td>
+                      <td>${apt.notes || apt.meeting_notes || 'No notes'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : '<div class="no-data">📅 No counseling appointments scheduled or completed.</div>'}
+          </div>`;
+        break;
+
+      case 'cbt_modules':
+        sectionTitle = 'CBT MODULES';
+        fileName = 'cbt_modules';
+        sectionContent = `
+          <div class="section">
+            <div class="section-header">🧠 Cognitive Behavioral Therapy (CBT) Modules</div>
+            ${student.cbtModules.length > 0 ? `
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Module Title</th>
+                    <th>Status</th>
+                    <th>Date Started</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${student.cbtModules.map(module => `
+                    <tr>
+                      <td><strong>${module.module_title}</strong></td>
+                      <td><span class="status-badge status-${module.module_status.replace('_', '-')}">${module.module_status.replace('_', ' ')}</span></td>
+                      <td>${module.module_date_started ? new Date(module.module_date_started).toLocaleDateString() : 'Not started'}</td>
+                      <td>${module.module_description}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : '<div class="no-data">🧠 No CBT modules have been assigned to this student.</div>'}
+          </div>`;
+        break;
+
+      case 'anxiety_videos':
+        sectionTitle = 'ANXIETY VIDEOS';
+        fileName = 'anxiety_videos';
+        sectionContent = `
+          <div class="section">
+            <div class="section-header">📺 Educational Videos (${student.anxietyVideos.length})</div>
+            ${student.anxietyVideos.length > 0 ? `
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Video Title</th>
+                    <th>Status</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${student.anxietyVideos.map(video => `
+                    <tr>
+                      <td><strong>${video.video_title}</strong></td>
+                      <td><span class="status-badge status-${video.video_status.replace('_', '-')}">${video.video_status.replace('_', ' ')}</span></td>
+                      <td>${video.video_description}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : '<div class="no-data">📺 No educational videos have been assigned to this student.</div>'}
+          </div>`;
+        break;
+
+      case 'todo_items':
+        sectionTitle = 'ASSIGNED TASKS';
+        fileName = 'todo_items';
+        sectionContent = `
+          <div class="section">
+            <div class="section-header">✅ Assigned Tasks (${student.todoItems.length})</div>
+            ${student.todoItems.length > 0 ? `
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Task Title</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Due Date</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${student.todoItems.map(todo => `
+                    <tr>
+                      <td><strong>${todo.title}</strong></td>
+                      <td><span class="status-badge status-${todo.status.replace('_', '-')}">${todo.status.replace('_', ' ')}</span></td>
+                      <td><span class="status-badge ${getPriorityClass(todo.priority)}">${getPriorityText(todo.priority)}</span></td>
+                      <td>${todo.due_at ? new Date(todo.due_at).toLocaleDateString() : 'No due date'}</td>
+                      <td>${todo.description || 'No description provided'}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : '<div class="no-data">✅ No tasks or activities have been assigned to this student.</div>'}
+          </div>`;
+        break;
+
+      case 'anxiety_assessments':
+        sectionTitle = 'ANXIETY ASSESSMENTS';
+        fileName = 'anxiety_assessments';
+        sectionContent = `
+          <div class="section">
+            <div class="section-header">📊 Anxiety Assessments (${student.anxietyAssessments.length})</div>
+            ${student.anxietyAssessments.length > 0 ? `
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Anxiety Level</th>
+                    <th>Score</th>
+                    <th>Percentage</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${student.anxietyAssessments.map(assessment => `
+                    <tr>
+                      <td>${new Date(assessment.created_at).toLocaleDateString()}</td>
+                      <td><span class="status-badge anxiety-${assessment.anxiety_level.toLowerCase()}">${assessment.anxiety_level}</span></td>
+                      <td>${assessment.total_score}/21</td>
+                      <td>${assessment.percentage}%</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : '<div class="no-data">📊 No anxiety assessments have been completed by this student.</div>'}
+          </div>`;
+        break;
+    }
+
+    const pdfContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>${sectionTitle} - ${student.profile.full_name}</title>
+        <style>
+          @page { 
+            margin: 0.75in; 
+            size: A4;
+          }
+          * {
+            box-sizing: border-box;
+          }
+          body { 
+            font-family: 'Arial', sans-serif; 
+            font-size: 11pt; 
+            line-height: 1.4; 
+            color: #333; 
+            margin: 0; 
+            padding: 0;
+            background: white;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 3px solid #800000;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 100%);
+            padding: 20px;
+            border-radius: 8px;
+          }
+          .logo {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #800000;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+          }
+          .subtitle {
+            font-size: 14pt;
+            color: #991b1b;
+            margin-bottom: 15px;
+            font-style: italic;
+          }
+          .document-title {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #450a0a;
+            margin: 15px 0;
+          }
+          .student-name {
+            font-size: 20pt;
+            font-weight: bold;
+            color: #800000;
+            margin: 10px 0;
+          }
+          .generation-info {
+            font-size: 10pt;
+            color: #991b1b;
+            margin-top: 10px;
+          }
+          .section {
+            margin: 20px 0;
+            page-break-inside: avoid;
+          }
+          .section-header {
+            font-size: 14pt;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(90deg, #800000, #991b1b);
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+          }
+          .info-item {
+            background: #fdf2f8;
+            border: 1px solid #f3e8ff;
+            border-radius: 6px;
+            padding: 12px;
+          }
+          .info-label {
+            font-weight: bold;
+            color: #800000;
+            font-size: 10pt;
+            margin-bottom: 4px;
+          }
+          .info-value {
+            color: #450a0a;
+            font-size: 11pt;
+          }
+          .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(128,0,0,0.1);
+          }
+          .data-table th {
+            background: linear-gradient(90deg, #800000, #991b1b);
+            color: white;
+            font-weight: bold;
+            padding: 12px 10px;
+            text-align: left;
+            font-size: 10pt;
+            border-bottom: 2px solid #800000;
+          }
+          .data-table td {
+            padding: 10px;
+            border-bottom: 1px solid #f3e8ff;
+            font-size: 10pt;
+            vertical-align: top;
+          }
+          .data-table tr:nth-child(even) {
+            background-color: #fdf2f8;
+          }
+          .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 9pt;
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+          .status-completed { background-color: #dcfce7; color: #166534; }
+          .status-in-progress { background-color: #fef3c7; color: #92400e; }
+          .status-pending { background-color: #fee2e2; color: #dc2626; }
+          .status-scheduled { background-color: #dbeafe; color: #1e40af; }
+          .anxiety-minimal { background-color: #dcfce7; color: #166534; }
+          .anxiety-mild { background-color: #dbeafe; color: #1e40af; }
+          .anxiety-moderate { background-color: #fef3c7; color: #92400e; }
+          .anxiety-severe { background-color: #fee2e2; color: #dc2626; }
+          .priority-urgent { background-color: #fee2e2; color: #dc2626; }
+          .priority-high { background-color: #fed7aa; color: #ea580c; }
+          .priority-medium { background-color: #fef3c7; color: #92400e; }
+          .priority-low { background-color: #dbeafe; color: #1e40af; }
+          .priority-very-low { background-color: #f1f5f9; color: #64748b; }
+          .no-data {
+            text-align: center;
+            font-style: italic;
+            color: #991b1b;
+            padding: 20px;
+            background: #fdf2f8;
+            border-radius: 6px;
+            border: 1px dashed #f3e8ff;
+          }
+          @media print {
+            body { print-color-adjust: exact; }
+            .section { page-break-inside: avoid; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="logo">Anxiety Management System</div>
+          <div class="subtitle">Student Mental Health & Wellness Program</div>
+          <div class="document-title">${sectionTitle}</div>
+          <div class="student-name">${student.profile.full_name}</div>
+          <div class="generation-info">
+            <strong>Student ID:</strong> ${student.profile.id_number} | 
+            <strong>Generated:</strong> ${currentDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at ${currentDate.toLocaleTimeString()}
+          </div>
+        </div>
+
+        ${sectionContent}
+
+        <div class="footer">
+          <div class="confidential">CONFIDENTIAL DOCUMENT</div>
+          <p>This document contains sensitive mental health information and should be handled in accordance with privacy regulations.</p>
+          <p><strong>Generated by:</strong> Anxiety Management System | <strong>Date:</strong> ${currentDate.toLocaleDateString()} | <strong>Time:</strong> ${currentDate.toLocaleTimeString()}</p>
+          <p><strong>Document ID:</strong> ${student.profile.id_number}-${currentDate.getFullYear()}${(currentDate.getMonth() + 1).toString().padStart(2, '0')}${currentDate.getDate().toString().padStart(2, '0')}</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([pdfContent], { type: 'text/html' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${student.profile.full_name.replace(/\s+/g, '_')}_${fileName}.html`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const exportToWord = (student: StudentRecord) => {
     const currentDate = new Date();
     const wordContent = `
@@ -1314,26 +2223,6 @@ const Records = ({ darkMode }: RecordsProps) => {
     document.body.removeChild(link);
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed': return <FaCheck className="text-green-500" />;
-      case 'in_progress': return <FaPlay className="text-blue-500" />;
-      case 'paused': return <FaPause className="text-yellow-500" />;
-      default: return <FaBookOpen className="text-gray-500" />;
-    }
-  };
-
-  const getPriorityColor = (priority: number) => {
-    switch (priority) {
-      case 1: return 'text-red-600 bg-red-100';
-      case 2: return 'text-orange-600 bg-orange-100';
-      case 3: return 'text-yellow-600 bg-yellow-100';
-      case 4: return 'text-blue-600 bg-blue-100';
-      case 5: return 'text-gray-600 bg-gray-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
   const getPriorityText = (priority: number) => {
     switch (priority) {
       case 1: return 'Urgent';
@@ -1341,7 +2230,42 @@ const Records = ({ darkMode }: RecordsProps) => {
       case 3: return 'Medium';
       case 4: return 'Low';
       case 5: return 'Very Low';
-      default: return 'Unknown';
+      default: return 'Medium';
+    }
+  };
+
+  const getPriorityColor = (priority: number) => {
+    switch (priority) {
+      case 1: return 'bg-red-100 text-red-800 border-red-200';
+      case 2: return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 3: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 4: return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 5: return 'bg-gray-100 text-gray-800 border-gray-200';
+      default: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    }
+  };
+
+  const getPriorityClass = (priority: number) => {
+    switch (priority) {
+      case 1: return 'priority-urgent';
+      case 2: return 'priority-high';
+      case 3: return 'priority-medium';
+      case 4: return 'priority-low';
+      case 5: return 'priority-very-low';
+      default: return 'priority-medium';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <FaCheck className="text-green-500" />;
+      case 'in_progress':
+        return <FaPlay className="text-blue-500" />;
+      case 'paused':
+        return <FaPause className="text-yellow-500" />;
+      default:
+        return <FaBookOpen className="text-gray-500" />;
     }
   };
 
@@ -1768,13 +2692,65 @@ const Records = ({ darkMode }: RecordsProps) => {
             <div className="p-6 space-y-6">
               {/* Enhanced Student Information */}
               <div>
-                <h4 className={`text-xl font-bold mb-4 bg-gradient-to-r ${
-                  darkMode 
-                    ? 'from-blue-400 to-purple-400' 
-                    : 'from-blue-600 to-purple-600'
-                } bg-clip-text text-transparent`}>
-                  Student Information
-                </h4>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className={`text-xl font-bold bg-gradient-to-r ${
+                    darkMode 
+                      ? 'from-blue-400 to-purple-400' 
+                      : 'from-blue-600 to-purple-600'
+                  } bg-clip-text text-transparent`}>
+                    Student Information
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => exportStudentInfoToCSV(selectedStudent)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-green-600/20 hover:bg-green-600/30 text-green-300 border border-green-500/30' 
+                          : 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
+                      }`}
+                      title="Export Student Info to CSV"
+                    >
+                      <FaFileCsv className="text-xs" />
+                      <span>CSV</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToExcel(selectedStudent, 'student_info')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30' 
+                          : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+                      }`}
+                      title="Export Student Info to Excel"
+                    >
+                      <FaFileExcel className="text-xs" />
+                      <span>Excel</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToWord(selectedStudent, 'student_info')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30' 
+                          : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
+                      }`}
+                      title="Export Student Info to Word"
+                    >
+                      <FaFileWord className="text-xs" />
+                      <span>Word</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToPDF(selectedStudent, 'student_info')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30' 
+                          : 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
+                      }`}
+                      title="Export Student Info to PDF"
+                    >
+                      <FaFilePdf className="text-xs" />
+                      <span>PDF</span>
+                    </button>
+                  </div>
+                </div>
                 <div className={`${
                   darkMode 
                     ? 'bg-gradient-to-br from-gray-700/50 to-gray-800/50 border-gray-600/30' 
@@ -1835,14 +2811,66 @@ const Records = ({ darkMode }: RecordsProps) => {
 
               {/* Appointments */}
               <div>
-                <h4 className={`text-xl font-bold mb-4 bg-gradient-to-r ${
-                  darkMode 
-                    ? 'from-green-400 to-emerald-400' 
-                    : 'from-green-600 to-emerald-600'
-                } bg-clip-text text-transparent`}>
-                  <FaCalendarAlt className="inline mr-2 text-green-500" />
-                  Appointments & Schedule{selectedStudent.appointments.length > 1 ? ` (${selectedStudent.appointments.length})` : ''}
-                </h4>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className={`text-xl font-bold bg-gradient-to-r ${
+                    darkMode 
+                      ? 'from-green-400 to-emerald-400' 
+                      : 'from-green-600 to-emerald-600'
+                  } bg-clip-text text-transparent`}>
+                    <FaCalendarAlt className="inline mr-2 text-green-500" />
+                    Appointments & Schedule{selectedStudent.appointments.length > 1 ? ` (${selectedStudent.appointments.length})` : ''}
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => exportAppointmentsToCSV(selectedStudent)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-green-600/20 hover:bg-green-600/30 text-green-300 border border-green-500/30' 
+                          : 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
+                      }`}
+                      title="Export Appointments to CSV"
+                    >
+                      <FaFileCsv className="text-xs" />
+                      <span>CSV</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToExcel(selectedStudent, 'appointments')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30' 
+                          : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+                      }`}
+                      title="Export Appointments to Excel"
+                    >
+                      <FaFileExcel className="text-xs" />
+                      <span>Excel</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToWord(selectedStudent, 'appointments')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30' 
+                          : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
+                      }`}
+                      title="Export Appointments to Word"
+                    >
+                      <FaFileWord className="text-xs" />
+                      <span>Word</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToPDF(selectedStudent, 'appointments')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30' 
+                          : 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
+                      }`}
+                      title="Export Appointments to PDF"
+                    >
+                      <FaFilePdf className="text-xs" />
+                      <span>PDF</span>
+                    </button>
+                  </div>
+                </div>
                 {selectedStudent.appointments.length > 0 ? (
                   <div className="grid gap-4">
                     {selectedStudent.appointments.map((apt) => (
@@ -1887,14 +2915,66 @@ const Records = ({ darkMode }: RecordsProps) => {
 
               {/* CBT Modules */}
               <div>
-                <h4 className={`text-xl font-bold mb-4 bg-gradient-to-r ${
-                  darkMode 
-                    ? 'from-purple-400 to-violet-400' 
-                    : 'from-purple-600 to-violet-600'
-                } bg-clip-text text-transparent`}>
-                  <FaBrain className="inline mr-2 text-purple-500" />
-                  CBT Modules Assigned ({selectedStudent.cbtModules.length})
-                </h4>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className={`text-xl font-bold bg-gradient-to-r ${
+                    darkMode 
+                      ? 'from-purple-400 to-violet-400' 
+                      : 'from-purple-600 to-violet-600'
+                  } bg-clip-text text-transparent`}>
+                    <FaBrain className="inline mr-2 text-purple-500" />
+                    CBT Modules Assigned ({selectedStudent.cbtModules.length})
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => exportCBTModulesToCSV(selectedStudent)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-green-600/20 hover:bg-green-600/30 text-green-300 border border-green-500/30' 
+                          : 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
+                      }`}
+                      title="Export CBT Modules to CSV"
+                    >
+                      <FaFileCsv className="text-xs" />
+                      <span>CSV</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToExcel(selectedStudent, 'cbt_modules')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30' 
+                          : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+                      }`}
+                      title="Export CBT Modules to Excel"
+                    >
+                      <FaFileExcel className="text-xs" />
+                      <span>Excel</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToWord(selectedStudent, 'cbt_modules')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30' 
+                          : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
+                      }`}
+                      title="Export CBT Modules to Word"
+                    >
+                      <FaFileWord className="text-xs" />
+                      <span>Word</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToPDF(selectedStudent, 'cbt_modules')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30' 
+                          : 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
+                      }`}
+                      title="Export CBT Modules to PDF"
+                    >
+                      <FaFilePdf className="text-xs" />
+                      <span>PDF</span>
+                    </button>
+                  </div>
+                </div>
                 {selectedStudent.cbtModules.length > 0 ? (
                   <div className="grid gap-4">
                     {selectedStudent.cbtModules.map((module) => (
@@ -1944,14 +3024,66 @@ const Records = ({ darkMode }: RecordsProps) => {
 
               {/* Anxiety Videos */}
               <div>
-                <h4 className={`text-xl font-bold mb-4 bg-gradient-to-r ${
-                  darkMode 
-                    ? 'from-cyan-400 to-teal-400' 
-                    : 'from-cyan-600 to-teal-600'
-                } bg-clip-text text-transparent`}>
-                  <FaVideo className="inline mr-2 text-teal-500" />
-                  Anxiety Videos Assigned ({selectedStudent.anxietyVideos.length})
-                </h4>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className={`text-xl font-bold bg-gradient-to-r ${
+                    darkMode 
+                      ? 'from-cyan-400 to-teal-400' 
+                      : 'from-cyan-600 to-teal-600'
+                  } bg-clip-text text-transparent`}>
+                    <FaVideo className="inline mr-2 text-teal-500" />
+                    Anxiety Videos Assigned ({selectedStudent.anxietyVideos.length})
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => exportAnxietyVideosToCSV(selectedStudent)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-green-600/20 hover:bg-green-600/30 text-green-300 border border-green-500/30' 
+                          : 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
+                      }`}
+                      title="Export Anxiety Videos to CSV"
+                    >
+                      <FaFileCsv className="text-xs" />
+                      <span>CSV</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToExcel(selectedStudent, 'anxiety_videos')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30' 
+                          : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+                      }`}
+                      title="Export Anxiety Videos to Excel"
+                    >
+                      <FaFileExcel className="text-xs" />
+                      <span>Excel</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToWord(selectedStudent, 'anxiety_videos')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30' 
+                          : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
+                      }`}
+                      title="Export Anxiety Videos to Word"
+                    >
+                      <FaFileWord className="text-xs" />
+                      <span>Word</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToPDF(selectedStudent, 'anxiety_videos')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30' 
+                          : 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
+                      }`}
+                      title="Export Anxiety Videos to PDF"
+                    >
+                      <FaFilePdf className="text-xs" />
+                      <span>PDF</span>
+                    </button>
+                  </div>
+                </div>
                 {selectedStudent.anxietyVideos.length > 0 ? (
                   <div className="grid gap-4">
                     {selectedStudent.anxietyVideos.map((video) => (
@@ -2005,14 +3137,66 @@ const Records = ({ darkMode }: RecordsProps) => {
 
               {/* Anxiety Assessments */}
               <div>
-                <h4 className={`text-xl font-bold mb-4 bg-gradient-to-r ${
-                  darkMode 
-                    ? 'from-purple-400 to-pink-400' 
-                    : 'from-purple-600 to-pink-600'
-                } bg-clip-text text-transparent`}>
-                  <FaClipboardList className="inline mr-2 text-purple-500" />
-                  Anxiety Assessments ({selectedStudent.anxietyAssessments.length})
-                </h4>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className={`text-xl font-bold bg-gradient-to-r ${
+                    darkMode 
+                      ? 'from-purple-400 to-pink-400' 
+                      : 'from-purple-600 to-pink-600'
+                  } bg-clip-text text-transparent`}>
+                    <FaClipboardList className="inline mr-2 text-purple-500" />
+                    Anxiety Assessments ({selectedStudent.anxietyAssessments.length})
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => exportAnxietyAssessmentsToCSV(selectedStudent)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-green-600/20 hover:bg-green-600/30 text-green-300 border border-green-500/30' 
+                          : 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
+                      }`}
+                      title="Export Anxiety Assessments to CSV"
+                    >
+                      <FaFileCsv className="text-xs" />
+                      <span>CSV</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToExcel(selectedStudent, 'anxiety_assessments')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30' 
+                          : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+                      }`}
+                      title="Export Anxiety Assessments to Excel"
+                    >
+                      <FaFileExcel className="text-xs" />
+                      <span>Excel</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToWord(selectedStudent, 'anxiety_assessments')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30' 
+                          : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
+                      }`}
+                      title="Export Anxiety Assessments to Word"
+                    >
+                      <FaFileWord className="text-xs" />
+                      <span>Word</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToPDF(selectedStudent, 'anxiety_assessments')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30' 
+                          : 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
+                      }`}
+                      title="Export Anxiety Assessments to PDF"
+                    >
+                      <FaFilePdf className="text-xs" />
+                      <span>PDF</span>
+                    </button>
+                  </div>
+                </div>
                 {selectedStudent.anxietyAssessments.length > 0 ? (
                   <div className="grid gap-4">
                     {selectedStudent.anxietyAssessments.map((assessment) => (
@@ -2057,14 +3241,66 @@ const Records = ({ darkMode }: RecordsProps) => {
 
               {/* Todo Items */}
               <div>
-                <h4 className={`text-xl font-bold mb-4 bg-gradient-to-r ${
-                  darkMode 
-                    ? 'from-indigo-400 to-purple-400' 
-                    : 'from-indigo-600 to-purple-600'
-                } bg-clip-text text-transparent`}>
-                  <FaTasks className="inline mr-2 text-indigo-500" />
-                  Tasks & To-Do Items ({selectedStudent.todoItems.length})
-                </h4>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className={`text-xl font-bold bg-gradient-to-r ${
+                    darkMode 
+                      ? 'from-orange-400 to-red-400' 
+                      : 'from-orange-600 to-red-600'
+                  } bg-clip-text text-transparent`}>
+                    <FaTasks className="inline mr-2 text-orange-500" />
+                    Todo Items ({selectedStudent.todoItems.length})
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => exportTodoItemsToCSV(selectedStudent)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-green-600/20 hover:bg-green-600/30 text-green-300 border border-green-500/30' 
+                          : 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
+                      }`}
+                      title="Export Todo Items to CSV"
+                    >
+                      <FaFileCsv className="text-xs" />
+                      <span>CSV</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToExcel(selectedStudent, 'todo_items')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30' 
+                          : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+                      }`}
+                      title="Export Todo Items to Excel"
+                    >
+                      <FaFileExcel className="text-xs" />
+                      <span>Excel</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToWord(selectedStudent, 'todo_items')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30' 
+                          : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
+                      }`}
+                      title="Export Todo Items to Word"
+                    >
+                      <FaFileWord className="text-xs" />
+                      <span>Word</span>
+                    </button>
+                    <button
+                      onClick={() => exportSectionToPDF(selectedStudent, 'todo_items')}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
+                        darkMode 
+                          ? 'bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30' 
+                          : 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
+                      }`}
+                      title="Export Todo Items to PDF"
+                    >
+                      <FaFilePdf className="text-xs" />
+                      <span>PDF</span>
+                    </button>
+                  </div>
+                </div>
                 {selectedStudent.todoItems.length > 0 ? (
                   <div className="grid gap-4">
                     {selectedStudent.todoItems.map((todo) => (

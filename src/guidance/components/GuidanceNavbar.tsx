@@ -45,7 +45,7 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
     }`;
 
   return (
-    <nav className={`w-full ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b`}>
+    <nav className={`sticky top-0 z-50 w-full ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b shadow-xs`}>
       <div className="max-w-10xl mx-auto px-6 sm:px-12 lg:px-16">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
@@ -54,7 +54,10 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
                 {navItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => setActiveView(item.id)}
+                    onClick={() => {
+                      setActiveView(item.id);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
                     className={navLinkClasses(item.id)}
                   >
                     <span
@@ -107,6 +110,7 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
                 onClick={() => {
                   setActiveView(item.id);
                   setIsOpen(false);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className={mobileNavLinkClasses(item.id)}
               >

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 // import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { FaCalendarAlt, FaUser, FaClock, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaChevronDown, FaEye, FaTrash, FaCalendarTimes, FaUserTimes } from 'react-icons/fa';
+import { FaCalendarAlt, FaUser, FaClock, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaChevronDown, FaEye, FaTrash, FaCalendarTimes, FaUserTimes, FaWalking } from 'react-icons/fa';
 import { getAllAppointments, updateAppointment, deleteAppointment } from '../../lib/appointmentService';
 import type { Appointment } from '../../lib/appointmentService';
+import WalkInModal from './WalkInModal';
 // Removed SweetAlert2 - using modern alerts instead
 
 interface ScheduleProps {
@@ -131,7 +132,7 @@ const formatDate = (dateString: string): string => {
 
 const Schedule = ({ darkMode }: ScheduleProps) => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-
+  const [isWalkInModalOpen, setIsWalkInModalOpen] = useState(false);
   const [expandedAppointment, setExpandedAppointment] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -220,7 +221,13 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
 
   const handleStatusUpdate = async (appointmentId: number, newStatus: Appointment['status']) => {
     try {
-      await updateAppointment(appointmentId, { status: newStatus });
+      // Find the current appointment to preserve its notes
+      const currentAppointment = appointments.find(app => app.id === appointmentId);
+      
+      await updateAppointment(appointmentId, { 
+        status: newStatus,
+        notes: currentAppointment?.notes // Preserve existing notes including walk-in indicator
+      });
       // Refresh appointments
       const data = await getAllAppointments();
       setAppointments(data);
@@ -581,6 +588,15 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
     }
   };
 
+  const handleAppointmentCreated = async () => {
+    try {
+      const data = await getAllAppointments();
+      setAppointments(data);
+    } catch (error) {
+      console.error('Error refreshing appointments:', error);
+    }
+  };
+
   return (
     <div className={`${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-xl shadow-lg p-6`}>
       
@@ -658,33 +674,44 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
         })}
       </div>
 
-      {/* Search Bar */}
+      {/* Search Bar with Walk-in Button */}
       <div className="mb-6">
-        <div className="relative max-w-sm">
-          <input
-            type="text"
-            placeholder="Search students..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full pl-8 pr-3 py-2 text-sm rounded-md border transition-all duration-200 ${
-              darkMode 
-                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-red-500 focus:ring-1 focus:ring-red-500/20' 
-                : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500 focus:border-red-500 focus:ring-1 focus:ring-red-500/20'
-            } focus:outline-none shadow-sm hover:shadow`}
-          />
-          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-            <FaUser className={`h-3.5 w-3.5 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+        <div className="flex items-center justify-between">
+          <div className="relative flex-1 max-w-2xl">
+            <input
+              type="text"
+              placeholder="Search students..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={`w-full pl-8 pr-3 py-2 text-sm rounded-md border transition-all duration-200 ${
+                darkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-red-500 focus:ring-1 focus:ring-red-500/20' 
+                  : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500 focus:border-red-500 focus:ring-1 focus:ring-red-500/20'
+              } focus:outline-none shadow-sm hover:shadow`}
+            />
+            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+              <FaUser className={`h-3.5 w-3.5 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+            </div>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className={`absolute inset-y-0 right-0 pr-2.5 flex items-center ${
+                  darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'
+                } transition-colors`}
+              >
+                <FaTimesCircle className="h-3 w-3" />
+              </button>
+            )}
           </div>
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm('')}
-              className={`absolute inset-y-0 right-0 pr-2.5 flex items-center ${
-                darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'
-              } transition-colors`}
-            >
-              <FaTimesCircle className="h-3 w-3" />
-            </button>
-          )}
+          
+          {/* Walk-in Button - Far Right Corner */}
+          <button
+            onClick={() => setIsWalkInModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#800000] to-[#660000] hover:from-[#660000] hover:to-[#4d0000] text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+          >
+            <FaWalking className="text-sm" />
+            <span className="hidden sm:inline">Walk-in</span>
+          </button>
         </div>
         {searchTerm && (
           <p className={`mt-1.5 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -753,6 +780,15 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
                             <span className={`font-medium text-sm truncate ${darkMode ? 'text-gray-200' : 'text-gray-700'}`} title={app.student_name}>
                               {app.student_name}
                             </span>
+                            {/* Walk-in indicator */}
+                            {app.notes && app.notes.toLowerCase().includes('walk-in') && (
+                              <div 
+                                className="p-1 rounded-full bg-gradient-to-r from-[#800000] to-[#660000] shadow-sm"
+                                title="Walk-in Appointment"
+                              >
+                                <FaWalking className="text-white text-xs" />
+                              </div>
+                            )}
                           </div>
                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
@@ -859,6 +895,14 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
         </div>,
         document.body
       )}
+
+      {/* Walk-in Modal */}
+      <WalkInModal
+        isOpen={isWalkInModalOpen}
+        onClose={() => setIsWalkInModalOpen(false)}
+        darkMode={darkMode}
+        onAppointmentCreated={handleAppointmentCreated}
+      />
     </div>
   );
 };
