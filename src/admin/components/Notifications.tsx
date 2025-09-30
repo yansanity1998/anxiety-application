@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
-import { FaUserPlus, FaSignInAlt, FaTimes, FaBell, FaBellSlash, FaArchive } from 'react-icons/fa';
+import { FaUserPlus, FaSignInAlt, FaTimes, FaBell, FaBellSlash, FaArchive, FaUndo, FaCalendarPlus, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import Swal from 'sweetalert2';
+import { soundService } from '../../lib/soundService';
 
 type Notification = {
   id: string;
-  type: 'registration' | 'login' | 'archive';
+  type: 'registration' | 'login' | 'archive' | 'unarchive' | 'schedule' | 'verified' | 'unverified';
   user: {
     email: string;
     full_name: string;
@@ -38,6 +39,7 @@ export default function Notifications({ darkMode }: NotificationsProps) {
 
   useEffect(() => {
     let profilesSubscription: any = null;
+    let appointmentsSubscription: any = null;
 
     const setupSubscription = async () => {
       try {
@@ -90,12 +92,16 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                   };
                   setNotifications(prev => [newNotification, ...prev]);
                   showNotificationToast('New Registration', `${newNotification.user.full_name} has registered!`);
+                  // Play registration sound
+                  soundService.playRegistrationSound();
                 }
               } else if (payload.eventType === 'UPDATE') {
-                // First, check if this is an archive event (role changed to archived)
+                // Check for role changes (archive/unarchive)
                 const newRole = (payload.new.role || '').toLowerCase();
                 const oldRole = (payload.old?.role || '').toLowerCase();
+                
                 if (newRole === 'archived' && oldRole !== 'archived') {
+                  // Student archived
                   const currentTime = new Date().toISOString();
                   const archiveNotification: Notification = {
                     id: `archive_${payload.new.user_id}_${Date.now()}`,
@@ -108,7 +114,65 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                     read: false
                   };
                   setNotifications(prev => [archiveNotification, ...prev]);
-                  showNotificationToast('Student Archived', 'This student is archive');
+                  showNotificationToast('Student Archived', `${payload.new.full_name || 'Student'} has been archived`);
+                  soundService.playArchiveSound();
+                  return;
+                } else if (oldRole === 'archived' && newRole !== 'archived') {
+                  // Student unarchived
+                  const currentTime = new Date().toISOString();
+                  const unarchiveNotification: Notification = {
+                    id: `unarchive_${payload.new.user_id}_${Date.now()}`,
+                    type: 'unarchive',
+                    user: {
+                      email: payload.new.email,
+                      full_name: payload.new.full_name || 'Student'
+                    },
+                    timestamp: currentTime,
+                    read: false
+                  };
+                  setNotifications(prev => [unarchiveNotification, ...prev]);
+                  showNotificationToast('Student Restored', `${payload.new.full_name || 'Student'} has been restored`);
+                  soundService.playUnarchiveSound();
+                  return;
+                }
+
+                // Check for verification status changes
+                const newVerified = payload.new.is_verified;
+                const oldVerified = payload.old?.is_verified;
+                
+                if (newVerified === true && oldVerified !== true) {
+                  // Student verified
+                  const currentTime = new Date().toISOString();
+                  const verifiedNotification: Notification = {
+                    id: `verified_${payload.new.user_id}_${Date.now()}`,
+                    type: 'verified',
+                    user: {
+                      email: payload.new.email,
+                      full_name: payload.new.full_name || 'Student'
+                    },
+                    timestamp: currentTime,
+                    read: false
+                  };
+                  setNotifications(prev => [verifiedNotification, ...prev]);
+                  showNotificationToast('Student Verified', `${payload.new.full_name || 'Student'} has been verified`);
+                  soundService.playVerifiedSound();
+                  return;
+                } else if (newVerified === false && oldVerified === true) {
+                  // Student unverified
+                  const currentTime = new Date().toISOString();
+                  const unverifiedNotification: Notification = {
+                    id: `unverified_${payload.new.user_id}_${Date.now()}`,
+                    type: 'unverified',
+                    user: {
+                      email: payload.new.email,
+                      full_name: payload.new.full_name || 'Student'
+                    },
+                    timestamp: currentTime,
+                    read: false
+                  };
+                  setNotifications(prev => [unverifiedNotification, ...prev]);
+                  showNotificationToast('Student Unverified', `${payload.new.full_name || 'Student'} verification removed`);
+                  soundService.playUnverifiedSound();
                   return;
                 }
 
@@ -175,6 +239,8 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                     showLoginAlert(newNotification.user.full_name, newNotification.user.email, newNotification.user.role);
                     const loginType = payload.new.role === 'guidance' ? 'Guidance Login' : 'Student Login';
                     showNotificationToast(loginType, `${newNotification.user.full_name} has logged in!`);
+                    // Play login sound
+                    soundService.playLoginSound();
                   } else {
                     console.log('⏭️ [ADMIN] Skipping notification - too recent or duplicate');
                   }
@@ -188,6 +254,42 @@ export default function Notifications({ darkMode }: NotificationsProps) {
               console.log('✅ [ADMIN] Successfully subscribed to profile changes!');
             } else if (status === 'CHANNEL_ERROR') {
               console.error('❌ [ADMIN] Channel subscription error!');
+            }
+          });
+
+        // Set up appointments subscription for schedule notifications
+        appointmentsSubscription = supabase
+          .channel(`admin_appointments_main_${Math.random().toString(36).substr(2, 9)}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+              schema: 'public',
+              table: 'appointments'
+            },
+            async (payload: any) => {
+              console.log('📅 [ADMIN] Appointment table change detected:', {
+                eventType: payload.eventType,
+                table: payload.table,
+                schema: payload.schema,
+                new: payload.new,
+                old: payload.old
+              });
+              
+              // Only process INSERT events for new appointments
+              if (payload.eventType === 'INSERT' && payload.new) {
+                await processAppointmentNotification(payload);
+              } else {
+                console.log('📅 [ADMIN] Skipping non-INSERT event or missing data:', payload.eventType);
+              }
+            }
+          )
+          .subscribe((status: any) => {
+            console.log('📅 [ADMIN] Appointments subscription status:', status);
+            if (status === 'SUBSCRIBED') {
+              console.log('✅ [ADMIN] Successfully subscribed to appointments table!');
+            } else if (status === 'CHANNEL_ERROR') {
+              console.error('❌ [ADMIN] Appointments subscription error!');
             }
           });
 
@@ -209,8 +311,12 @@ export default function Notifications({ darkMode }: NotificationsProps) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       if (profilesSubscription) {
-        console.log('🔔 Cleaning up notification subscriptions');
+        console.log('🔔 Cleaning up profiles subscription');
         profilesSubscription.unsubscribe();
+      }
+      if (appointmentsSubscription) {
+        console.log('🔔 Cleaning up appointments subscription');
+        appointmentsSubscription.unsubscribe();
       }
       document.removeEventListener('mousedown', handleClickOutside);
     };
@@ -305,6 +411,97 @@ export default function Notifications({ darkMode }: NotificationsProps) {
     setNotifications([]);
   };
 
+  // Process appointment notification (shared function)
+  const processAppointmentNotification = async (payload: any) => {
+    console.log('📅 [ADMIN] Processing new appointment insertion...');
+    console.log('📅 [ADMIN] Raw appointment data:', payload.new);
+    
+    const currentTime = new Date().toISOString();
+    
+    // Try to get student info from all possible field combinations
+    const studentEmail = payload.new.student_email || 
+                       payload.new.email || 
+                       payload.new.user_email || 
+                       payload.new.profile_email || 
+                       'Unknown';
+                       
+    const studentName = payload.new.student_name || 
+                      payload.new.full_name || 
+                      payload.new.name || 
+                      payload.new.student_full_name ||
+                      payload.new.profile_name ||
+                      'Student';
+                      
+    const appointmentDate = payload.new.appointment_date || 
+                          payload.new.date || 
+                          payload.new.scheduled_date ||
+                          payload.new.appointment_time ||
+                          payload.new.created_at ||
+                          'Unknown date';
+    
+    console.log('📅 [ADMIN] Extracted appointment info:', {
+      studentEmail,
+      studentName,
+      appointmentDate,
+      appointmentId: payload.new.id
+    });
+    
+    const scheduleNotification: Notification = {
+      id: `schedule_${payload.new.id}_${Date.now()}`,
+      type: 'schedule',
+      user: {
+        email: studentEmail,
+        full_name: studentName
+      },
+      timestamp: currentTime,
+      read: false
+    };
+    
+    console.log('📅 [ADMIN] Creating schedule notification:', scheduleNotification);
+    setNotifications(prev => [scheduleNotification, ...prev]);
+    showNotificationToast('New Appointment', `Appointment scheduled for ${studentName} on ${appointmentDate}`);
+    
+    // Play the schedule sound
+    try {
+      await soundService.playScheduleSound();
+      console.log('🔊 [ADMIN] Schedule sound played successfully');
+    } catch (soundError) {
+      console.error('❌ [ADMIN] Error playing schedule sound:', soundError);
+    }
+    
+    console.log('✅ [ADMIN] Schedule notification created and sound played');
+  };
+
+  // Manual function to trigger appointment notification (for testing/backup)
+  const triggerAppointmentNotification = (appointmentData: any) => {
+    console.log('🔧 [ADMIN] Manually triggering appointment notification:', appointmentData);
+    
+    const currentTime = new Date().toISOString();
+    const studentEmail = appointmentData.student_email || appointmentData.email || 'Unknown';
+    const studentName = appointmentData.student_name || appointmentData.full_name || 'Student';
+    const appointmentDate = appointmentData.appointment_date || appointmentData.date || 'Unknown date';
+    
+    const scheduleNotification: Notification = {
+      id: `schedule_manual_${Date.now()}`,
+      type: 'schedule',
+      user: {
+        email: studentEmail,
+        full_name: studentName
+      },
+      timestamp: currentTime,
+      read: false
+    };
+    
+    setNotifications(prev => [scheduleNotification, ...prev]);
+    showNotificationToast('New Appointment', `Appointment scheduled for ${studentName} on ${appointmentDate}`);
+    soundService.playScheduleSound();
+    
+    console.log('✅ [ADMIN] Manual appointment notification created');
+  };
+
+  // Expose the function globally for testing
+  (window as any).triggerAppointmentNotification = triggerAppointmentNotification;
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -325,7 +522,7 @@ export default function Notifications({ darkMode }: NotificationsProps) {
       </button>
 
       {isOpen && (
-        <div className={`absolute right-0 mt-2 w-80 rounded-lg shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} border ${darkMode ? 'border-gray-700' : 'border-gray-200'} z-50`}>
+        <div className={`absolute right-0 mt-2 w-80 rounded-lg shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} border ${darkMode ? 'border-gray-700' : 'border-gray-200'} z-[9999]`}>
           <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
             <h3 className={`text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
               Notifications
@@ -358,14 +555,30 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                         ? (darkMode ? 'bg-green-900' : 'bg-green-100')
                         : notification.type === 'login'
                           ? (darkMode ? 'bg-blue-900' : 'bg-blue-100')
-                          : (darkMode ? 'bg-red-900' : 'bg-red-100')
+                          : notification.type === 'archive'
+                            ? (darkMode ? 'bg-red-900' : 'bg-red-100')
+                            : notification.type === 'unarchive'
+                              ? (darkMode ? 'bg-emerald-900' : 'bg-emerald-100')
+                              : notification.type === 'schedule'
+                                ? (darkMode ? 'bg-purple-900' : 'bg-purple-100')
+                                : notification.type === 'verified'
+                                  ? (darkMode ? 'bg-cyan-900' : 'bg-cyan-100')
+                                  : (darkMode ? 'bg-orange-900' : 'bg-orange-100')
                     }`}>
                       {notification.type === 'registration' ? (
                         <FaUserPlus className={darkMode ? 'text-green-300' : 'text-green-600'} />
                       ) : notification.type === 'login' ? (
                         <FaSignInAlt className={darkMode ? 'text-blue-300' : 'text-blue-600'} />
-                      ) : (
+                      ) : notification.type === 'archive' ? (
                         <FaArchive className={darkMode ? 'text-red-300' : 'text-red-600'} />
+                      ) : notification.type === 'unarchive' ? (
+                        <FaUndo className={darkMode ? 'text-emerald-300' : 'text-emerald-600'} />
+                      ) : notification.type === 'schedule' ? (
+                        <FaCalendarPlus className={darkMode ? 'text-purple-300' : 'text-purple-600'} />
+                      ) : notification.type === 'verified' ? (
+                        <FaCheckCircle className={darkMode ? 'text-cyan-300' : 'text-cyan-600'} />
+                      ) : (
+                        <FaExclamationTriangle className={darkMode ? 'text-orange-300' : 'text-orange-600'} />
                       )}
                     </div>
                     <div className="flex-1">
@@ -374,7 +587,15 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                           ? 'New Registration' 
                           : notification.type === 'login' 
                             ? (notification.user.role === 'guidance' ? 'Guidance Login' : 'Student Login')
-                            : 'Student Archived'}
+                            : notification.type === 'archive'
+                              ? 'Student Archived'
+                              : notification.type === 'unarchive'
+                                ? 'Student Restored'
+                                : notification.type === 'schedule'
+                                  ? 'New Appointment'
+                                  : notification.type === 'verified'
+                                    ? 'Student Verified'
+                                    : 'Student Unverified'}
                       </p>
                       <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         {notification.user.full_name} ({notification.user.email})

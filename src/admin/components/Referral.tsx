@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { 
   FaHandshake, 
@@ -44,6 +44,8 @@ const Referral = ({ darkMode }: ReferralProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [dataCache, setDataCache] = useState<{students: Student[], referrals: Referral[], timestamp: number} | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [alert, setAlert] = useState<{type: 'success' | 'error' | 'info', message: string} | null>(null);
   const [selectedReferral, setSelectedReferral] = useState<Referral | null>(null);
@@ -73,22 +75,49 @@ const Referral = ({ darkMode }: ReferralProps) => {
 
 
   useEffect(() => {
-    fetchStudents();
-    fetchReferrals();
+    loadInitialData();
   }, []);
+
+  const loadInitialData = async () => {
+    setInitialLoading(true);
+    try {
+      // Check if we have recent cached data (less than 5 minutes old)
+      if (dataCache && Date.now() - dataCache.timestamp < 5 * 60 * 1000) {
+        setStudents(dataCache.students);
+        setReferrals(dataCache.referrals);
+        setInitialLoading(false);
+        return;
+      }
+
+      // Fetch both data sets in parallel for better performance
+      await Promise.all([fetchStudents(), fetchReferrals()]);
+    } catch (error) {
+      console.error('Error loading initial data:', error);
+    } finally {
+      setInitialLoading(false);
+    }
+  };
 
   const fetchStudents = async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, email')
+        .select('id, full_name, email, role')
         .in('role', ['student', 'user'])
         .neq('role', 'admin')
         .neq('role', 'guidance')
         .order('full_name');
 
       if (error) throw error;
-      setStudents(data || []);
+      const studentsData = data || [];
+      setStudents(studentsData);
+      
+      // Update cache
+      setDataCache(prev => ({
+        students: studentsData,
+        referrals: prev?.referrals || [],
+        timestamp: Date.now()
+      }));
     } catch (error) {
       console.error('Error fetching students:', error);
     }
@@ -99,10 +128,13 @@ const Referral = ({ darkMode }: ReferralProps) => {
       const { data, error } = await supabase
         .from('referrals')
         .select(`
-          *,
+          id, student_id, student_name, psychiatrist_name, psychiatrist_email,
+          psychiatrist_phone, referral_reason, urgency_level, referral_status,
+          created_at, email_sent,
           student:profiles!referrals_student_id_fkey(full_name)
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100); // Limit initial load for better performance
 
       if (error) {
         console.error('Error fetching referrals:', error);
@@ -116,10 +148,17 @@ const Referral = ({ darkMode }: ReferralProps) => {
       
       const formattedReferrals = data?.map(referral => ({
         ...referral,
-        student_name: referral.student?.full_name || 'Unknown'
+        student_name: (referral.student as any)?.full_name || referral.student_name || 'Unknown Student'
       })) || [];
       
       setReferrals(formattedReferrals);
+      
+      // Update cache
+      setDataCache(prev => ({
+        students: prev?.students || [],
+        referrals: formattedReferrals,
+        timestamp: Date.now()
+      }));
     } catch (error) {
       console.error('Error fetching referrals:', error);
       setReferrals([]);
@@ -370,7 +409,50 @@ const Referral = ({ darkMode }: ReferralProps) => {
       </div>
 
       {/* Referrals Grid */}
-      {filteredReferrals.length === 0 ? (
+      {initialLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+          {[...Array(8)].map((_, index) => (
+            <div
+              key={index}
+              className={`p-4 rounded-xl border animate-pulse ${
+                darkMode 
+                  ? 'bg-gray-700/30 border-gray-600/30' 
+                  : 'bg-gray-100/50 border-gray-200/30'
+              }`}
+            >
+              {/* Header skeleton */}
+              <div className="flex items-start mb-3">
+                <div className="flex items-center gap-2 flex-1">
+                  <div className={`p-2 rounded-lg ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+                  <div className={`h-4 rounded flex-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+                </div>
+              </div>
+              
+              {/* Content skeleton */}
+              <div className="space-y-2 mb-3">
+                <div className={`h-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+                <div className={`h-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`} style={{width: '80%'}}></div>
+              </div>
+              
+              <div className="space-y-2 mb-3">
+                <div className={`h-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+                <div className={`h-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`} style={{width: '70%'}}></div>
+                <div className={`h-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`} style={{width: '60%'}}></div>
+              </div>
+              
+              {/* Footer skeleton */}
+              <div className="flex items-center justify-between mb-3">
+                <div className={`h-6 rounded-full ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`} style={{width: '60px'}}></div>
+              </div>
+              
+              <div className="space-y-2 pt-3 border-t border-gray-200/50">
+                <div className={`h-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`} style={{width: '50%'}}></div>
+                <div className={`h-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`} style={{width: '60%'}}></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filteredReferrals.length === 0 ? (
         <div className={`text-center py-12 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
           <FaHandshake className="text-6xl mx-auto mb-4 opacity-30" />
           <h3 className="text-xl font-semibold mb-2">No referrals found</h3>

@@ -96,6 +96,8 @@ const Referral = ({ darkMode }: ReferralProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [dataCache, setDataCache] = useState<{students: Student[], referrals: Referral[], timestamp: number} | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [alert, setAlert] = useState<{type: 'success' | 'error' | 'info', message: string} | null>(null);
   const [selectedReferral, setSelectedReferral] = useState<Referral | null>(null);
@@ -326,9 +328,28 @@ const Referral = ({ darkMode }: ReferralProps) => {
 
 
   useEffect(() => {
-    fetchStudents();
-    fetchReferrals();
+    loadInitialData();
   }, []);
+
+  const loadInitialData = async () => {
+    setInitialLoading(true);
+    try {
+      // Check if we have recent cached data (less than 5 minutes old)
+      if (dataCache && Date.now() - dataCache.timestamp < 5 * 60 * 1000) {
+        setStudents(dataCache.students);
+        setReferrals(dataCache.referrals);
+        setInitialLoading(false);
+        return;
+      }
+
+      // Fetch both data sets in parallel for better performance
+      await Promise.all([fetchStudents(), fetchReferrals()]);
+    } catch (error) {
+      console.error('Error loading initial data:', error);
+    } finally {
+      setInitialLoading(false);
+    }
+  };
 
   // Prevent background scrolling when modal is open
   useEffect(() => {
@@ -348,14 +369,22 @@ const Referral = ({ darkMode }: ReferralProps) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, email, role')
         .in('role', ['student', 'user'])
         .neq('role', 'admin')
         .neq('role', 'guidance')
         .order('full_name');
 
       if (error) throw error;
-      setStudents(data || []);
+      const studentsData = data || [];
+      setStudents(studentsData);
+      
+      // Update cache
+      setDataCache(prev => ({
+        students: studentsData,
+        referrals: prev?.referrals || [],
+        timestamp: Date.now()
+      }));
     } catch (error) {
       console.error('Error fetching students:', error);
     }
@@ -366,21 +395,39 @@ const Referral = ({ darkMode }: ReferralProps) => {
       const { data, error } = await supabase
         .from('referrals')
         .select(`
-          *,
+          id, student_id, student_name, referred_by_faculty, referred_by_staff,
+          referred_by_parent_guardian, referred_by_peer, referred_by_self, referred_by_others,
+          referred_by_others_specify, preferred_face_to_face_individual, preferred_face_to_face_group,
+          preferred_online, reason_academic_concerns, reason_behavioral_issues,
+          reason_emotional_psychological_concerns, reason_career_counseling,
+          reason_peer_relationship_social_adjustment, reason_family_concerns,
+          reason_personal_concerns, reason_psychological_assessment_request,
+          reason_others, reason_others_specify, brief_description_of_concern,
+          immediate_action_taken, requested_by_signature, requested_by_printed_name,
+          noted_by_principal_dean, urgency_level, referral_status, created_at,
+          email_sent, uploaded_files,
           student:profiles!referrals_student_id_fkey(full_name),
           referred_by_profile:profiles!referrals_referred_by_fkey(full_name)
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100); // Limit initial load for better performance
 
       if (error) throw error;
       
       const formattedReferrals = data?.map(referral => ({
         ...referral,
-        student_name: referral.student?.full_name || referral.student_name || 'Unknown Student',
+        student_name: (referral.student as any)?.full_name || referral.student_name || 'Unknown Student',
         attachments: referral.uploaded_files ? JSON.parse(referral.uploaded_files) : []
       })) || [];
       
       setReferrals(formattedReferrals);
+      
+      // Update cache
+      setDataCache(prev => ({
+        students: prev?.students || [],
+        referrals: formattedReferrals,
+        timestamp: Date.now()
+      }));
     } catch (error) {
       console.error('Error fetching referrals:', error);
       setReferrals([]);
@@ -1098,7 +1145,44 @@ const Referral = ({ darkMode }: ReferralProps) => {
       </div>
 
       {/* Referrals Grid */}
-      {filteredReferrals.length === 0 ? (
+      {initialLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, index) => (
+            <div
+              key={index}
+              className={`p-6 rounded-2xl border backdrop-blur-sm animate-pulse ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-600/30' 
+                  : 'bg-gradient-to-br from-gray-100/50 to-gray-200/50 border-gray-200/30'
+              }`}
+            >
+              {/* Header skeleton */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className={`p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                  <div className="flex-1">
+                    <div className={`h-5 rounded mb-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} style={{width: '70%'}}></div>
+                    <div className={`h-4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} style={{width: '40%'}}></div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Description skeleton */}
+              <div className="mb-4 space-y-2">
+                <div className={`h-4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+                <div className={`h-4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} style={{width: '80%'}}></div>
+                <div className={`h-4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} style={{width: '60%'}}></div>
+              </div>
+              
+              {/* Footer skeleton */}
+              <div className="pt-4 border-t border-gray-200/30 space-y-3">
+                <div className={`h-4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} style={{width: '50%'}}></div>
+                <div className={`h-4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} style={{width: '60%'}}></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filteredReferrals.length === 0 ? (
         <div className={`text-center py-12 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
           <FaHandshake className="text-6xl mx-auto mb-4 opacity-30" />
           <h3 className="text-xl font-semibold mb-2">No referrals found</h3>

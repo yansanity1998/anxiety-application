@@ -163,6 +163,13 @@ const TodoList = ({ darkMode }: TodoListProps) => {
       showCancelButton: true,
       confirmButtonText: 'Create Todo',
       width: '500px',
+      scrollbarPadding: false,
+      didOpen: () => {
+        document.body.style.paddingRight = '0px !important';
+      },
+      didClose: () => {
+        document.body.style.paddingRight = '';
+      },
       preConfirm: () => {
         const title = (document.getElementById('title') as HTMLInputElement)?.value;
         const description = (document.getElementById('description') as HTMLTextAreaElement)?.value;
@@ -259,6 +266,13 @@ const TodoList = ({ darkMode }: TodoListProps) => {
       showCancelButton: true,
       confirmButtonText: 'Update Todo',
       width: '500px',
+      scrollbarPadding: false,
+      didOpen: () => {
+        document.body.style.paddingRight = '0px !important';
+      },
+      didClose: () => {
+        document.body.style.paddingRight = '';
+      },
       preConfirm: () => {
         const title = (document.getElementById('title') as HTMLInputElement)?.value;
         const description = (document.getElementById('description') as HTMLTextAreaElement)?.value;

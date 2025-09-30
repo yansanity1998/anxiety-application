@@ -380,4 +380,42 @@ export const getAppointmentsByDateRange = async (startDate: string, endDate: str
     console.error('Error in getAppointmentsByDateRange:', error);
     throw error;
   }
+};
+
+// Get all unique students who have appointments
+export const getStudentsWithAppointments = async (): Promise<{profile_id: number, student_name: string, student_email: string, appointment_count: number}[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('profile_id, student_name, student_email')
+      .order('student_name', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching students with appointments:', error);
+      throw error;
+    }
+
+    // Group by profile_id and count appointments
+    const studentMap = new Map<number, {profile_id: number, student_name: string, student_email: string, appointment_count: number}>();
+    
+    (data || []).forEach(appointment => {
+      const existing = studentMap.get(appointment.profile_id);
+      if (existing) {
+        existing.appointment_count++;
+      } else {
+        studentMap.set(appointment.profile_id, {
+          profile_id: appointment.profile_id,
+          student_name: appointment.student_name,
+          student_email: appointment.student_email,
+          appointment_count: 1
+        });
+      }
+    });
+
+    // Convert map to array and sort by name
+    return Array.from(studentMap.values()).sort((a, b) => a.student_name.localeCompare(b.student_name));
+  } catch (error) {
+    console.error('Error in getStudentsWithAppointments:', error);
+    throw error;
+  }
 }; 

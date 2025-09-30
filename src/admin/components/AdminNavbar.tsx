@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaBars, FaTimes, FaTachometerAlt, FaUsers } from 'react-icons/fa';
 import { FaArchive, FaBrain, FaVideo, FaTasks, FaHandshake, FaCalendarAlt, FaFileAlt } from 'react-icons/fa';
 
@@ -11,6 +11,17 @@ interface AdminNavbarProps {
 
 const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount = 0 }: AdminNavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsScrolled(scrollTop > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <FaTachometerAlt />, color: 'text-blue-500' },
@@ -45,7 +56,15 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
     }`;
 
   return (
-    <nav className={`sticky top-0 z-50 w-full ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b shadow-xs`}>
+    <nav className={`sticky top-0 z-50 w-full transition-all duration-500 ${
+      isScrolled
+        ? darkMode
+          ? 'bg-gray-900/20 backdrop-blur-xl border-gray-600/20 shadow-2xl shadow-black/20'
+          : 'bg-white/10 backdrop-blur-xl border-gray-300/20 shadow-2xl shadow-gray-500/10'
+        : darkMode
+        ? 'bg-gray-800 border-gray-700'
+        : 'bg-white border-gray-200'
+    } border-b`}>
       <div className="max-w-10xl mx-auto px-6 sm:px-12 lg:px-16">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">

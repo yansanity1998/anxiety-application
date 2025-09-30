@@ -5,6 +5,7 @@ import { FaCalendarAlt, FaUser, FaClock, FaCheckCircle, FaTimesCircle, FaHourgla
 import { getAllAppointments, updateAppointment, deleteAppointment } from '../../lib/appointmentService';
 import type { Appointment } from '../../lib/appointmentService';
 import WalkInModal from './WalkInModal';
+import ScheduleHistory from './ScheduleHistory';
 // Removed SweetAlert2 - using modern alerts instead
 
 interface ScheduleProps {
@@ -136,6 +137,9 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
   const [expandedAppointment, setExpandedAppointment] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; left: number } | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
+  const [selectedStudentName, setSelectedStudentName] = useState<string>('');
+  const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState<number>(0);
 
   // Modern alert function
   const showAlert = (type: 'success' | 'error' | 'warning', title: string, message: string) => {
@@ -233,6 +237,9 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
       setAppointments(data);
       setExpandedAppointment(null);
       setDropdownPosition(null);
+      // Trigger history refresh
+      setHistoryRefreshTrigger(prev => prev + 1);
+      showAlert('success', 'Status Updated!', `Appointment status changed to ${newStatus}.`);
     } catch (error) {
       console.error('Error updating appointment status:', error);
       showAlert('error', 'Error', 'Failed to update appointment status');
@@ -397,6 +404,8 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
         await deleteAppointment(appointment.id);
         const data = await getAllAppointments();
         setAppointments(data);
+        // Trigger history refresh
+        setHistoryRefreshTrigger(prev => prev + 1);
         showAlert('success', 'Deleted!', 'Appointment has been deleted successfully.');
       } catch (error) {
         console.error('Error deleting appointment:', error);
@@ -545,6 +554,8 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
 
           const data = await getAllAppointments();
           setAppointments(data);
+          // Trigger history refresh
+          setHistoryRefreshTrigger(prev => prev + 1);
           showAlert('success', 'Updated!', 'Appointment has been updated successfully.');
         } catch (error) {
           console.error('Error updating appointment:', error);
@@ -589,6 +600,15 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
   };
 
   const handleAppointmentCreated = async () => {
+    try {
+      const data = await getAllAppointments();
+      setAppointments(data);
+    } catch (error) {
+      console.error('Error refreshing appointments:', error);
+    }
+  };
+
+  const handleAppointmentUpdate = async () => {
     try {
       const data = await getAllAppointments();
       setAppointments(data);
@@ -774,12 +794,26 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
                         {/* Header with student name and actions */}
                         <div className="flex items-start justify-between mt-1.5 mb-2">
                           <div className="flex items-center gap-2 min-w-0">
-                            <div className={`p-1.5 rounded-lg ${cardColors.iconBg} shadow-sm`}>
+                            <button
+                              onClick={() => {
+                                setSelectedStudentId(app.profile_id);
+                                setSelectedStudentName(app.student_name);
+                              }}
+                              className={`p-1.5 rounded-lg ${cardColors.iconBg} shadow-sm hover:scale-110 transition-transform cursor-pointer`}
+                              title="View schedule history"
+                            >
                               <FaUser className="text-white text-xs" />
-                            </div>
-                            <span className={`font-medium text-sm truncate ${darkMode ? 'text-gray-200' : 'text-gray-700'}`} title={app.student_name}>
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedStudentId(app.profile_id);
+                                setSelectedStudentName(app.student_name);
+                              }}
+                              className={`font-medium text-sm truncate ${darkMode ? 'text-gray-200 hover:text-white' : 'text-gray-700 hover:text-gray-900'} transition-colors cursor-pointer`}
+                              title={`${app.student_name} - Click to view history`}
+                            >
                               {app.student_name}
-                            </span>
+                            </button>
                             {/* Walk-in indicator */}
                             {app.notes && app.notes.toLowerCase().includes('walk-in') && (
                               <div 
@@ -902,6 +936,15 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
         onClose={() => setIsWalkInModalOpen(false)}
         darkMode={darkMode}
         onAppointmentCreated={handleAppointmentCreated}
+      />
+      
+      {/* Schedule History Component */}
+      <ScheduleHistory
+        darkMode={darkMode}
+        selectedStudentId={selectedStudentId || undefined}
+        selectedStudentName={selectedStudentName}
+        onAppointmentUpdate={handleAppointmentUpdate}
+        refreshTrigger={historyRefreshTrigger}
       />
     </div>
   );
