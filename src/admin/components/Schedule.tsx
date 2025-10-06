@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { FaCalendarAlt, FaUser, FaClock, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaChevronDown, FaEye, FaTrash, FaCalendarTimes, FaUserTimes, FaWalking, FaHistory } from 'react-icons/fa';
 import { getAllAppointments, updateAppointment, deleteAppointment } from '../../lib/appointmentService';
 import type { Appointment } from '../../lib/appointmentService';
-import WalkInModal from './WalkinModal';
+import WalkInModal from './WalkInModal';
 import ScheduleHistory from './ScheduleHistory';
 // Removed SweetAlert2 - using modern alerts instead
 
@@ -205,6 +205,44 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
   }, []);
 
   // Close dropdown when clicking outside or scrolling
+  useEffect(() => {
+    // Smooth, modern scroll animations (both down and up)
+    const elements = Array.from(document.querySelectorAll('[data-animate-on-scroll]')) as HTMLElement[];
+    const ensureBase = (el: HTMLElement) => {
+      el.classList.add(
+        'transition-all',
+        'duration-700',
+        'ease-[cubic-bezier(0.22,1,0.36,1)]',
+        'will-change-transform',
+        'opacity-0',
+        'translate-y-6',
+        'scale-[0.98]',
+        'blur-[2px]'
+      );
+    };
+    elements.forEach(ensureBase);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const el = entry.target as HTMLElement;
+          const showing = entry.intersectionRatio > 0.15;
+          if (showing) {
+            el.classList.add('opacity-100', 'translate-y-0', 'scale-100', 'blur-0');
+            el.classList.remove('opacity-0', 'translate-y-6', 'scale-[0.98]', 'blur-[2px]');
+          } else {
+            // Animate back when scrolling up/out
+            el.classList.add('opacity-0', 'translate-y-6', 'scale-[0.98]', 'blur-[2px]');
+            el.classList.remove('opacity-100', 'translate-y-0', 'scale-100', 'blur-0');
+          }
+        });
+      },
+      { threshold: [0, 0.15, 0.35, 0.6, 1], rootMargin: '0px 0px -5% 0px' }
+    );
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [appointments, searchTerm]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
@@ -677,7 +715,8 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
             <div 
               key={status} 
               onClick={() => hasAppointments && scrollToStatus(status)}
-              className={`p-3 rounded-xl bg-gradient-to-br ${darkMode ? 'from-gray-700 to-gray-900' : 'from-gray-50 to-gray-100'} border transition-all duration-300 hover:shadow-xl hover:scale-105 ${colors.border} shadow-lg backdrop-blur-sm ${
+              data-animate-on-scroll
+              className={`p-3 rounded-xl bg-gradient-to-br ${darkMode ? 'from-gray-700 to-gray-900' : 'from-gray-50 to-gray-100'} border transition-all duration-300 hover:shadow-xl hover:scale-105 ${colors.border} shadow-lg backdrop-blur-sm transform will-change-transform opacity-0 translate-y-3 ${
                 hasAppointments ? 'cursor-pointer' : 'cursor-default opacity-75'
               }`}>
               <div className="flex items-center justify-between mb-2">
@@ -780,7 +819,8 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
             <div 
               key={status} 
               id={`status-section-${status.toLowerCase().replace(/\s+/g, '-')}`}
-              className={`rounded-xl border shadow-lg transition-all scroll-mt-6 ${
+              data-animate-on-scroll
+              className={`rounded-xl border shadow-lg transition-all scroll-mt-6 transform will-change-transform opacity-0 translate-y-3 ${
                 darkMode ? 'bg-gray-900/50 border-gray-700' : 'bg-gray-50/50 border-gray-200'
               }`}>
               {/* Status Section Header */}
@@ -812,7 +852,8 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
                     return (
                       <div
                         key={app.id}
-                        className={`relative p-3 rounded-xl border transition-all duration-200 group hover:shadow-lg hover:-translate-y-0.5 ${
+                        data-animate-on-scroll
+                        className={`relative p-3 rounded-xl border transition-all duration-200 group hover:shadow-lg hover:-translate-y-0.5 transform will-change-transform opacity-0 translate-y-3 ${
                           darkMode 
                             ? 'bg-gray-800/50 border-gray-700 hover:bg-gray-800/80' 
                             : 'bg-white border-gray-200 hover:border-gray-300'

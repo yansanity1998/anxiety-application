@@ -110,6 +110,39 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
     };
   }, [expandedAppointment]);
 
+  // Smooth, modern scroll animations (both down and up)
+  useEffect(() => {
+    const elements = Array.from(document.querySelectorAll('[data-animate-on-scroll]')) as HTMLElement[];
+    const ensureBase = (el: HTMLElement) => {
+      el.classList.add(
+        'transition-all',
+        'duration-700',
+        'ease-[cubic-bezier(0.22,1,0.36,1)]',
+        'will-change-transform',
+        'opacity-0',
+        'translate-y-6',
+        'scale-[0.98]',
+        'blur-[2px]'
+      );
+    };
+    elements.forEach(ensureBase);
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const el = entry.target as HTMLElement;
+        const showing = entry.intersectionRatio > 0.15;
+        if (showing) {
+          el.classList.add('opacity-100', 'translate-y-0', 'scale-100', 'blur-0');
+          el.classList.remove('opacity-0', 'translate-y-6', 'scale-[0.98]', 'blur-[2px]');
+        } else {
+          el.classList.add('opacity-0', 'translate-y-6', 'scale-[0.98]', 'blur-[2px]');
+          el.classList.remove('opacity-100', 'translate-y-0', 'scale-100', 'blur-0');
+        }
+      });
+    }, { threshold: [0, 0.15, 0.35, 0.6, 1], rootMargin: '0px 0px -5% 0px' });
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [appointments, students, searchTerm, studentSearchTerm, filterStatus]);
+
   const fetchAllStudents = async () => {
     setStudentsLoading(true);
     try {
@@ -546,6 +579,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
                 <button
                   key={student.profile_id}
                   onClick={() => handleStudentSelect(student)}
+                  data-animate-on-scroll
                   className={`group p-5 rounded-2xl border transition-all duration-300 hover:shadow-2xl hover:scale-105 text-left backdrop-blur-sm ${
                     darkMode 
                       ? 'bg-gradient-to-br from-gray-800/60 to-gray-900/60 border-gray-700/50 hover:border-purple-500/50 hover:shadow-purple-900/20' 
@@ -646,7 +680,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
 
         {/* Modern Statistics Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-6">
-          <div className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+          <div data-animate-on-scroll className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
             darkMode 
               ? 'bg-gradient-to-br from-blue-900/30 to-indigo-900/30 border-blue-600/30 hover:border-blue-500/50' 
               : 'bg-gradient-to-br from-blue-50/80 to-indigo-50/80 border-blue-200/50 hover:border-blue-300/50'
@@ -662,7 +696,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
             <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.total}</p>
           </div>
           
-          <div className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+          <div data-animate-on-scroll className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
             darkMode 
               ? 'bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border-blue-600/30 hover:border-blue-500/50' 
               : 'bg-gradient-to-br from-blue-50/80 to-cyan-50/80 border-blue-200/50 hover:border-blue-300/50'
@@ -678,7 +712,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
             <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.scheduled}</p>
           </div>
           
-          <div className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+          <div data-animate-on-scroll className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
             darkMode 
               ? 'bg-gradient-to-br from-amber-900/30 to-yellow-900/30 border-amber-600/30 hover:border-amber-500/50' 
               : 'bg-gradient-to-br from-amber-50/80 to-yellow-50/80 border-amber-200/50 hover:border-amber-300/50'
@@ -694,7 +728,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
             <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.inProgress}</p>
           </div>
           
-          <div className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+          <div data-animate-on-scroll className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
             darkMode 
               ? 'bg-gradient-to-br from-emerald-900/30 to-green-900/30 border-emerald-600/30 hover:border-emerald-500/50' 
               : 'bg-gradient-to-br from-emerald-50/80 to-green-50/80 border-emerald-200/50 hover:border-emerald-300/50'
@@ -710,7 +744,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
             <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.completed}</p>
           </div>
           
-          <div className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+          <div data-animate-on-scroll className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
             darkMode 
               ? 'bg-gradient-to-br from-red-900/30 to-pink-900/30 border-red-600/30 hover:border-red-500/50' 
               : 'bg-gradient-to-br from-red-50/80 to-pink-50/80 border-red-200/50 hover:border-red-300/50'
@@ -726,7 +760,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
             <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.canceled}</p>
           </div>
           
-          <div className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+          <div data-animate-on-scroll className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
             darkMode 
               ? 'bg-gradient-to-br from-gray-800/30 to-slate-800/30 border-gray-600/30 hover:border-gray-500/50' 
               : 'bg-gradient-to-br from-gray-50/80 to-slate-50/80 border-gray-200/50 hover:border-gray-300/50'
@@ -843,6 +877,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
                 filteredAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
+                    data-animate-on-scroll
                     className={`group p-6 rounded-2xl border transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] backdrop-blur-sm ${
                       darkMode 
                         ? 'bg-gradient-to-br from-gray-800/60 to-gray-900/60 border-gray-700/50 hover:border-purple-500/30 hover:shadow-purple-900/20' 

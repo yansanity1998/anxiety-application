@@ -120,6 +120,60 @@ const Records = ({ darkMode }: RecordsProps) => {
     };
   }, [showStudentModal]);
 
+  // Smooth, modern scroll animations (both down and up) - refined for smoother motion
+  useEffect(() => {
+    // Respect reduced motion preferences
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+    const elements = Array.from(document.querySelectorAll('[data-animate-on-scroll]')) as HTMLElement[];
+    const ensureBase = (el: HTMLElement) => {
+      el.classList.add(
+        'transition-all',
+        'duration-700',
+        'ease-[cubic-bezier(0.22,1,0.36,1)]',
+        'will-change-transform',
+        'opacity-0',
+        'translate-y-6',
+        'scale-[0.98]',
+        'blur-[2px]'
+      );
+    };
+    const isInViewport = (el: HTMLElement) => {
+      const rect = el.getBoundingClientRect();
+      return rect.top < window.innerHeight && rect.bottom > 0;
+    };
+    // On page load, don't animate items that are already in view
+    elements.forEach((el) => {
+      if (isInViewport(el)) {
+        el.classList.add('opacity-100', 'translate-y-0', 'scale-100', 'blur-0');
+        el.classList.remove('opacity-0', 'translate-y-6', 'scale-[0.98]', 'blur-[2px]');
+      } else {
+        ensureBase(el);
+      }
+    });
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const el = entry.target as HTMLElement;
+          const showing = entry.intersectionRatio > 0.15;
+          if (showing) {
+            el.classList.add('opacity-100', 'translate-y-0', 'scale-100', 'blur-0');
+            el.classList.remove('opacity-0', 'translate-y-6', 'scale-[0.98]', 'blur-[2px]');
+          } else {
+            // Animate back when scrolling up/out
+            el.classList.add('opacity-0', 'translate-y-6', 'scale-[0.98]', 'blur-[2px]');
+            el.classList.remove('opacity-100', 'translate-y-0', 'scale-100', 'blur-0');
+          }
+        });
+      },
+      { threshold: [0, 0.15, 0.35, 0.6, 1], rootMargin: '0px 0px -5% 0px' }
+    );
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [students, searchTerm, showStudentModal]);
+
   // Handle escape key to close modal
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
@@ -2284,7 +2338,7 @@ const Records = ({ darkMode }: RecordsProps) => {
     <div className={`${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-xl shadow-lg p-6`}>
       
       {/* Header */}
-      <div className="flex items-center mb-6">
+      <div data-animate-on-scroll className="flex items-center mb-6">
         <div className={`p-3 rounded-xl ${darkMode ? 'bg-pink-600/20' : 'bg-pink-100'} mr-4`}>
           <FaFileAlt className={`text-2xl ${darkMode ? 'text-pink-400' : 'text-pink-600'}`} />
         </div>
@@ -2342,7 +2396,7 @@ const Records = ({ darkMode }: RecordsProps) => {
 
       {/* Enhanced Summary Stats with Gradients */}
       <div className="mb-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div className={`p-4 rounded-xl bg-gradient-to-br ${
+        <div data-animate-on-scroll className={`p-4 rounded-xl bg-gradient-to-br ${
           darkMode 
             ? 'from-blue-900/20 to-blue-800/30 border-blue-600/30' 
             : 'from-blue-50 to-blue-100 border-blue-200'
@@ -2358,7 +2412,7 @@ const Records = ({ darkMode }: RecordsProps) => {
           </div>
         </div>
         
-        <div className={`p-4 rounded-xl bg-gradient-to-br ${
+        <div data-animate-on-scroll className={`p-4 rounded-xl bg-gradient-to-br ${
           darkMode 
             ? 'from-emerald-900/20 to-emerald-800/30 border-emerald-600/30' 
             : 'from-emerald-50 to-green-100 border-emerald-200'
@@ -2376,7 +2430,7 @@ const Records = ({ darkMode }: RecordsProps) => {
           </div>
         </div>
         
-        <div className={`p-4 rounded-xl bg-gradient-to-br ${
+        <div data-animate-on-scroll className={`p-4 rounded-xl bg-gradient-to-br ${
           darkMode 
             ? 'from-purple-900/20 to-purple-800/30 border-purple-600/30' 
             : 'from-purple-50 to-purple-100 border-purple-200'
@@ -2394,7 +2448,7 @@ const Records = ({ darkMode }: RecordsProps) => {
           </div>
         </div>
         
-        <div className={`p-4 rounded-xl bg-gradient-to-br ${
+        <div data-animate-on-scroll className={`p-4 rounded-xl bg-gradient-to-br ${
           darkMode 
             ? 'from-orange-900/20 to-orange-800/30 border-orange-600/30' 
             : 'from-orange-50 to-orange-100 border-orange-200'
@@ -2412,7 +2466,7 @@ const Records = ({ darkMode }: RecordsProps) => {
           </div>
         </div>
         
-        <div className={`p-4 rounded-xl bg-gradient-to-br ${
+        <div data-animate-on-scroll className={`p-4 rounded-xl bg-gradient-to-br ${
           darkMode 
             ? 'from-cyan-700 to-teal-900 border-cyan-600/30' 
             : 'from-cyan-50 to-teal-100 border-teal-200'
@@ -2430,7 +2484,7 @@ const Records = ({ darkMode }: RecordsProps) => {
           </div>
         </div>
         
-        <div className={`p-4 rounded-xl bg-gradient-to-br ${
+        <div data-animate-on-scroll className={`p-4 rounded-xl bg-gradient-to-br ${
           darkMode 
             ? 'from-pink-700 to-pink-900 border-pink-600/30' 
             : 'from-pink-50 to-pink-100 border-pink-200'
@@ -2454,6 +2508,7 @@ const Records = ({ darkMode }: RecordsProps) => {
         {filteredStudents.map((student) => (
           <div
             key={student.profile.id}
+            data-animate-on-scroll
             className={`${
               student.profile.gender?.toLowerCase() === 'male' 
                 ? darkMode 
