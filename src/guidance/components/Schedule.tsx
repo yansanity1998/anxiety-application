@@ -118,6 +118,15 @@ const statusIcons: Record<string, React.ReactNode> = {
   'No Show': <FaUserTimes className="mr-1" />,
 };
 
+// No-margin versions for standalone icon containers (to keep them perfectly centered)
+const statusIconsTight: Record<string, React.ReactNode> = {
+  'Scheduled': <FaCalendarAlt />,
+  'In Progress': <FaHourglassHalf />,
+  'Completed': <FaCheckCircle />,
+  'Canceled': <FaCalendarTimes />,
+  'No Show': <FaUserTimes />,
+};
+
 // Helper function to format date in user-friendly format
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
@@ -623,7 +632,7 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div className="flex items-center">
-          <div className={`p-3 rounded-xl ${darkMode ? 'bg-indigo-600/20' : 'bg-indigo-100'} mr-4`}>
+          <div className={`p-3 rounded-xl flex items-center justify-center ${darkMode ? 'bg-indigo-600/20' : 'bg-indigo-100'} mr-4`}>
             <FaCalendarAlt className={`text-2xl ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`} />
           </div>
           <div>
@@ -639,7 +648,7 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
             : 'from-gray-50 to-gray-100 border-gray-200'
         } border-2 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105`}>
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${darkMode ? 'bg-indigo-500/30' : 'bg-indigo-500/10'}`}>
+            <div className={`p-2 rounded-lg flex items-center justify-center ${darkMode ? 'bg-indigo-500/30' : 'bg-indigo-500/10'}`}>
               <FaCalendarAlt className={`text-xl ${darkMode ? 'text-indigo-300' : 'text-indigo-600'}`} />
             </div>
             <div>
@@ -676,9 +685,9 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
                   <p className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>{status}</p>
                   <h3 className={`text-xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{getStatusCount(status)}</h3>
                 </div>
-                <div className={`p-1.5 ${colors.iconBg} rounded-lg`}>
-                  <span className="text-white text-sm">
-                    {statusIcons[status]}
+                <div className={`p-1.5 ${colors.iconBg} rounded-lg flex items-center justify-center`}>
+                  <span className="text-white text-sm flex items-center justify-center">
+                    {statusIconsTight[status]}
                   </span>
                 </div>
               </div>
@@ -779,9 +788,9 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
                 darkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-white/50'
               }`}>
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${statusCardColorsDark[status].iconBg}`}>
-                    <span className="text-white text-sm">
-                      {statusIcons[status]}
+                  <div className={`p-2 rounded-lg flex items-center justify-center ${statusCardColorsDark[status].iconBg}`}>
+                    <span className="text-white text-sm flex items-center justify-center">
+                      {statusIconsTight[status]}
                     </span>
                   </div>
                   <div>
@@ -820,7 +829,7 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
                                 setSelectedStudentId(app.profile_id);
                                 setSelectedStudentName(app.student_name);
                               }}
-                              className={`p-1.5 rounded-lg ${cardColors.iconBg} shadow-sm hover:scale-110 transition-transform cursor-pointer`}
+                              className={`p-1.5 rounded-lg flex items-center justify-center ${cardColors.iconBg} shadow-sm hover:scale-110 transition-transform cursor-pointer`}
                               title="View schedule history"
                             >
                               <FaUser className="text-white text-xs" />
