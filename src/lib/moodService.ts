@@ -60,18 +60,10 @@ class MoodService {
     }
   }
 
-  // Get the current mood date (resets at 8 AM)
+  // Get the current mood date (always uses the actual calendar date)
   private getCurrentMoodDate(): string {
     const now = new Date();
-    
-    // If it's before 8 AM, consider it as the previous day
-    if (now.getHours() < 8) {
-      const yesterday = new Date(now);
-      yesterday.setDate(yesterday.getDate() - 1);
-      return yesterday.toISOString().split('T')[0];
-    }
-    
-    // If it's 8 AM or later, use today's date
+    // Always use today's actual calendar date
     return now.toISOString().split('T')[0];
   }
 

@@ -85,19 +85,20 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
   const showConfirmDialog = (title: string, message: string, confirmText = 'Confirm', cancelText = 'Cancel'): Promise<boolean> => {
     return new Promise((resolve) => {
       const confirmDiv = document.createElement('div');
-      confirmDiv.className = 'fixed inset-0 bg-white/20 backdrop-blur-md flex items-center justify-center z-50';
+      confirmDiv.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] overflow-y-auto';
+      document.body.style.overflow = 'hidden';
       confirmDiv.innerHTML = `
-        <div class="bg-white rounded-2xl p-6 max-w-sm mx-4 shadow-2xl">
+        <div class="${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 max-w-sm mx-4 shadow-2xl">
           <div class="text-center">
             <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
               <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"/>
               </svg>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">${title}</h3>
-            <p class="text-sm text-gray-500 mb-6">${message}</p>
+            <h3 class="text-lg font-medium ${darkMode ? 'text-white' : 'text-gray-900'} mb-2">${title}</h3>
+            <p class="text-sm ${darkMode ? 'text-gray-300' : 'text-gray-500'} mb-6">${message}</p>
             <div class="flex space-x-3">
-              <button id="cancelBtn" class="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-medium hover:bg-gray-200 transition-colors">${cancelText}</button>
+              <button id="cancelBtn" class="flex-1 ${darkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} px-4 py-2 rounded-xl font-medium transition-colors">${cancelText}</button>
               <button id="confirmBtn" class="flex-1 bg-red-500 text-white px-4 py-2 rounded-xl font-medium hover:bg-red-600 transition-colors">${confirmText}</button>
             </div>
           </div>
@@ -110,10 +111,12 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
       const confirmBtn = confirmDiv.querySelector('#confirmBtn');
       
       cancelBtn?.addEventListener('click', () => {
+        document.body.style.overflow = '';
         confirmDiv.remove();
         resolve(false);
       });
       confirmBtn?.addEventListener('click', () => {
+        document.body.style.overflow = '';
         confirmDiv.remove();
         resolve(true);
       });
@@ -123,6 +126,18 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Manage body overflow when modals are open
+  useEffect(() => {
+    if (showAddModal || showEditModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showAddModal, showEditModal]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -665,7 +680,7 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
 
       {/* Add Module Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 overflow-y-auto">
           <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-y-auto`}>
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
@@ -808,7 +823,7 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
 
       {/* Edit Module Modal */}
       {showEditModal && selectedModule && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 overflow-y-auto">
           <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-y-auto`}>
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">

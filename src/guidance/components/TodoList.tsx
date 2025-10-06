@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaTasks, FaPlus, FaEdit, FaTrash, FaCheck, FaClock, FaExclamationTriangle, FaSearch, FaCalendarAlt, FaUser, FaFlag } from 'react-icons/fa';
+import { FaTasks, FaPlus, FaEdit, FaTrash, FaCheck, FaClock, FaExclamationTriangle, FaSearch, FaCalendarAlt, FaUser, FaFlag, FaTimes } from 'react-icons/fa';
 import { getAllTodoItems, createTodoItem, updateTodoItem, deleteTodoItem, fetchUsers, TODO_CATEGORIES, PRIORITY_LABELS, STATUS_LABELS, type TodoItem, type UserProfile } from '../../lib/todoService';
 import Swal from 'sweetalert2';
 
@@ -16,6 +16,16 @@ const TodoList = ({ darkMode }: TodoListProps) => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingTodo, setEditingTodo] = useState<TodoItem | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    description: '',
+    status: 'in_progress' as TodoItem['status'],
+    category: '',
+    priority: 3 as 1 | 2 | 3 | 4 | 5,
+    due_at: ''
+  });
 
   const Toast = Swal.mixin({
     toast: true,
@@ -31,16 +41,47 @@ const TodoList = ({ darkMode }: TodoListProps) => {
     }
   });
 
-  const Modal = Swal.mixin({
-    background: darkMode ? '#1f2937' : '#f8fafc',
-    color: darkMode ? '#f3f4f6' : '#111827',
-    customClass: {
-      popup: `rounded-xl shadow-xl border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`,
-      title: 'text-lg font-bold text-[#800000]',
-      confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-4 rounded-lg',
-      cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border font-medium py-2 px-4 rounded-lg`
-    }
-  });
+  // Modern confirmation dialog with dark mode support
+  const showConfirmDialog = (title: string, message: string, confirmText = 'Confirm', cancelText = 'Cancel'): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const confirmDiv = document.createElement('div');
+      confirmDiv.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] overflow-y-auto';
+      document.body.style.overflow = 'hidden';
+      confirmDiv.innerHTML = `
+        <div class="${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 max-w-sm mx-4 shadow-2xl">
+          <div class="text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+              <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"/>
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium ${darkMode ? 'text-white' : 'text-gray-900'} mb-2">${title}</h3>
+            <p class="text-sm ${darkMode ? 'text-gray-300' : 'text-gray-500'} mb-6">${message}</p>
+            <div class="flex space-x-3">
+              <button id="cancelBtn" class="flex-1 ${darkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} px-4 py-2 rounded-xl font-medium transition-colors">${cancelText}</button>
+              <button id="confirmBtn" class="flex-1 bg-red-500 text-white px-4 py-2 rounded-xl font-medium hover:bg-red-600 transition-colors">${confirmText}</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(confirmDiv);
+      
+      const cancelBtn = confirmDiv.querySelector('#cancelBtn');
+      const confirmBtn = confirmDiv.querySelector('#confirmBtn');
+      
+      cancelBtn?.addEventListener('click', () => {
+        document.body.style.overflow = '';
+        confirmDiv.remove();
+        resolve(false);
+      });
+      confirmBtn?.addEventListener('click', () => {
+        document.body.style.overflow = '';
+        confirmDiv.remove();
+        resolve(true);
+      });
+    });
+  };
 
   useEffect(() => {
     fetchData();
@@ -49,6 +90,18 @@ const TodoList = ({ darkMode }: TodoListProps) => {
   useEffect(() => {
     filterTodos();
   }, [todos, searchTerm, statusFilter, categoryFilter, priorityFilter]);
+
+  // Manage body overflow when modal is open
+  useEffect(() => {
+    if (showEditModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showEditModal]);
 
   const fetchData = async () => {
     try {
@@ -122,23 +175,23 @@ const TodoList = ({ darkMode }: TodoListProps) => {
         <div class="space-y-4 text-left">
           <div>
             <label class="block text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">Title *</label>
-            <input type="text" id="title" class="w-full p-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}" placeholder="Enter todo title" required>
+            <input type="text" id="title" class="w-full p-3 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500' : 'bg-white border-gray-300 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500'}" placeholder="Enter todo title" required>
           </div>
           <div>
             <label class="block text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">Description</label>
-            <textarea id="description" class="w-full p-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}" rows="3" placeholder="Enter description"></textarea>
+            <textarea id="description" class="w-full p-3 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500' : 'bg-white border-gray-300 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500'}" rows="3" placeholder="Enter description"></textarea>
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">Category</label>
-              <select id="category" class="w-full p-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}">
+              <select id="category" class="w-full p-3 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-gray-500 focus:ring-gray-500' : 'bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500'}">
                 <option value="">Select category</option>
                 ${TODO_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
               </select>
             </div>
             <div>
               <label class="block text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">Priority</label>
-              <select id="priority" class="w-full p-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}">
+              <select id="priority" class="w-full p-3 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-gray-500 focus:ring-gray-500' : 'bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500'}">
                 <option value="3">Medium</option>
                 <option value="1">Urgent</option>
                 <option value="2">High</option>
@@ -149,21 +202,30 @@ const TodoList = ({ darkMode }: TodoListProps) => {
           </div>
           <div>
             <label class="block text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">Due Date</label>
-            <input type="datetime-local" id="due_at" class="w-full p-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}">
+            <input type="datetime-local" id="due_at" class="w-full p-3 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-gray-500 focus:ring-gray-500' : 'bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500'}">
           </div>
           <div>
             <label class="block text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">Assign to User *</label>
-            <select id="profile_id" class="w-full p-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}" required>
+            <select id="profile_id" class="w-full p-3 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-gray-500 focus:ring-gray-500' : 'bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500'}" required>
               <option value="">Select a user</option>
               ${users.map(user => `<option value="${user.id}">${user.full_name || user.email} (${user.role})</option>`).join('')}
             </select>
           </div>
         </div>
       `,
+      background: darkMode ? '#1f2937' : '#ffffff',
+      color: darkMode ? '#f3f4f6' : '#111827',
       showCancelButton: true,
       confirmButtonText: 'Create Todo',
+      cancelButtonText: 'Cancel',
       width: '500px',
       scrollbarPadding: false,
+      customClass: {
+        popup: `rounded-xl shadow-xl border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`,
+        title: `text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`,
+        confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-4 rounded-lg',
+        cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border font-medium py-2 px-4 rounded-lg`
+      },
       didOpen: () => {
         document.body.style.paddingRight = '0px !important';
       },
@@ -212,95 +274,40 @@ const TodoList = ({ darkMode }: TodoListProps) => {
   };
 
   const handleEditTodo = async (todo: TodoItem) => {
-    const { value: formValues } = await Swal.fire({
-      title: 'Edit Todo',
-      html: `
-        <div class="space-y-4 text-left">
-          <div>
-            <label class="block text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">Title *</label>
-            <input type="text" id="title" value="${todo.title}" class="w-full p-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}" required>
-          </div>
-          <div>
-            <label class="block text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">Description</label>
-            <textarea id="description" class="w-full p-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}" rows="3">${todo.description || ''}</textarea>
-          </div>
-          <div class="grid grid-cols-3 gap-4">
-            <div>
-              <label class="block text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">Status</label>
-              <select id="status" class="w-full p-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}">
-                <option value="in_progress" ${todo.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
-                <option value="completed" ${todo.status === 'completed' ? 'selected' : ''}>Completed</option>
-                <option value="canceled" ${todo.status === 'canceled' ? 'selected' : ''}>Canceled</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">Category</label>
-              <select id="category" class="w-full p-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}">
-                <option value="">Select category</option>
-                ${TODO_CATEGORIES.map(cat => `<option value="${cat}" ${todo.category === cat ? 'selected' : ''}>${cat}</option>`).join('')}
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">Priority</label>
-              <select id="priority" class="w-full p-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}">
-                <option value="1" ${todo.priority === 1 ? 'selected' : ''}>Urgent</option>
-                <option value="2" ${todo.priority === 2 ? 'selected' : ''}>High</option>
-                <option value="3" ${todo.priority === 3 ? 'selected' : ''}>Medium</option>
-                <option value="4" ${todo.priority === 4 ? 'selected' : ''}>Low</option>
-                <option value="5" ${todo.priority === 5 ? 'selected' : ''}>Very Low</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">Due Date</label>
-            <input type="datetime-local" id="due_at" value="${todo.due_at ? new Date(todo.due_at).toISOString().slice(0, 16) : ''}" class="w-full p-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}">
-          </div>
-          <div>
-            <label class="block text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">Assigned User</label>
-            <select id="profile_id" class="w-full p-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}">
-              ${users.map(user => `<option value="${user.id}" ${todo.profile_id === user.id ? 'selected' : ''}>${user.full_name || user.email} (${user.role})</option>`).join('')}
-            </select>
-          </div>
-        </div>
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Update Todo',
-      width: '500px',
-      scrollbarPadding: false,
-      didOpen: () => {
-        document.body.style.paddingRight = '0px !important';
-      },
-      didClose: () => {
-        document.body.style.paddingRight = '';
-      },
-      preConfirm: () => {
-        const title = (document.getElementById('title') as HTMLInputElement)?.value;
-        const description = (document.getElementById('description') as HTMLTextAreaElement)?.value;
-        const status = (document.getElementById('status') as HTMLSelectElement)?.value;
-        const category = (document.getElementById('category') as HTMLSelectElement)?.value;
-        const priority = parseInt((document.getElementById('priority') as HTMLSelectElement)?.value);
-        const due_at = (document.getElementById('due_at') as HTMLInputElement)?.value;
-
-        if (!title) {
-          Swal.showValidationMessage('Title is required');
-          return false;
-        }
-
-        return {
-          title,
-          description: description || undefined,
-          status: status as any,
-          category: category || undefined,
-          priority,
-          due_at: due_at || undefined
-        };
-      }
+    setEditingTodo(todo);
+    setEditFormData({
+      title: todo.title,
+      description: todo.description || '',
+      status: todo.status,
+      category: todo.category || '',
+      priority: todo.priority,
+      due_at: todo.due_at ? new Date(todo.due_at).toISOString().slice(0, 16) : ''
     });
+    setShowEditModal(true);
+  };
 
-    if (formValues && todo.id) {
+  const handleUpdateTodo = async () => {
+    if (!editFormData.title) {
+      Toast.fire({
+        icon: 'warning',
+        title: 'Title is required'
+      });
+      return;
+    }
+
+    if (editingTodo && editingTodo.id) {
       try {
-        await updateTodoItem(todo.id, formValues);
+        await updateTodoItem(editingTodo.id, {
+          title: editFormData.title,
+          description: editFormData.description || undefined,
+          status: editFormData.status,
+          category: editFormData.category || undefined,
+          priority: editFormData.priority,
+          due_at: editFormData.due_at || undefined
+        });
         await fetchData();
+        setShowEditModal(false);
+        setEditingTodo(null);
         Toast.fire({
           icon: 'success',
           title: 'Todo updated successfully'
@@ -315,16 +322,14 @@ const TodoList = ({ darkMode }: TodoListProps) => {
   };
 
   const handleDeleteTodo = async (todo: TodoItem) => {
-    const result = await Modal.fire({
-      title: 'Delete Todo',
-      text: `Are you sure you want to delete "${todo.title}"?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Delete',
-      confirmButtonColor: '#dc2626'
-    });
+    const confirmed = await showConfirmDialog(
+      'Delete Todo',
+      `Are you sure you want to delete "${todo.title}"?`,
+      'Delete',
+      'Cancel'
+    );
 
-    if (result.isConfirmed && todo.id) {
+    if (confirmed && todo.id) {
       try {
         await deleteTodoItem(todo.id);
         await fetchData();
@@ -657,6 +662,189 @@ const TodoList = ({ darkMode }: TodoListProps) => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Edit Todo Modal */}
+      {showEditModal && editingTodo && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 overflow-y-auto">
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-y-auto`}>
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Edit Todo
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingTodo(null);
+                  }}
+                  className={`p-1.5 rounded-lg transition-colors ${
+                    darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  <FaTimes className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.title}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                    className={`w-full px-3 py-2 rounded-lg border transition-colors ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#800000]' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[#800000]'
+                    } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+                    placeholder="Enter todo title"
+                  />
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Description
+                  </label>
+                  <textarea
+                    value={editFormData.description}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                    rows={3}
+                    className={`w-full px-3 py-2 rounded-lg border transition-colors resize-none ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#800000]' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[#800000]'
+                    } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+                    placeholder="Enter description"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Status
+                    </label>
+                    <select
+                      value={editFormData.status}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, status: e.target.value as TodoItem['status'] }))}
+                      className={`w-full px-3 py-2 rounded-lg border transition-colors ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600 text-white focus:border-[#800000]' 
+                          : 'bg-white border-gray-300 text-gray-900 focus:border-[#800000]'
+                      } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+                    >
+                      <option value="in_progress">In Progress</option>
+                      <option value="completed">Completed</option>
+                      <option value="canceled">Canceled</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Category
+                    </label>
+                    <select
+                      value={editFormData.category}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, category: e.target.value }))}
+                      className={`w-full px-3 py-2 rounded-lg border transition-colors ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600 text-white focus:border-[#800000]' 
+                          : 'bg-white border-gray-300 text-gray-900 focus:border-[#800000]'
+                      } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+                    >
+                      <option value="">Select category</option>
+                      {TODO_CATEGORIES.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Priority
+                    </label>
+                    <select
+                      value={editFormData.priority}
+                      onChange={(e) => setEditFormData(prev => ({ ...prev, priority: parseInt(e.target.value) as 1 | 2 | 3 | 4 | 5 }))}
+                      className={`w-full px-3 py-2 rounded-lg border transition-colors ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600 text-white focus:border-[#800000]' 
+                          : 'bg-white border-gray-300 text-gray-900 focus:border-[#800000]'
+                      } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+                    >
+                      <option value="1">Urgent</option>
+                      <option value="2">High</option>
+                      <option value="3">Medium</option>
+                      <option value="4">Low</option>
+                      <option value="5">Very Low</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Due Date
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={editFormData.due_at}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, due_at: e.target.value }))}
+                    className={`w-full px-3 py-2 rounded-lg border transition-colors ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white focus:border-[#800000]' 
+                        : 'bg-white border-gray-300 text-gray-900 focus:border-[#800000]'
+                    } focus:outline-none focus:ring-2 focus:ring-[#800000]/20`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Assigned User
+                  </label>
+                  <select
+                    value={editingTodo.profile_id}
+                    disabled
+                    className={`w-full px-3 py-2 rounded-lg border transition-colors opacity-60 cursor-not-allowed ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white' 
+                        : 'bg-white border-gray-300 text-gray-900'
+                    }`}
+                  >
+                    {users.map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.full_name || user.email} ({user.role})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-4">
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingTodo(null);
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg border transition-colors font-medium ${
+                    darkMode 
+                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdateTodo}
+                  className="flex-1 px-4 py-2 rounded-lg transition-colors font-medium text-white bg-blue-600 hover:bg-blue-700"
+                >
+                  Update Todo
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

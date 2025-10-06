@@ -1,43 +1,68 @@
-  import { useState } from 'react';
+  import { useState, useEffect } from 'react';
   import { useNavigate } from 'react-router-dom';
   import { FaEye, FaEyeSlash, FaBrain, FaLeaf } from 'react-icons/fa';
   import { supabase } from '../lib/supabase';
   import { streakService } from '../lib/streakService';
   import Swal from 'sweetalert2';
-
   type LoginProps = {
     onSwitch: () => void;
   };
 
   export default function Login({ onSwitch }: LoginProps) {
-    const navigate = useNavigate();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [rememberMe, setRememberMe] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-    const Toast = Swal.mixin({
-      toast: true,
-      position: 'top',
-      showConfirmButton: false,
-      timer: 1000,
-      timerProgressBar: true,
-      width: '300px',
-      padding: '1rem',
-      background: '#f8fafc',
-      backdrop: false,
-      customClass: {
-        popup: 'shadow-none border border-gray-200',
-        title: 'text-sm font-medium',
-        htmlContainer: 'text-xs',
-        timerProgressBar: 'bg-[#800000]'
-      },
-      didOpen: (toast) => {
-        toast.addEventListener('mouseenter', Swal.stopTimer);
-        toast.addEventListener('mouseleave', Swal.resumeTimer);
+  // Load saved credentials on component mount
+  useEffect(() => {
+    const savedCredentials = localStorage.getItem('rememberedCredentials');
+    if (savedCredentials) {
+      try {
+        const { email: savedEmail, password: savedPassword, rememberMe: savedRememberMe } = JSON.parse(savedCredentials);
+        if (savedEmail && savedPassword && savedRememberMe) {
+          setEmail(savedEmail);
+          setPassword(savedPassword);
+          setRememberMe(true);
+        }
+      } catch (error) {
+        console.error('Error loading saved credentials:', error);
+        localStorage.removeItem('rememberedCredentials');
       }
-    });
+    }
+  }, []);
+
+  // Clear saved credentials when Remember Me is unchecked
+  const handleRememberMeChange = (checked: boolean) => {
+    setRememberMe(checked);
+    if (!checked) {
+      localStorage.removeItem('rememberedCredentials');
+    }
+  };
+
+  const Toast = Swal.mixin({
+    toast: true,
+    position: 'top',
+    showConfirmButton: false,
+    timer: 1000,
+    timerProgressBar: true,
+    width: '300px',
+    padding: '1rem',
+    background: '#f8fafc',
+    backdrop: false,
+    customClass: {
+      popup: 'shadow-none border border-gray-200',
+      title: 'text-sm font-medium',
+      htmlContainer: 'text-xs',
+      timerProgressBar: 'bg-[#800000]'
+    },
+    didOpen: (toast) => {
+      toast.addEventListener('mouseenter', Swal.stopTimer);
+      toast.addEventListener('mouseleave', Swal.resumeTimer);
+    }
+  });
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -73,6 +98,19 @@
           userId: authData.user.id,
           email: authData.user.email
         });
+
+        // Save credentials if Remember Me is checked
+        if (rememberMe) {
+          const credentialsToSave = {
+            email,
+            password,
+            rememberMe: true
+          };
+          localStorage.setItem('rememberedCredentials', JSON.stringify(credentialsToSave));
+        } else {
+          // Clear saved credentials if Remember Me is not checked
+          localStorage.removeItem('rememberedCredentials');
+        }
 
         // Wait a moment for any database operations to complete
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -114,8 +152,8 @@
                       email.toLowerCase() === 'guidance@gmail.com' ? 'guidance' : 'student',
                 streak: 1,
                 last_activity_date: new Date().toISOString().split('T')[0],
-                created_at: new Date().toISOString(),
-                last_sign_in: new Date().toISOString()
+                created_at: new Date().toISOString()
+                // Note: last_sign_in will be set later only after verification check passes
               }
             ])
             .select()
@@ -165,10 +203,20 @@
             return;
           }
 
-          // Block unverified students from logging in
+          // Block unverified students from logging in BEFORE any database updates
           const isVerified = (userProfile as any)?.is_verified === true;
           const isPrivileged = isAdminByEmail || userRole === 'admin' || userRole === 'guidance';
+          
+          console.log('🔐 Login verification check:', {
+            email,
+            userRole,
+            isVerified,
+            isPrivileged,
+            willBlock: !isPrivileged && !isVerified
+          });
+          
           if (!isPrivileged && !isVerified) {
+            console.log('❌ Blocking unverified user login - no database updates will occur');
             await Toast.fire({
               icon: 'info',
               iconColor: '#3b82f6',
@@ -180,8 +228,11 @@
             setIsLoading(false);
             return;
           }
+          
+          console.log('✅ User verified - proceeding with login and database updates');
 
-          // Update last_sign_in
+          // Update last_sign_in for verified users (database trigger now only updates for verified users)
+          // But we'll update it manually here to ensure it's set correctly
           const { error: updateError } = await supabase
             .from('profiles')
             .update({ last_sign_in: new Date().toISOString() })
@@ -189,6 +240,8 @@
 
           if (updateError) {
             console.error('Last sign in update error:', updateError);
+          } else {
+            console.log('✅ Updated last_sign_in for verified user:', email);
           }
           
           // Update streak on login using the database function for better reliability
@@ -430,7 +483,7 @@
                   name="remember-me"
                   type="checkbox"
                   checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
+                  onChange={(e) => handleRememberMeChange(e.target.checked)}
                   className="h-4 w-4 text-[#800000] focus:ring-[#800000] border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-gray-600">

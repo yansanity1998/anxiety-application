@@ -37,7 +37,7 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
 
   // Desktop link styles
   const navLinkClasses = (view: string) =>
-    `group flex items-center gap-2 px-3 py-2 rounded-md text-sm md:text-base whitespace-nowrap font-medium transition-colors ${
+    `group flex items-center gap-2 px-3 py-2 rounded-md text-sm md:text-base whitespace-nowrap font-medium transition-colors cursor-pointer ${
       activeView === view
         ? 'bg-[#800000] text-white' // Active = Maroon
         : darkMode
@@ -47,7 +47,7 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
 
   // Mobile link styles
   const mobileNavLinkClasses = (view: string) =>
-    `group flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-sm whitespace-nowrap font-medium transition-colors ${
+    `group flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-sm whitespace-nowrap font-medium transition-colors cursor-pointer ${
       activeView === view
         ? 'bg-[#800000] text-white'
         : darkMode
@@ -105,7 +105,7 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
             <button
               onClick={() => setIsOpen(!isOpen)}
               type="button"
-              className={`inline-flex items-center justify-center p-2 rounded-md ${
+              className={`inline-flex items-center justify-center p-2 rounded-md cursor-pointer ${
                 darkMode
                   ? 'text-gray-400 hover:text-white hover:bg-[#b56576]'
                   : 'text-gray-500 hover:text-white hover:bg-[#b56576]'

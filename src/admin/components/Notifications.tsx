@@ -10,7 +10,6 @@ type Notification = {
   user: {
     email: string;
     full_name: string;
-    role?: string;
   };
   timestamp: string;
   read: boolean;
@@ -20,13 +19,13 @@ type NotificationsProps = {
   darkMode: boolean;
 };
 
-const STORAGE_KEY = 'admin_notifications';
+const STORAGE_KEY = 'guidance_notifications';
 
 export default function Notifications({ darkMode }: NotificationsProps) {
   const [notifications, setNotifications] = useState<Notification[]>(() => {
     // Load notifications from localStorage on initial render
     const savedNotifications = localStorage.getItem(STORAGE_KEY);
-    return savedNotifications ? JSON.parse(savedNotifications) : [];
+    return savedNotifications ? JSON.parse(savedNotifications) : [];  
   });
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -43,11 +42,11 @@ export default function Notifications({ darkMode }: NotificationsProps) {
 
     const setupSubscription = async () => {
       try {
-        console.log('🔔 [ADMIN] Setting up notification subscriptions...');
+        console.log('🔔 [GUIDANCE] Setting up notification subscriptions...');
         
         // Create a unique channel name to avoid conflicts
-        const channelName = `admin_notifications_${Math.random().toString(36).substr(2, 9)}`;
-        console.log('🔔 [ADMIN] Channel name:', channelName);
+        const channelName = `guidance_notifications_${Math.random().toString(36).substr(2, 9)}`;
+        console.log('🔔 [GUIDANCE] Channel name:', channelName);
         
         profilesSubscription = supabase
           .channel(channelName)
@@ -59,15 +58,15 @@ export default function Notifications({ darkMode }: NotificationsProps) {
               table: 'profiles'
             },
             async (payload: any) => {
-              console.log('📡 [ADMIN] Raw payload received:', payload);
+              console.log('📡 [GUIDANCE] Raw payload received:', payload);
               
               // Type guard to ensure payload has the expected structure
               if (!payload.new || typeof payload.new !== 'object') {
-                console.log('⚠️ [ADMIN] Invalid payload structure:', payload);
+                console.log('⚠️ [GUIDANCE] Invalid payload structure:', payload);
                 return;
               }
 
-              console.log('📡 [ADMIN] Profiles change detected:', {
+              console.log('📡 [GUIDANCE] Profiles change detected:', {
                 eventType: payload.eventType,
                 userId: payload.new.user_id,
                 email: payload.new.email,
@@ -78,8 +77,8 @@ export default function Notifications({ darkMode }: NotificationsProps) {
 
               if (payload.eventType === 'INSERT') {
                 // New registration - only notify for non-admin users
-                if (payload.new.role !== 'admin') {
-                  console.log('✅ [ADMIN] New registration detected:', payload.new.email);
+                if (payload.new.role !== 'admin' && payload.new.role !== 'guidance') {
+                  console.log('✅ [GUIDANCE] New registration detected:', payload.new.email);
                   const newNotification: Notification = {
                     id: `reg_${payload.new.id}_${Date.now()}`,
                     type: 'registration',
@@ -140,7 +139,33 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                 const newVerified = payload.new.is_verified;
                 const oldVerified = payload.old?.is_verified;
                 
-                if (newVerified === true && oldVerified !== true) {
+                // Only process verification changes if:
+                // 1. Both old and new values are explicitly defined (not null/undefined)
+                // 2. The values are actually different
+                // 3. This is not a login-related update (check if only login fields changed)
+                const isLoginUpdate = payload.old && (
+                  payload.new.last_sign_in !== payload.old.last_sign_in ||
+                  payload.new.streak !== payload.old.streak ||
+                  payload.new.last_activity_date !== payload.old.last_activity_date
+                );
+                
+                const isVerificationChange = (
+                  oldVerified !== undefined && 
+                  newVerified !== undefined && 
+                  oldVerified !== newVerified &&
+                  !isLoginUpdate // Don't trigger during login updates
+                );
+                
+                console.log('🔍 [GUIDANCE] Verification change check:', {
+                  newVerified,
+                  oldVerified,
+                  isVerificationChange,
+                  isLoginUpdate,
+                  userId: payload.new.user_id,
+                  email: payload.new.email
+                });
+                
+                if (isVerificationChange && newVerified === true && oldVerified !== true) {
                   // Student verified
                   const currentTime = new Date().toISOString();
                   const verifiedNotification: Notification = {
@@ -157,7 +182,7 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                   showNotificationToast('Student Verified', `${payload.new.full_name || 'Student'} has been verified`);
                   soundService.playVerifiedSound();
                   return;
-                } else if (newVerified === false && oldVerified === true) {
+                } else if (isVerificationChange && newVerified === false && oldVerified === true) {
                   // Student unverified
                   const currentTime = new Date().toISOString();
                   const unverifiedNotification: Notification = {
@@ -181,22 +206,23 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                 const newLastSignIn = payload.new.last_sign_in;
                 const oldLastSignIn = payload.old?.last_sign_in;
                 
-                console.log('🔐 [ADMIN] Checking login conditions:', {
+                console.log('🔐 [GUIDANCE] Checking login conditions:', {
                   userId,
                   email: payload.new.email,
                   role: payload.new.role,
                   newLastSignIn,
                   oldLastSignIn,
                   hasLastSignInChanged: newLastSignIn !== oldLastSignIn,
-                  isNotAdmin: payload.new.role !== 'admin'
+                  isNotAdmin: payload.new.role !== 'admin',
+                  isNotGuidance: payload.new.role !== 'guidance'
                 });
                 
-                // Only process if last_sign_in actually changed and user is not admin
+                // Only process if last_sign_in actually changed and user is student
                 if (newLastSignIn && 
                     newLastSignIn !== oldLastSignIn && 
-                    payload.new.role !== 'admin') {
+                    payload.new.role === 'student') {
                   
-                  console.log('🔐 [ADMIN] Login detected for role:', payload.new.role, {
+                  console.log('🔐 [GUIDANCE] Student login detected:', {
                     userId,
                     email: payload.new.email,
                     newLastSignIn,
@@ -213,15 +239,14 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                   
                   const shouldNotify = timeSinceLastNotification > 30000; // 30 seconds
                   
-                  console.log('🔐 [ADMIN] Login notification check:', {
+                  console.log('🔐 [GUIDANCE] Login notification check:', {
                     shouldNotify,
                     timeSinceLastNotification,
-                    lastLoginTime,
-                    role: payload.new.role
+                    lastLoginTime
                   });
                   
                   if (shouldNotify) {
-                    console.log('✅ [ADMIN] Sending login notification for:', payload.new.role);
+                    console.log('✅ [GUIDANCE] Sending login notification!');
                     lastLoginTimes.current.set(userId, currentTime);
                     
                     const newNotification: Notification = {
@@ -229,69 +254,73 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                       type: 'login',
                       user: {
                         email: payload.new.email,
-                        full_name: payload.new.full_name || 'Student',
-                        role: payload.new.role
+                        full_name: payload.new.full_name || 'Student'
                       },
                       timestamp: currentTime,
                       read: false
                     };
                     setNotifications(prev => [newNotification, ...prev]);
-                    showLoginAlert(newNotification.user.full_name, newNotification.user.email, newNotification.user.role);
-                    const loginType = payload.new.role === 'guidance' ? 'Guidance Login' : 'Student Login';
-                    showNotificationToast(loginType, `${newNotification.user.full_name} has logged in!`);
+                    showLoginAlert(newNotification.user.full_name, newNotification.user.email);
+                    showNotificationToast('Student Login', `${newNotification.user.full_name} has logged in!`);
                     // Play login sound
                     soundService.playLoginSound();
                   } else {
-                    console.log('⏭️ [ADMIN] Skipping notification - too recent or duplicate');
+                    console.log('⏭️ [GUIDANCE] Skipping notification - too recent or duplicate');
                   }
                 }
               }
             }
           )
           .subscribe((status: any) => {
-            console.log('🔔 [ADMIN] Subscription status:', status);
+            console.log('🔔 [GUIDANCE] Subscription status:', status);
             if (status === 'SUBSCRIBED') {
-              console.log('✅ [ADMIN] Successfully subscribed to profile changes!');
+              console.log('✅ [GUIDANCE] Successfully subscribed to profile changes!');
             } else if (status === 'CHANNEL_ERROR') {
-              console.error('❌ [ADMIN] Channel subscription error!');
+              console.error('❌ [GUIDANCE] Channel subscription error!');
             }
           });
 
         // Set up appointments subscription for schedule notifications
         appointmentsSubscription = supabase
-          .channel(`admin_appointments_main_${Math.random().toString(36).substr(2, 9)}`)
+          .channel(`guidance_appointments_${Math.random().toString(36).substr(2, 9)}`)
           .on(
             'postgres_changes',
             {
-              event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+              event: 'INSERT',
               schema: 'public',
               table: 'appointments'
             },
             async (payload: any) => {
-              console.log('📅 [ADMIN] Appointment table change detected:', {
-                eventType: payload.eventType,
-                table: payload.table,
-                schema: payload.schema,
-                new: payload.new,
-                old: payload.old
-              });
+              console.log('📅 [GUIDANCE] New appointment scheduled:', payload);
               
-              // Only process INSERT events for new appointments
-              if (payload.eventType === 'INSERT' && payload.new) {
-                await processAppointmentNotification(payload);
-              } else {
-                console.log('📅 [ADMIN] Skipping non-INSERT event or missing data:', payload.eventType);
+              if (payload.new) {
+                const currentTime = new Date().toISOString();
+                
+                // Try to get student info from different possible field names
+                const studentEmail = payload.new.student_email || payload.new.email || 'Unknown';
+                const studentName = payload.new.student_name || payload.new.full_name || payload.new.name || 'Student';
+                const appointmentDate = payload.new.appointment_date || payload.new.date || 'Unknown date';
+                
+                const scheduleNotification: Notification = {
+                  id: `schedule_${payload.new.id}_${Date.now()}`,
+                  type: 'schedule',
+                  user: {
+                    email: studentEmail,
+                    full_name: studentName
+                  },
+                  timestamp: currentTime,
+                  read: false
+                };
+                
+                setNotifications(prev => [scheduleNotification, ...prev]);
+                showNotificationToast('New Appointment', `Appointment scheduled for ${studentName} on ${appointmentDate}`);
+                soundService.playScheduleSound();
+                
+                console.log('✅ [GUIDANCE] Schedule notification created and sound played');
               }
             }
           )
-          .subscribe((status: any) => {
-            console.log('📅 [ADMIN] Appointments subscription status:', status);
-            if (status === 'SUBSCRIBED') {
-              console.log('✅ [ADMIN] Successfully subscribed to appointments table!');
-            } else if (status === 'CHANNEL_ERROR') {
-              console.error('❌ [ADMIN] Appointments subscription error!');
-            }
-          });
+          .subscribe();
 
         console.log('✅ Notification subscriptions set up successfully');
       } catch (error) {
@@ -345,44 +374,37 @@ export default function Notifications({ darkMode }: NotificationsProps) {
     });
   };
 
-  const showLoginAlert = (studentName: string, studentEmail: string, userRole?: string) => {
-    console.log('🔔 Showing student login alert:', { studentName, studentEmail, userRole });
-    const isGuidance = userRole === 'guidance';
-    const alertTitle = isGuidance ? '👨‍🏫 Guidance Counselor Login' : '🎓 Student Login Alert';
-    const roleText = isGuidance ? 'Guidance Counselor' : 'Student';
-    const iconColor = isGuidance ? 'text-purple-600' : 'text-blue-600';
-    const bgColor = isGuidance ? (darkMode ? 'bg-purple-900/20' : 'bg-purple-100') : (darkMode ? 'bg-blue-900/20' : 'bg-blue-100');
-    const statusColor = isGuidance ? (darkMode ? 'bg-purple-900 text-purple-300' : 'bg-purple-100 text-purple-800') : (darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-800');
-    
+  const showLoginAlert = (studentName: string, studentEmail: string) => {
+    console.log('🔔 Showing student login alert:', { studentName, studentEmail });
     Swal.fire({
-      title: alertTitle,
+      title: '🎓 Student Login Alert',
       html: `
         <div class="text-center space-y-4">
-          <div class="inline-flex items-center justify-center w-16 h-16 ${bgColor} rounded-full mb-3">
-            <svg class="w-8 h-8 ${darkMode ? iconColor.replace('600', '400') : iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="inline-flex items-center justify-center w-16 h-16 ${darkMode ? 'bg-blue-900/20' : 'bg-blue-100'} rounded-full mb-3">
+            <svg class="w-8 h-8 ${darkMode ? 'text-blue-400' : 'text-blue-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>
           <div class="${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-xl p-4 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
             <h3 class="text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-2">${studentName}</h3>
             <p class="text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-3">${studentEmail}</p>
-            <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor}">
-              <div class="w-2 h-2 ${isGuidance ? 'bg-purple-500' : 'bg-green-500'} rounded-full mr-2 animate-pulse"></div>
-              ${roleText} Online
+            <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-800'}">
+              <div class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+              Currently Online
             </div>
           </div>
-          <p class="text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}">This ${roleText.toLowerCase()} has just logged into the system.</p>
+          <p class="text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}">This student has just logged into the system.</p>
         </div>
       `,
       confirmButtonText: 'Got it!',
-      confirmButtonColor: isGuidance ? '#9333ea' : '#3b82f6',
+      confirmButtonColor: '#3b82f6',
       background: darkMode ? '#1f2937' : '#ffffff',
       color: darkMode ? '#f3f4f6' : '#111827',
       customClass: {
-        popup: `rounded-2xl shadow-2xl border-2 ${isGuidance ? (darkMode ? 'border-purple-600/30' : 'border-purple-200') : (darkMode ? 'border-blue-600/30' : 'border-blue-200')} max-w-md`,
-        title: `text-xl font-bold ${isGuidance ? (darkMode ? 'text-purple-400' : 'text-purple-600') : (darkMode ? 'text-blue-400' : 'text-blue-600')} mb-4`,
+        popup: `rounded-2xl shadow-2xl border-2 ${darkMode ? 'border-blue-600/30' : 'border-blue-200'} max-w-md`,
+        title: `text-xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'} mb-4`,
         htmlContainer: `${darkMode ? 'text-gray-200' : 'text-gray-700'}`,
-        confirmButton: `bg-gradient-to-r ${isGuidance ? 'from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700' : 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'} text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105`
+        confirmButton: 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105'
       },
       showClass: {
         popup: 'animate__animated animate__fadeInDown animate__faster'
@@ -411,102 +433,11 @@ export default function Notifications({ darkMode }: NotificationsProps) {
     setNotifications([]);
   };
 
-  // Process appointment notification (shared function)
-  const processAppointmentNotification = async (payload: any) => {
-    console.log('📅 [ADMIN] Processing new appointment insertion...');
-    console.log('📅 [ADMIN] Raw appointment data:', payload.new);
-    
-    const currentTime = new Date().toISOString();
-    
-    // Try to get student info from all possible field combinations
-    const studentEmail = payload.new.student_email || 
-                       payload.new.email || 
-                       payload.new.user_email || 
-                       payload.new.profile_email || 
-                       'Unknown';
-                       
-    const studentName = payload.new.student_name || 
-                      payload.new.full_name || 
-                      payload.new.name || 
-                      payload.new.student_full_name ||
-                      payload.new.profile_name ||
-                      'Student';
-                      
-    const appointmentDate = payload.new.appointment_date || 
-                          payload.new.date || 
-                          payload.new.scheduled_date ||
-                          payload.new.appointment_time ||
-                          payload.new.created_at ||
-                          'Unknown date';
-    
-    console.log('📅 [ADMIN] Extracted appointment info:', {
-      studentEmail,
-      studentName,
-      appointmentDate,
-      appointmentId: payload.new.id
-    });
-    
-    const scheduleNotification: Notification = {
-      id: `schedule_${payload.new.id}_${Date.now()}`,
-      type: 'schedule',
-      user: {
-        email: studentEmail,
-        full_name: studentName
-      },
-      timestamp: currentTime,
-      read: false
-    };
-    
-    console.log('📅 [ADMIN] Creating schedule notification:', scheduleNotification);
-    setNotifications(prev => [scheduleNotification, ...prev]);
-    showNotificationToast('New Appointment', `Appointment scheduled for ${studentName} on ${appointmentDate}`);
-    
-    // Play the schedule sound
-    try {
-      await soundService.playScheduleSound();
-      console.log('🔊 [ADMIN] Schedule sound played successfully');
-    } catch (soundError) {
-      console.error('❌ [ADMIN] Error playing schedule sound:', soundError);
-    }
-    
-    console.log('✅ [ADMIN] Schedule notification created and sound played');
-  };
-
-  // Manual function to trigger appointment notification (for testing/backup)
-  const triggerAppointmentNotification = (appointmentData: any) => {
-    console.log('🔧 [ADMIN] Manually triggering appointment notification:', appointmentData);
-    
-    const currentTime = new Date().toISOString();
-    const studentEmail = appointmentData.student_email || appointmentData.email || 'Unknown';
-    const studentName = appointmentData.student_name || appointmentData.full_name || 'Student';
-    const appointmentDate = appointmentData.appointment_date || appointmentData.date || 'Unknown date';
-    
-    const scheduleNotification: Notification = {
-      id: `schedule_manual_${Date.now()}`,
-      type: 'schedule',
-      user: {
-        email: studentEmail,
-        full_name: studentName
-      },
-      timestamp: currentTime,
-      read: false
-    };
-    
-    setNotifications(prev => [scheduleNotification, ...prev]);
-    showNotificationToast('New Appointment', `Appointment scheduled for ${studentName} on ${appointmentDate}`);
-    soundService.playScheduleSound();
-    
-    console.log('✅ [ADMIN] Manual appointment notification created');
-  };
-
-  // Expose the function globally for testing
-  (window as any).triggerAppointmentNotification = triggerAppointmentNotification;
-
   return (
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative p-2 rounded-full ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+        className={`relative p-2 rounded-full cursor-pointer ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
         aria-label="Notifications"
       >
         {notifications.length > 0 ? (
@@ -530,7 +461,7 @@ export default function Notifications({ darkMode }: NotificationsProps) {
             {notifications.length > 0 && (
               <button
                 onClick={handleClearAll}
-                className={`text-xs ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`text-xs cursor-pointer ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 Clear all
               </button>
@@ -586,7 +517,7 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                         {notification.type === 'registration' 
                           ? 'New Registration' 
                           : notification.type === 'login' 
-                            ? (notification.user.role === 'guidance' ? 'Guidance Login' : 'Student Login')
+                            ? 'Student Login'
                             : notification.type === 'archive'
                               ? 'Student Archived'
                               : notification.type === 'unarchive'

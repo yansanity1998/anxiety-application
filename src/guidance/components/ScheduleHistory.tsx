@@ -462,7 +462,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
 
   if (!currentSelectedId) {
     return (
-      <div className={`mt-6 rounded-2xl shadow-2xl backdrop-blur-sm border overflow-hidden transition-all duration-300 hover:shadow-3xl ${
+      <div id="schedule-history-section" className={`mt-6 rounded-2xl shadow-2xl backdrop-blur-sm border overflow-hidden transition-all duration-300 hover:shadow-3xl ${
         darkMode 
           ? 'bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-gray-700/50' 
           : 'bg-gradient-to-br from-white/90 to-gray-50/90 border-gray-200/50'
@@ -594,7 +594,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
   }
 
   return (
-    <div className={`mt-6 rounded-2xl shadow-2xl backdrop-blur-sm border overflow-hidden transition-all duration-300 hover:shadow-3xl ${
+    <div id="schedule-history-section" className={`mt-6 rounded-2xl shadow-2xl backdrop-blur-sm border overflow-hidden transition-all duration-300 hover:shadow-3xl ${
       darkMode 
         ? 'bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-gray-700/50' 
         : 'bg-gradient-to-br from-white/90 to-gray-50/90 border-gray-200/50'
@@ -780,18 +780,18 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className={`w-full pl-12 pr-10 py-3 text-sm bg-transparent transition-all duration-300 appearance-none ${
+                  className={`w-full pl-12 pr-10 py-3 text-sm transition-all duration-300 appearance-none ${
                     darkMode 
-                      ? 'text-white focus:ring-2 focus:ring-purple-500/30' 
-                      : 'text-gray-900 focus:ring-2 focus:ring-purple-500/30'
+                      ? 'bg-gray-800 text-white focus:ring-2 focus:ring-purple-500/30' 
+                      : 'bg-white text-gray-900 focus:ring-2 focus:ring-purple-500/30'
                   } focus:outline-none cursor-pointer`}
                 >
-                  <option value="all">All Status</option>
-                  <option value="Scheduled">Scheduled</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Canceled">Canceled</option>
-                  <option value="No Show">No Show</option>
+                  <option value="all" className={darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>All Status</option>
+                  <option value="Scheduled" className={darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>Scheduled</option>
+                  <option value="In Progress" className={darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>In Progress</option>
+                  <option value="Completed" className={darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>Completed</option>
+                  <option value="Canceled" className={darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>Canceled</option>
+                  <option value="No Show" className={darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>No Show</option>
                 </select>
                 <FaFilter className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-sm ${
                   darkMode ? 'text-purple-400' : 'text-purple-500'

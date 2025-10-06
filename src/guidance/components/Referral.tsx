@@ -1146,38 +1146,37 @@ const Referral = ({ darkMode }: ReferralProps) => {
 
       {/* Referrals Grid */}
       {initialLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
           {[...Array(8)].map((_, index) => (
             <div
               key={index}
-              className={`p-6 rounded-2xl border backdrop-blur-sm animate-pulse ${
+              className={`group relative p-4 rounded-xl border transition-all duration-200 animate-pulse overflow-hidden ${
                 darkMode 
-                  ? 'bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-600/30' 
-                  : 'bg-gradient-to-br from-gray-100/50 to-gray-200/50 border-gray-200/30'
+                  ? 'bg-gray-700/50 border-gray-600' 
+                  : 'bg-white border-gray-200'
               }`}
             >
               {/* Header skeleton */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className={`p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
+              <div className="flex items-start mb-3">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className={`p-2 rounded-lg ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
                   <div className="flex-1">
-                    <div className={`h-5 rounded mb-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} style={{width: '70%'}}></div>
-                    <div className={`h-4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} style={{width: '40%'}}></div>
+                    <div className={`h-4 rounded mb-2 ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`} style={{width: '70%'}}></div>
+                    <div className={`h-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`} style={{width: '40%'}}></div>
                   </div>
                 </div>
               </div>
               
               {/* Description skeleton */}
-              <div className="mb-4 space-y-2">
-                <div className={`h-4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}></div>
-                <div className={`h-4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} style={{width: '80%'}}></div>
-                <div className={`h-4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} style={{width: '60%'}}></div>
+              <div className="mb-3 space-y-2">
+                <div className={`h-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+                <div className={`h-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`} style={{width: '80%'}}></div>
               </div>
               
               {/* Footer skeleton */}
-              <div className="pt-4 border-t border-gray-200/30 space-y-3">
-                <div className={`h-4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} style={{width: '50%'}}></div>
-                <div className={`h-4 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} style={{width: '60%'}}></div>
+              <div className="pt-3 border-t border-gray-200/30 space-y-2">
+                <div className={`h-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`} style={{width: '50%'}}></div>
+                <div className={`h-3 rounded ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`} style={{width: '60%'}}></div>
               </div>
             </div>
           ))}
@@ -1189,95 +1188,89 @@ const Referral = ({ darkMode }: ReferralProps) => {
           <p>Try adjusting your search or filters, or add a new referral.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
           {filteredReferrals.map((referral) => (
             <div
               key={referral.id}
               onClick={() => handleReferralClick(referral)}
-              className={`group relative p-6 rounded-2xl border backdrop-blur-sm transition-all duration-300 hover:shadow-2xl hover:scale-105 overflow-hidden cursor-pointer ${
+              className={`group relative p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-1 overflow-hidden cursor-pointer ${
                 darkMode 
-                  ? 'bg-gradient-to-br from-gray-800/90 to-gray-900/90 border-gray-600/50 hover:from-gray-700/90 hover:to-gray-800/90 shadow-xl' 
-                  : 'bg-gradient-to-br from-white/90 to-gray-50/90 border-gray-200/50 hover:from-white hover:to-gray-50 shadow-xl hover:shadow-3xl'
+                  ? 'bg-gray-700/50 border-gray-600 hover:bg-gray-700' 
+                  : 'bg-white border-gray-200 hover:shadow-xl'
               }`}
             >
               {/* Header Section with Student Info */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className={`p-3 rounded-xl shadow-lg ${
-                    darkMode 
-                      ? 'bg-gradient-to-br from-red-500/20 to-red-600/20 border border-red-400/30' 
-                      : 'bg-gradient-to-br from-red-50 to-red-100 border border-red-200/50'
-                  }`}>
-                    <FaHandshake className={`text-lg ${
-                      darkMode ? 'text-red-400 group-hover:text-red-300' : 'text-red-600 group-hover:text-red-700'
-                    } transition-colors duration-300`} />
+              <div className="flex items-start mb-3">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className={`p-2 rounded-lg ${darkMode ? 'bg-red-500/10' : 'bg-red-50'}`}>
+                    <FaHandshake className={`text-sm ${
+                      darkMode ? 'text-red-400 group-hover:text-red-300' : 'text-red-500 group-hover:text-red-600'
+                    } transition-colors`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className={`font-bold text-lg leading-tight truncate transition-colors duration-300 ${
-                      darkMode ? 'text-white group-hover:text-red-200' : 'text-gray-900 group-hover:text-red-800'
+                    <h3 className={`font-semibold text-sm leading-tight truncate transition-colors ${
+                      darkMode ? 'text-white group-hover:text-white' : 'text-gray-900 group-hover:text-gray-900'
                     }`}>
                       {referral.student_name}
                     </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shadow-sm transition-all duration-300 ${
-                        referral.urgency_level === 'critical' 
-                          ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-red-200' 
-                          : referral.urgency_level === 'high'
-                          ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-orange-200'
-                          : referral.urgency_level === 'medium'
-                          ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-yellow-200'
-                          : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-green-200'
-                      } group-hover:scale-105`}>
-                        <span className="mr-1">{getUrgencyIcon(referral.urgency_level)}</span>
-                        {referral.urgency_level.charAt(0).toUpperCase() + referral.urgency_level.slice(1)}
-                      </span>
-                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Description Section */}
-              <div className="mb-4">
-                <p className={`text-sm leading-relaxed line-clamp-3 transition-colors duration-300 ${
-                  darkMode ? 'text-gray-300 group-hover:text-gray-200' : 'text-gray-600 group-hover:text-gray-700'
+              <div className="mb-3">
+                <p className={`text-xs leading-relaxed line-clamp-2 transition-colors ${
+                  darkMode ? 'text-gray-300 group-hover:text-white' : 'text-gray-600 group-hover:text-gray-700'
                 }`}>
                   {referral.brief_description_of_concern}
                 </p>
               </div>
 
-              {/* Status and Info Section */}
-              <div className="space-y-3 pt-4 border-t border-gray-200/30">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <FaInfoCircle className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
-                    <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold shadow-sm transition-all duration-300 ${
-                      referral.referral_status === 'completed' 
-                        ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-green-200' 
-                        : referral.referral_status === 'pending'
-                        ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-yellow-200'
-                        : referral.referral_status === 'sent'
-                        ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-blue-200'
-                        : 'bg-gradient-to-r from-gray-500 to-gray-600 text-white shadow-gray-200'
-                    } group-hover:scale-105`}>
-                      {referral.referral_status.replace('_', ' ').charAt(0).toUpperCase() + referral.referral_status.replace('_', ' ').slice(1)}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <FaClock className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
-                  <span className={`text-xs font-medium transition-colors duration-300 ${
-                    darkMode ? 'text-gray-300 group-hover:text-gray-200' : 'text-gray-600 group-hover:text-gray-700'
-                  }`}>
-                    Created: {new Date(referral.created_at).toLocaleDateString()}
+              {/* Status and Urgency Section */}
+              <div className="flex items-center justify-between mb-3">
+                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors ${
+                  referral.urgency_level === 'critical' 
+                    ? 'bg-red-100 text-red-800' 
+                    : referral.urgency_level === 'high'
+                    ? 'bg-orange-100 text-orange-800'
+                    : referral.urgency_level === 'medium'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-green-100 text-green-800'
+                } group-hover:bg-opacity-100`}>
+                  {getUrgencyIcon(referral.urgency_level)}
+                  <span className="ml-1 capitalize">{referral.urgency_level}</span>
+                </span>
+              </div>
+
+              {/* Info Section */}
+              <div className="space-y-2 pt-3 border-t border-gray-200/50">
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <FaInfoCircle className="text-xs" />
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors ${
+                    referral.referral_status === 'completed' 
+                      ? 'bg-green-100 text-green-800' 
+                      : referral.referral_status === 'pending'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : referral.referral_status === 'sent'
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-gray-100 text-gray-800'
+                  } group-hover:bg-opacity-100`}>
+                    {referral.referral_status.replace('_', ' ').charAt(0).toUpperCase() + referral.referral_status.replace('_', ' ').slice(1)}
                   </span>
                 </div>
                 
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <FaClock className="text-xs" />
+                  <span className={`transition-colors ${
+                    darkMode ? 'group-hover:text-white' : 'group-hover:text-gray-700'
+                  }`}>Created: {new Date(referral.created_at).toLocaleDateString()}</span>
+                </div>
+                
                 {referral.attachments && referral.attachments.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <FaPaperclip className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
-                    <span className={`text-xs font-medium transition-colors duration-300 ${
-                      darkMode ? 'text-gray-300 group-hover:text-gray-200' : 'text-gray-600 group-hover:text-gray-700'
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <FaPaperclip className="text-xs" />
+                    <span className={`transition-colors ${
+                      darkMode ? 'group-hover:text-white' : 'group-hover:text-gray-700'
                     }`}>
                       {referral.attachments.length} file{referral.attachments.length !== 1 ? 's' : ''} attached
                     </span>
@@ -1286,7 +1279,7 @@ const Referral = ({ darkMode }: ReferralProps) => {
               </div>
 
               {/* Hover Actions */}
-              <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+              <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1294,10 +1287,10 @@ const Referral = ({ darkMode }: ReferralProps) => {
                     setShowDetailModal(true);
                     startEditing();
                   }}
-                  className={`p-2 rounded-xl text-sm transition-all duration-300 hover:scale-110 shadow-lg ${
+                  className={`p-1.5 rounded-lg text-xs transition-colors ${
                     darkMode 
-                      ? 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 hover:text-purple-300 border border-purple-400/30' 
-                      : 'bg-purple-50 text-purple-600 hover:bg-purple-100 hover:text-purple-700 border border-purple-200/50'
+                      ? 'text-blue-400 hover:bg-blue-900/50 hover:text-blue-300' 
+                      : 'text-blue-600 hover:bg-blue-50 hover:text-blue-700'
                   }`}
                   title="Edit referral"
                 >
@@ -1308,10 +1301,10 @@ const Referral = ({ darkMode }: ReferralProps) => {
                     e.stopPropagation();
                     setDeleteConfirm(referral.id);
                   }}
-                  className={`p-2 rounded-xl text-sm transition-all duration-300 hover:scale-110 shadow-lg ${
+                  className={`p-1.5 rounded-lg text-xs transition-colors ${
                     darkMode 
-                      ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 hover:text-red-300 border border-red-400/30' 
-                      : 'bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border border-red-200/50'
+                      ? 'text-red-400 hover:bg-red-900/50 hover:text-red-300' 
+                      : 'text-red-600 hover:bg-red-50 hover:text-red-700'
                   }`}
                   title="Delete referral"
                 >
@@ -1320,14 +1313,14 @@ const Referral = ({ darkMode }: ReferralProps) => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200/30">
+              <div className="flex gap-1.5 mt-3">
                 {referral.referral_status !== 'completed' && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleStatusChange(referral, 'completed');
                     }}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-medium transition-colors"
                   >
                     <FaCheck className="text-xs" />
                     Complete
@@ -1341,8 +1334,8 @@ const Referral = ({ darkMode }: ReferralProps) => {
 
       {/* Create Referral Modal */}
       {showCreateForm && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800/95 via-gray-900/95 to-gray-800/95' : 'bg-gradient-to-br from-white/95 via-gray-50/95 to-white/95'} rounded-3xl shadow-3xl p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'} backdrop-blur-xl animate-slideUp`}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto`}>
             <div className="flex items-center justify-between mb-6">
               <h2 className={`text-2xl font-bold bg-gradient-to-r from-red-700 to-red-900 bg-clip-text text-transparent`}>
                 Create New Referral
@@ -1831,15 +1824,15 @@ const Referral = ({ darkMode }: ReferralProps) => {
       {/* Referral Detail Modal */}
       {showDetailModal && selectedReferral && (
         <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fadeIn"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
           onClick={closeDetailModal}
         >
           <div 
-            className={`${darkMode ? 'bg-gradient-to-br from-gray-800/95 via-gray-900/95 to-gray-800/95' : 'bg-gradient-to-br from-white/95 via-gray-50/95 to-white/95'} rounded-3xl shadow-3xl w-full max-w-6xl max-h-[90vh] overflow-y-auto border ${darkMode ? 'border-gray-700/50' : 'border-gray-200/50'} backdrop-blur-xl animate-slideUp`}
+            className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-y-auto`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-8 border-b border-gray-200/20">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200/20">
               <div className="flex items-center gap-4">
                 <div className={`p-3 rounded-xl ${darkMode ? 'bg-red-600/20' : 'bg-red-100'}`}>
                   <FaUserMd className={`text-2xl ${darkMode ? 'text-red-400' : 'text-red-600'}`} />
@@ -1893,7 +1886,7 @@ const Referral = ({ darkMode }: ReferralProps) => {
             </div>
 
             {/* Modal Content */}
-            <form onSubmit={(e) => { e.preventDefault(); saveEdit(); }} className="px-6 pt-0 pb-6 space-y-6">
+            <form onSubmit={(e) => { e.preventDefault(); saveEdit(); }} className="p-6 space-y-4">
               {/* Student Information - Read Only */}
               <div>
                 <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>

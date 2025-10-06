@@ -22,36 +22,59 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
   const [savedMood, setSavedMood] = useState<number | null>(null);
   const [savedNotes, setSavedNotes] = useState('');
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+
+  // Prevent background scroll when modals are open
+  useEffect(() => {
+    if (showDateModal || showHistory) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showDateModal, showHistory]);
   
   
-  // Generate monthly stats (last 7 days) - Today in middle
-  const getMonthlyStats = () => {
+  // Generate all dates with today as the 3rd card (index 2)
+  const getAllMoodStats = () => {
     const stats = [];
-    // Generate 3 days before today, today, and 3 days after today
-    for (let i = 3; i >= -3; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dayNum = date.getDate();
-      const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const today = new Date();
+    
+    // Generate dates: 2 days before today, today, then future dates
+    // Total range: 30 days before today to 14 days after today (44 days total)
+    for (let i = 29; i >= -14; i--) { // Start from 29 days ago, go to 14 days in future
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
       
-      // Find mood for this date
+      // Find mood for this date (only for past and present dates)
       const moodForDate = recentMoods.find(mood => {
         const moodDate = new Date(mood.created_at);
         return moodDate.toDateString() === date.toDateString();
       });
       
+      // Check if date is in the future
+      const isFuture = date > today;
+      
       stats.push({
-        day: dayNum,
-        dayName,
+        day: date.getDate(),
+        dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        monthName: date.toLocaleDateString('en-US', { month: 'short' }),
         mood: moodForDate?.mood_emoji || null,
         hasRecord: !!moodForDate,
-        isToday: date.toDateString() === new Date().toDateString()
+        isToday: date.toDateString() === today.toDateString(),
+        isFuture: isFuture,
+        fullDate: date,
+        moodData: moodForDate || null
       });
     }
+    
     return stats;
   };
   
-  const monthlyStats = getMonthlyStats();
+  const allMoodStats = getAllMoodStats();
 
   useEffect(() => {
     if (userData?.id) {
@@ -79,8 +102,8 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
         setHasUnsavedChanges(false);
       }
 
-      // Load recent moods (last 7 days)
-      const recent = await moodService.getRecentMoods(userData.id, 7);
+      // Load all recent moods (no limit)
+      const recent = await moodService.getRecentMoods(userData.id, 365); // Get up to 1 year of data
       setRecentMoods(recent);
     } catch (error) {
       console.error('Error loading mood data:', error);
@@ -105,7 +128,7 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
     if (!userData?.id) return;
     
     try {
-      const recent = await moodService.getRecentMoods(userData.id, 7);
+      const recent = await moodService.getRecentMoods(userData.id, 365); // Get up to 1 year of data
       setRecentMoods(recent);
     } catch (error) {
       console.error('Error updating recent moods:', error);
@@ -160,14 +183,13 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
   };
 
   const handleDateClick = (stat: any) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (3 - monthlyStats.indexOf(stat)));
+    // Don't allow clicking on future dates
+    if (stat.isFuture) {
+      return;
+    }
     
-    // Find the mood entry for this date
-    const moodForDate = recentMoods.find(mood => {
-      const moodDate = new Date(mood.created_at);
-      return moodDate.toDateString() === date.toDateString();
-    });
+    const moodForDate = stat.moodData;
+    const date = stat.fullDate;
 
     setSelectedDateData({
       date: date.toLocaleDateString('en-US', { 
@@ -241,10 +263,10 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
         </div>
       </div>
 
-      {/* Monthly Stats Section */}
+      {/* All Mood Entries Section */}
       <div className="px-3 sm:px-4 mb-6 sm:mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base sm:text-lg font-bold text-gray-800">Monthly Stats</h3>
+          <h3 className="text-base sm:text-lg font-bold text-gray-800">Mood History</h3>
           <button 
             onClick={() => setShowHistory(true)}
             className="text-purple-600 text-sm font-medium flex items-center gap-1 hover:text-purple-700 transition-colors"
@@ -254,38 +276,79 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
           </button>
         </div>
         
-        {/* Date Pills */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide pl-1 pr-3 sm:pr-4 py-2 sm:py-3">
-          {monthlyStats.map((stat, index) => {
-            const colors = [
-              'from-yellow-400 to-orange-500',
-              'from-orange-400 to-red-500', 
-              'from-green-400 to-emerald-500',
-              'from-blue-400 to-cyan-500',
-              'from-red-400 to-pink-500',
-              'from-purple-400 to-indigo-500',
-              'from-indigo-400 to-purple-500'
-            ];
-            
-            return (
-              <motion.button
-                key={`${stat.day}-${index}`}
-                onClick={() => handleDateClick(stat)}
-                className={`flex-shrink-0 w-16 h-32 sm:w-18 sm:h-36 rounded-2xl sm:rounded-3xl bg-gradient-to-b ${colors[index]} flex flex-col items-center justify-center text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer ${
-                  stat.isToday ? 'ring-4 ring-white ring-opacity-70 scale-110 shadow-2xl' : ''
-                }`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <span className="text-lg sm:text-xl font-bold">{stat.day}</span>
-                <span className="text-xs sm:text-sm font-medium">{stat.dayName}</span>
-                {stat.hasRecord && (
-                  <span className="text-xl sm:text-2xl mt-1 sm:mt-2">{stat.mood}</span>
-                )}
-              </motion.button>
-            );
-          })}
+        {/* All Date Pills - Horizontal Scroll */}
+        <div className="w-full overflow-x-auto scrollbar-hide pl-1 pr-3 sm:pr-4 py-2 sm:py-3" ref={(el) => {
+          // Auto-scroll to show today as 3rd card when component loads
+          if (el && allMoodStats.length > 0) {
+            const todayIndex = allMoodStats.findIndex(stat => stat.isToday);
+            if (todayIndex >= 2) {
+              // Scroll to position today as the 3rd visible card
+              const cardWidth = 72; // w-16 + gap
+              const scrollPosition = (todayIndex - 2) * cardWidth;
+              el.scrollLeft = scrollPosition;
+            }
+          }
+        }}>
+          <div className="flex gap-2 pb-2" style={{ minWidth: 'max-content' }}>
+            {allMoodStats.map((stat, index) => {
+              const colors = [
+                'from-yellow-400 to-orange-500',
+                'from-orange-400 to-red-500', 
+                'from-green-400 to-emerald-500',
+                'from-blue-400 to-cyan-500',
+                'from-red-400 to-pink-500',
+                'from-purple-400 to-indigo-500',
+                'from-indigo-400 to-purple-500',
+                'from-teal-400 to-cyan-500',
+                'from-rose-400 to-pink-500',
+                'from-violet-400 to-purple-500'
+              ];
+              
+              // Different styling for past, present, and future dates
+              const hasEntry = stat.hasRecord;
+              const isFuture = stat.isFuture;
+              
+              let cardClass;
+              if (isFuture) {
+                // Future dates - lighter styling
+                cardClass = 'bg-gradient-to-b from-blue-50 to-blue-100 text-blue-400 shadow-md border-2 border-dashed border-blue-200';
+              } else if (hasEntry) {
+                // Past/present dates with mood entries
+                cardClass = `bg-gradient-to-b ${colors[index % colors.length]} text-white shadow-lg`;
+              } else {
+                // Past/present dates without mood entries
+                cardClass = 'bg-gradient-to-b from-gray-100 to-gray-200 text-gray-500 shadow-md border-2 border-dashed border-gray-300';
+              }
+              
+              return (
+                <motion.button
+                  key={`${stat.day}-${stat.fullDate.getTime()}`}
+                  onClick={() => handleDateClick(stat)}
+                  className={`flex-shrink-0 w-16 h-36 sm:w-18 sm:h-40 rounded-2xl sm:rounded-3xl ${cardClass} flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer ${
+                    stat.isToday ? 'ring-4 ring-white ring-opacity-70 scale-110 shadow-2xl' : ''
+                  }`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.01 }}
+                >
+                  <span className={`text-xs sm:text-sm font-medium mb-1 ${
+                    stat.isFuture ? 'text-blue-300' : hasEntry ? 'text-white/80' : 'text-gray-400'
+                  }`}>
+                    {stat.monthName}
+                  </span>
+                  <span className="text-lg sm:text-xl font-bold">{stat.day}</span>
+                  <span className="text-xs sm:text-sm font-medium">{stat.dayName}</span>
+                  {stat.isFuture ? (
+                    <span className="text-lg sm:text-xl mt-1 sm:mt-2 opacity-50">🔮</span>
+                  ) : stat.hasRecord ? (
+                    <span className="text-xl sm:text-2xl mt-1 sm:mt-2">{stat.mood}</span>
+                  ) : (
+                    <span className="text-lg sm:text-xl mt-1 sm:mt-2 opacity-50">📝</span>
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
         </div>
       </div>
       
@@ -386,25 +449,27 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
         </motion.div>
       )}
 
-      {/* Date Details Modal */}
+      {/* Date Details Modal - Sticky with consistent sizing */}
       <AnimatePresence>
         {showDateModal && selectedDateData && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
             onClick={() => setShowDateModal(false)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl"
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-md h-[500px] flex flex-col relative"
+              style={{ position: 'relative', zIndex: 10000 }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Modal Header */}
-              <div className="flex items-center justify-between mb-6">
+              {/* Modal Header - Fixed */}
+              <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100 flex-shrink-0">
                 <h3 className="text-xl font-bold text-gray-800">
                   {selectedDateData.date}
                 </h3>
@@ -416,70 +481,75 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
                 </button>
               </div>
 
-              {/* Mood Display */}
-              {selectedDateData.mood ? (
-                <div className="text-center mb-6">
-                  <div className="text-6xl mb-3">{selectedDateData.mood.mood_emoji}</div>
-                  <div className="text-lg font-semibold text-gray-800 mb-2">
-                    {selectedDateData.mood.mood_label}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {new Date(selectedDateData.mood.updated_at || selectedDateData.mood.created_at).toLocaleTimeString('en-US', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit'
-                    })}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center mb-6 py-8">
-                  <div className="text-4xl mb-3 opacity-50">📝</div>
-                  <div className="text-gray-500">No mood recorded for this date</div>
-                </div>
-              )}
-
-              {/* Notes Section */}
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-4">
-                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                  <span>📝</span> Notes
-                </h4>
-                {selectedDateData.notes ? (
-                  <div className="text-gray-700 leading-relaxed">
-                    "{selectedDateData.notes}"
+              {/* Modal Content - Scrollable */}
+              <div className="flex-1 p-6 pt-4 overflow-y-auto">
+                {/* Mood Display */}
+                {selectedDateData.mood ? (
+                  <div className="text-center mb-6">
+                    <div className="text-6xl mb-3">{selectedDateData.mood.mood_emoji}</div>
+                    <div className="text-lg font-semibold text-gray-800 mb-2">
+                      {selectedDateData.mood.mood_label}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {new Date(selectedDateData.mood.updated_at || selectedDateData.mood.created_at).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                      })}
+                    </div>
                   </div>
                 ) : (
-                  <div className="text-gray-500 italic">
-                    No notes recorded for this day
+                  <div className="text-center mb-6 py-8">
+                    <div className="text-4xl mb-3 opacity-50">📝</div>
+                    <div className="text-gray-500">No mood recorded for this date</div>
                   </div>
                 )}
+
+                {/* Notes Section */}
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-4">
+                  <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <span>📝</span> Notes
+                  </h4>
+                  {selectedDateData.notes ? (
+                    <div className="text-gray-700 leading-relaxed">
+                      "{selectedDateData.notes}"
+                    </div>
+                  ) : (
+                    <div className="text-gray-500 italic">
+                      No notes recorded for this day
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Daily Mood History Modal */}
+      {/* Daily Mood History Modal - Sticky with smaller height */}
       <AnimatePresence>
         {showHistory && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
             onClick={() => setShowHistory(false)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-3xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-lg h-[65vh] flex flex-col relative"
+              style={{ position: 'relative', zIndex: 10000 }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Modal Header */}
-              <div className="flex items-center justify-between mb-6">
+              {/* Modal Header - Fixed */}
+              <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100 flex-shrink-0">
                 <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                   <FaHistory className="text-purple-500" />
-                  Recent Moods
+                  Mood History ({recentMoods.length} entries)
                 </h3>
                 <button
                   onClick={() => setShowHistory(false)}
@@ -489,8 +559,9 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
                 </button>
               </div>
 
-              {/* Daily Mood History */}
-              <div className="space-y-3">
+              {/* Daily Mood History - Scrollable */}
+              <div className="flex-1 overflow-y-auto p-6 pt-4">
+                <div className="space-y-3">
                 {recentMoods.length > 0 ? (
                   recentMoods.map((mood, index) => {
                     const date = new Date(mood.created_at);
@@ -542,6 +613,7 @@ const MoodTracker = ({ userData }: MoodTrackerProps) => {
                     <p className="text-sm">Start tracking your mood today!</p>
                   </div>
                 )}
+                </div>
               </div>
             </motion.div>
           </motion.div>

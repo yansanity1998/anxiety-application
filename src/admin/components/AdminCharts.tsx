@@ -10,7 +10,7 @@ import {
   BarElement,
 } from 'chart.js';
 import { Pie, Bar, Line } from 'react-chartjs-2';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { FaChevronLeft, FaChevronRight, FaInfoCircle, FaCalendarAlt, FaUsers, FaHeart, FaChartLine, FaCircle, FaCalendarCheck, FaExclamationTriangle } from 'react-icons/fa';
 import 'chart.js/auto';
 
@@ -24,6 +24,107 @@ ChartJS.register(
   LineElement,
   BarElement
 );
+
+// Enhanced scroll animation hook with better performance and easing
+const useScrollAnimation = (delay: number = 0) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const elementRef = useRef<HTMLDivElement>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated) {
+          // Clear any existing timeout
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+          }
+          
+          timeoutRef.current = setTimeout(() => {
+            setIsVisible(true);
+            setHasAnimated(true);
+          }, delay);
+        }
+      },
+      {
+        threshold: 0.05,
+        rootMargin: '100px 0px -50px 0px'
+      }
+    );
+
+    const currentElement = elementRef.current;
+    if (currentElement) {
+      observer.observe(currentElement);
+    }
+
+    return () => {
+      if (currentElement) {
+        observer.unobserve(currentElement);
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [delay, hasAnimated]);
+
+  return { elementRef, isVisible };
+};
+
+// Enhanced animated wrapper component with more animation types and smoother transitions
+const AnimatedChartContainer = ({ 
+  children, 
+  delay = 0, 
+  className = '',
+  animationType = 'fadeInUp'
+}: { 
+  children: React.ReactNode; 
+  delay?: number; 
+  className?: string;
+  animationType?: 'fadeInUp' | 'fadeInLeft' | 'fadeInRight' | 'fadeInScale' | 'fadeInDown' | 'slideInUp' | 'bounceIn' | 'zoomIn';
+}) => {
+  const { elementRef, isVisible } = useScrollAnimation(delay);
+
+  const getAnimationClasses = () => {
+    const baseClasses = 'transition-all duration-1000 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]';
+    
+    if (!isVisible) {
+      switch (animationType) {
+        case 'fadeInLeft':
+          return `${baseClasses} opacity-0 -translate-x-12 blur-sm`;
+        case 'fadeInRight':
+          return `${baseClasses} opacity-0 translate-x-12 blur-sm`;
+        case 'fadeInDown':
+          return `${baseClasses} opacity-0 -translate-y-12 blur-sm`;
+        case 'fadeInScale':
+          return `${baseClasses} opacity-0 scale-90 blur-sm`;
+        case 'slideInUp':
+          return `${baseClasses} opacity-0 translate-y-16 scale-95`;
+        case 'bounceIn':
+          return `${baseClasses} opacity-0 scale-75 rotate-3`;
+        case 'zoomIn':
+          return `${baseClasses} opacity-0 scale-50 blur-sm`;
+        case 'fadeInUp':
+        default:
+          return `${baseClasses} opacity-0 translate-y-12 blur-sm`;
+      }
+    }
+    
+    return `${baseClasses} opacity-100 translate-y-0 translate-x-0 scale-100 blur-none rotate-0`;
+  };
+
+  return (
+    <div 
+      ref={elementRef}
+      className={`${getAnimationClasses()} ${className}`}
+      style={{
+        willChange: isVisible ? 'auto' : 'transform, opacity, filter'
+      }}
+    >
+      {children}
+    </div>
+  );
+};
 
 type UserProfile = {
   id: string;
@@ -156,21 +257,21 @@ const AppointmentCalendar = ({ appointments, darkMode }: { appointments?: Appoin
         <div className="flex items-center space-x-2">
           <button
             onClick={goToPreviousMonth}
-            className={`p-2 rounded-xl transition-all duration-200 transform hover:scale-105 ${darkMode ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300 hover:text-white' : 'bg-gray-100/80 hover:bg-gray-200 text-gray-600 hover:text-gray-800'} backdrop-blur-sm`}
+            className={`p-2 rounded-xl transition-all duration-300 transform hover:scale-110 hover:-translate-x-0.5 active:scale-95 ${darkMode ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300 hover:text-white hover:shadow-lg' : 'bg-gray-100/80 hover:bg-gray-200 text-gray-600 hover:text-gray-800 hover:shadow-md'} backdrop-blur-sm hover:backdrop-blur-md`}
           >
-            <FaChevronLeft className="w-3 h-3" />
+            <FaChevronLeft className="w-3 h-3 transition-transform duration-200 group-hover:-translate-x-0.5" />
           </button>
           <button
             onClick={goToToday}
-            className={`px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 bg-gradient-to-r ${darkMode ? 'from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500' : 'from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600'} text-white shadow-lg hover:shadow-xl`}
+            className={`px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 active:scale-95 bg-gradient-to-r ${darkMode ? 'from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500' : 'from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600'} text-white shadow-lg hover:shadow-2xl hover:shadow-indigo-500/25`}
           >
             Today
           </button>
           <button
             onClick={goToNextMonth}
-            className={`p-2 rounded-xl transition-all duration-200 transform hover:scale-105 ${darkMode ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300 hover:text-white' : 'bg-gray-100/80 hover:bg-gray-200 text-gray-600 hover:text-gray-800'} backdrop-blur-sm`}
+            className={`p-2 rounded-xl transition-all duration-300 transform hover:scale-110 hover:translate-x-0.5 active:scale-95 ${darkMode ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300 hover:text-white hover:shadow-lg' : 'bg-gray-100/80 hover:bg-gray-200 text-gray-600 hover:text-gray-800 hover:shadow-md'} backdrop-blur-sm hover:backdrop-blur-md`}
           >
-            <FaChevronRight className="w-3 h-3" />
+            <FaChevronRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
           </button>
         </div>
       </div>
@@ -195,7 +296,7 @@ const AppointmentCalendar = ({ appointments, darkMode }: { appointments?: Appoin
           return (
             <div
               key={index}
-              className={`relative p-2 min-h-[48px] rounded-xl transition-all duration-200 cursor-pointer transform hover:scale-105 ${
+              className={`relative p-2 min-h-[48px] rounded-xl transition-all duration-300 cursor-pointer transform hover:scale-110 hover:-translate-y-1 active:scale-95 ${
                 darkMode 
                   ? 'bg-gray-700/30 hover:bg-gray-600/50 border border-gray-600/30' 
                   : 'bg-white/60 hover:bg-white/80 border border-gray-200/50 shadow-sm hover:shadow-md'
@@ -204,8 +305,8 @@ const AppointmentCalendar = ({ appointments, darkMode }: { appointments?: Appoin
                   ? darkMode ? 'text-gray-500 opacity-50' : 'text-gray-400 opacity-60'
                   : ''
               } ${
-                hasAppointments ? 'ring-2 ring-indigo-500/20' : ''
-              } backdrop-blur-sm`}
+                hasAppointments ? 'ring-2 ring-indigo-500/20 hover:ring-indigo-500/40 hover:shadow-lg hover:shadow-indigo-500/10' : 'hover:shadow-md'
+              } backdrop-blur-sm hover:backdrop-blur-md`}
               onClick={() => {
                 if (hasAppointments) {
                   setSelectedDate(date);
@@ -225,13 +326,13 @@ const AppointmentCalendar = ({ appointments, darkMode }: { appointments?: Appoin
               {/* Appointment Count */}
               {hasAppointments && (
                 <div className="absolute -bottom-1 -right-1">
-                  <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shadow-lg border-2 ${
+                  <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shadow-lg border-2 transition-all duration-300 hover:scale-125 ${
                     appointmentCount >= 5 
                       ? 'bg-gradient-to-r from-red-500 to-red-600 text-white border-red-300' 
                       : appointmentCount >= 3 
                         ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-yellow-300' 
                         : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white border-green-300'
-                  } animate-pulse`}>
+                  } animate-pulse hover:animate-bounce`}>
                     {appointmentCount}
                   </div>
                 </div>
@@ -243,8 +344,8 @@ const AppointmentCalendar = ({ appointments, darkMode }: { appointments?: Appoin
 
       {/* Legend */}
       {showModal && selectedDate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/20 p-4">
-          <div className={`rounded-2xl shadow-2xl border w-full max-w-md max-h-[80vh] flex flex-col ${darkMode ? 'bg-gray-900 text-white border-gray-700' : 'bg-white text-gray-900 border-gray-200'}`}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/20 p-4 animate-in fade-in duration-300">
+          <div className={`rounded-2xl shadow-2xl border w-full max-w-md max-h-[80vh] flex flex-col transition-all duration-300 transform animate-in zoom-in-95 slide-in-from-bottom-4 ${darkMode ? 'bg-gray-900 text-white border-gray-700' : 'bg-white text-gray-900 border-gray-200'}`}>
             {/* Modal Header */}
             <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <h3 className="text-lg font-bold text-center">
@@ -336,27 +437,27 @@ const AppointmentCalendar = ({ appointments, darkMode }: { appointments?: Appoin
             {/* Modal Footer */}
             <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
             <button
-  className="w-full py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 bg-[#800000] hover:bg-[#660000] text-white shadow-lg hover:shadow-xl"
+                className="w-full py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 active:scale-95 bg-gradient-to-r from-[#800000] to-[#660000] text-white shadow-lg hover:shadow-2xl hover:shadow-red-900/25"
   onClick={() => setShowModal(false)}
 >
-  Close
-</button>
+      Close
+            </button>
 
             </div>
           </div>
         </div>
       )}
-      <div className="flex items-center justify-center   mt-4 space-x-4 text-xs">
-        <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
-          <FaCircle className={`w-3 h-3 ${darkMode ? 'text-green-400' : 'text-green-500'} shadow-sm`} />
+      <div className="flex items-center justify-center mt-4 space-x-4 text-xs">
+        <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 transition-all duration-300 hover:scale-105 hover:shadow-md">
+          <FaCircle className={`w-3 h-3 ${darkMode ? 'text-green-400' : 'text-green-500'} shadow-sm transition-transform duration-200 hover:scale-110`} />
           <span className={`font-medium ${darkMode ? 'text-green-300' : 'text-green-700'}`}>1-2 appointments</span>
         </div>
-        <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30">
-          <FaCalendarCheck className={`w-3 h-3 ${darkMode ? 'text-yellow-400' : 'text-yellow-500'} shadow-sm`} />
+        <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 transition-all duration-300 hover:scale-105 hover:shadow-md">
+          <FaCalendarCheck className={`w-3 h-3 ${darkMode ? 'text-yellow-400' : 'text-yellow-500'} shadow-sm transition-transform duration-200 hover:scale-110`} />
           <span className={`font-medium ${darkMode ? 'text-yellow-300' : 'text-yellow-700'}`}>3-4 appointments</span>
         </div>
-        <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/30">
-          <FaExclamationTriangle className={`w-3 h-3 ${darkMode ? 'text-red-400' : 'text-red-500'} shadow-sm`} />
+        <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/30 transition-all duration-300 hover:scale-105 hover:shadow-md">
+          <FaExclamationTriangle className={`w-3 h-3 ${darkMode ? 'text-red-400' : 'text-red-500'} shadow-sm transition-transform duration-200 hover:scale-110`} />
           <span className={`font-medium ${darkMode ? 'text-red-300' : 'text-red-700'}`}>5+ appointments</span>
         </div>
       </div>
@@ -471,8 +572,9 @@ export default function GuidanceCharts(props: GuidanceChartsProps) {
       return acc;
     }, {} as { [key: string]: number });
 
-    // Sort the keys to ensure consistent color assignment
-    const sortedKeys = Object.keys(anxietyCounts).sort();
+    // Define custom order for anxiety levels
+    const levelOrder = ['minimal', 'mild', 'moderate', 'severe'];
+    const sortedKeys = levelOrder.filter(level => anxietyCounts[level] !== undefined);
     const sortedData = sortedKeys.map(key => anxietyCounts[key]);
 
     return {
@@ -618,32 +720,35 @@ useEffect(() => {
 return (
     <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 w-full px-0 md:px-0`}>
       {/* Appointment Calendar */}
-      <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-4 rounded-xl shadow-lg border-0 min-w-0 w-full backdrop-blur-sm`}>
-        <div className="flex items-center space-x-3 mb-4">
-          <FaCalendarAlt className={`w-4 h-4 ${darkMode ? 'text-indigo-400' : 'text-indigo-500'}`} />
-          <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-indigo-400 to-purple-400' : 'from-indigo-600 to-purple-600'} bg-clip-text text-transparent`}>Appointment Calendar</h2>
+      <AnimatedChartContainer delay={100} animationType="slideInUp">
+        <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-4 rounded-xl shadow-lg border-0 min-w-0 w-full backdrop-blur-sm`}>
+          <div className="flex items-center space-x-3 mb-4">
+            <FaCalendarAlt className={`w-4 h-4 ${darkMode ? 'text-indigo-400' : 'text-indigo-500'}`} />
+            <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-indigo-400 to-purple-400' : 'from-indigo-600 to-purple-600'} bg-clip-text text-transparent`}>Appointment Calendar</h2>
+          </div>
+          <AppointmentCalendar appointments={appointments} darkMode={darkMode} />
         </div>
-        <AppointmentCalendar appointments={appointments} darkMode={darkMode} />
-      </div>
+      </AnimatedChartContainer>
 
       {/* Gender Distribution Chart */}
-      <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-4 rounded-xl shadow-lg border-0 min-w-0 w-full relative backdrop-blur-sm`}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <FaUsers className={`w-4 h-4 ${darkMode ? 'text-pink-400' : 'text-pink-500'}`} />
-            <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-pink-400 to-blue-400' : 'from-pink-600 to-blue-600'} bg-clip-text text-transparent`}>Gender Distribution</h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="group relative">
-              <FaInfoCircle className={`w-3 h-3 cursor-help ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'}`} />
-              <div className={`absolute right-0 top-6 w-48 p-2 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-200'} border`}>
-                Distribution of students by gender in the system
+      <AnimatedChartContainer delay={200} animationType="fadeInLeft">
+        <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-4 rounded-xl shadow-lg border-0 min-w-0 w-full relative backdrop-blur-sm`}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <FaUsers className={`w-4 h-4 ${darkMode ? 'text-pink-400' : 'text-pink-500'}`} />
+              <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-pink-400 to-blue-400' : 'from-pink-600 to-blue-600'} bg-clip-text text-transparent`}>Gender Distribution</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="group relative">
+                <FaInfoCircle className={`w-3 h-3 cursor-help ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'}`} />
+                <div className={`absolute right-0 top-6 w-48 p-2 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-95 group-hover:scale-100 z-10 ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-200'} border`}>
+                  Distribution of students by gender in the system
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div className={`h-64 w-full min-w-0`}>
-          <Pie data={genderDistributionData} options={{
+          <div className={`h-64 w-full min-w-0`}>
+            <Pie data={genderDistributionData} options={{
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -682,60 +787,62 @@ return (
               intersect: false,
               mode: 'index'
             }
-          }} />
-        </div>
-        
-        {/* Statistics summary below chart */}
-        <div className={`mt-4 p-4 rounded-xl ${darkMode ? 'bg-gradient-to-r from-gray-700/50 to-gray-800/50' : 'bg-gradient-to-r from-blue-50/80 to-indigo-50/80'} border ${darkMode ? 'border-gray-600/50' : 'border-blue-200/50'} backdrop-blur-sm`}>
-          <h3 className={`text-sm font-semibold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Gender Distribution Summary</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {genderDistributionData.labels.map((label, index) => (
-              <div key={label} className={`flex flex-col p-3 rounded-lg ${darkMode ? 'bg-gray-800/60' : 'bg-white/70'} border ${darkMode ? 'border-gray-600/30' : 'border-gray-200/50'}`}>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: genderDistributionData.datasets[0].backgroundColor[index] }}
-                    ></div>
-                    <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>{label}</span>
-                  </div>
-                  <span className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                    {genderDistributionData.datasets[0].data[index]}
-                  </span>
-                </div>
-                <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Student gender data</span>
-              </div>
-            ))}
+            }} />
           </div>
-          <div className={`mt-3 pt-3 border-t ${darkMode ? 'border-gray-600/50' : 'border-gray-300/50'}`}>
-            <div className={`flex items-center justify-between p-1.5 rounded-lg ${darkMode ? 'bg-gradient-to-r from-indigo-900/40 to-purple-900/40' : 'bg-gradient-to-r from-indigo-100/80 to-purple-100/80'} border ${darkMode ? 'border-indigo-700/50' : 'border-indigo-300/50'}`}>
-              <span className={`text-xs font-semibold ${darkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>Total Students:</span>
-              <span className={`text-xs font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                {genderDistributionData.datasets[0].data.reduce((a, b) => a + b, 0)}
-              </span>
+          
+          {/* Statistics summary below chart */}
+          <div className={`mt-4 p-4 rounded-xl ${darkMode ? 'bg-gradient-to-r from-gray-700/50 to-gray-800/50' : 'bg-gradient-to-r from-blue-50/80 to-indigo-50/80'} border ${darkMode ? 'border-gray-600/50' : 'border-blue-200/50'} backdrop-blur-sm`}>
+            <h3 className={`text-sm font-semibold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Gender Distribution Summary</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {genderDistributionData.labels.map((label, index) => (
+                <div key={label} className={`flex flex-col p-3 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md ${darkMode ? 'bg-gray-800/60 hover:bg-gray-800/80' : 'bg-white/70 hover:bg-white/90'} border ${darkMode ? 'border-gray-600/30' : 'border-gray-200/50'}`}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: genderDistributionData.datasets[0].backgroundColor[index] }}
+                      ></div>
+                      <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>{label}</span>
+                    </div>
+                    <span className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                      {genderDistributionData.datasets[0].data[index]}
+                    </span>
+                  </div>
+                  <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Student gender data</span>
+                </div>
+              ))}
+            </div>
+            <div className={`mt-3 pt-3 border-t ${darkMode ? 'border-gray-600/50' : 'border-gray-300/50'}`}>
+              <div className={`flex items-center justify-between p-1.5 rounded-lg ${darkMode ? 'bg-gradient-to-r from-indigo-900/40 to-purple-900/40' : 'bg-gradient-to-r from-indigo-100/80 to-purple-100/80'} border ${darkMode ? 'border-indigo-700/50' : 'border-indigo-300/50'}`}>
+                <span className={`text-xs font-semibold ${darkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>Total Students:</span>
+                <span className={`text-xs font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  {genderDistributionData.datasets[0].data.reduce((a, b) => a + b, 0)}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </AnimatedChartContainer>
 
       {/* Anxiety Level Distribution Chart */}
-      <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-4 rounded-xl shadow-lg border-0 min-w-0 w-full relative backdrop-blur-sm`}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <FaHeart className={`w-4 h-4 ${darkMode ? 'text-red-400' : 'text-red-500'}`} />
-            <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-green-400 to-red-400' : 'from-green-600 to-red-600'} bg-clip-text text-transparent`}>Anxiety Level Distribution</h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="group relative">
-              <FaInfoCircle className={`w-3 h-3 cursor-help ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'}`} />
-              <div className={`absolute right-0 top-6 w-56 p-2 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-200'} border`}>
-                Current anxiety levels based on latest assessments. Hover over chart segments for detailed information.
+      <AnimatedChartContainer delay={300} animationType="fadeInRight">
+        <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-4 rounded-xl shadow-lg border-0 min-w-0 w-full relative backdrop-blur-sm`}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <FaHeart className={`w-4 h-4 ${darkMode ? 'text-red-400' : 'text-red-500'}`} />
+              <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-green-400 to-red-400' : 'from-green-600 to-red-600'} bg-clip-text text-transparent`}>Anxiety Level Distribution</h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="group relative">
+                <FaInfoCircle className={`w-3 h-3 cursor-help ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'}`} />
+                <div className={`absolute right-0 top-6 w-56 p-2 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-95 group-hover:scale-100 z-10 ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-200'} border`}>
+                  Current anxiety levels based on latest assessments. Hover over chart segments for detailed information.
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div className={`h-64 w-full min-w-0`}>
-          <Pie data={anxietyLevelDistributionData} options={{
+          <div className={`h-64 w-full min-w-0`}>
+            <Pie data={anxietyLevelDistributionData} options={{
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -782,122 +889,124 @@ return (
               intersect: false,
               mode: 'index'
             }
-          }} />
-        </div>
-        
-        {/* Statistics summary below chart */}
-        <div className={`mt-4 p-4 rounded-xl ${darkMode ? 'bg-gradient-to-r from-gray-700/50 to-gray-800/50' : 'bg-gradient-to-r from-green-50/80 to-red-50/80'} border ${darkMode ? 'border-gray-600/50' : 'border-green-200/50'} backdrop-blur-sm`}>
-          <h3 className={`text-sm font-semibold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Anxiety Level Summary</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {anxietyLevelDistributionData.labels.map((label, index) => {
-              const level = label.toLowerCase();
-              let description = '';
-              switch(level) {
-                case 'minimal': description = 'Low anxiety'; break;
-                case 'mild': description = 'Slight symptoms'; break;
-                case 'moderate': description = 'Noticeable symptoms'; break;
-                case 'severe': description = 'High anxiety'; break;
-              }
-              return (
-                <div key={label} className={`flex flex-col p-3 rounded-lg ${darkMode ? 'bg-gray-800/60' : 'bg-white/70'} border ${darkMode ? 'border-gray-600/30' : 'border-gray-200/50'}`}>
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: anxietyLevelDistributionData.datasets[0].backgroundColor[index] }}
-                      ></div>
-                      <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>{label}</span>
+            }} />
+          </div>
+          
+          {/* Statistics summary below chart */}
+          <div className={`mt-4 p-4 rounded-xl ${darkMode ? 'bg-gradient-to-r from-gray-700/50 to-gray-800/50' : 'bg-gradient-to-r from-green-50/80 to-red-50/80'} border ${darkMode ? 'border-gray-600/50' : 'border-green-200/50'} backdrop-blur-sm`}>
+            <h3 className={`text-sm font-semibold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Anxiety Level Summary</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {anxietyLevelDistributionData.labels.map((label, index) => {
+                const level = label.toLowerCase();
+                let description = '';
+                switch(level) {
+                  case 'minimal': description = 'Low anxiety'; break;
+                  case 'mild': description = 'Slight symptoms'; break;
+                  case 'moderate': description = 'Noticeable symptoms'; break;
+                  case 'severe': description = 'High anxiety'; break;
+                }
+                return (
+                  <div key={label} className={`flex flex-col p-3 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md ${darkMode ? 'bg-gray-800/60 hover:bg-gray-800/80' : 'bg-white/70 hover:bg-white/90'} border ${darkMode ? 'border-gray-600/30' : 'border-gray-200/50'}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: anxietyLevelDistributionData.datasets[0].backgroundColor[index] }}
+                        ></div>
+                        <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>{label}</span>
+                      </div>
+                      <span className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                        {anxietyLevelDistributionData.datasets[0].data[index]}
+                      </span>
                     </div>
-                    <span className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                      {anxietyLevelDistributionData.datasets[0].data[index]}
-                    </span>
+                    <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{description}</span>
                   </div>
-                  <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{description}</span>
-                </div>
-              );
-            })}
-          </div>
-          <div className={`mt-3 pt-3 border-t ${darkMode ? 'border-gray-600/50' : 'border-gray-300/50'}`}>
-            <div className={`flex items-center justify-between p-1.5 rounded-lg ${darkMode ? 'bg-gradient-to-r from-indigo-900/40 to-purple-900/40' : 'bg-gradient-to-r from-indigo-100/80 to-purple-100/80'} border ${darkMode ? 'border-indigo-700/50' : 'border-indigo-300/50'}`}>
-              <span className={`text-xs font-semibold ${darkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>Total Assessments:</span>
-              <span className={`text-xs font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                {anxietyLevelDistributionData.datasets[0].data.reduce((a, b) => a + b, 0)}
-              </span>
+                );
+              })}
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Anxiety History Bar Chart */}
-      <div className={`lg:col-span-3 ${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-6 rounded-2xl shadow-xl border-0 min-w-0 w-full backdrop-blur-sm`}>
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-3">
-            <FaChartLine className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-500'}`} />
-            <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-indigo-400 to-emerald-400' : 'from-indigo-600 to-emerald-600'} bg-clip-text text-transparent`}>Anxiety Level History</h2>
-            <div className="group relative">
-              <FaInfoCircle className={`w-3 h-3 cursor-help ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'}`} />
-              <div className={`absolute left-0 top-6 w-64 p-2 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-200'} border`}>
-                Track anxiety level trends over time. Use time range buttons to switch between daily, weekly, and monthly views. Navigate through pages using arrow buttons.
+            <div className={`mt-3 pt-3 border-t ${darkMode ? 'border-gray-600/50' : 'border-gray-300/50'}`}>
+              <div className={`flex items-center justify-between p-1.5 rounded-lg ${darkMode ? 'bg-gradient-to-r from-indigo-900/40 to-purple-900/40' : 'bg-gradient-to-r from-indigo-100/80 to-purple-100/80'} border ${darkMode ? 'border-indigo-700/50' : 'border-indigo-300/50'}`}>
+                <span className={`text-xs font-semibold ${darkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>Total Assessments:</span>
+                <span className={`text-xs font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                  {anxietyLevelDistributionData.datasets[0].data.reduce((a, b) => a + b, 0)}
+                </span>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex">
-            <button
-                onClick={() => handleTimeRangeChange('daily')}
-              className={`px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 ${
-                timeRange === 'daily' 
-                  ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg' 
-                  : darkMode ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300' : 'bg-gray-200/80 hover:bg-gray-300 text-gray-600'
-              }`}
-            >
-              Daily
-            </button>
-            <button
-                onClick={() => handleTimeRangeChange('weekly')}
-              className={`ml-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 ${
-                timeRange === 'weekly' 
-                  ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg' 
-                  : darkMode ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300' : 'bg-gray-200/80 hover:bg-gray-300 text-gray-600'
-              }`}
-            >
-              Weekly
-            </button>
-            <button
-                onClick={() => handleTimeRangeChange('monthly')}
-              className={`ml-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 ${
-                timeRange === 'monthly' 
-                  ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg' 
-                  : darkMode ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300' : 'bg-gray-200/80 hover:bg-gray-300 text-gray-600'
-              }`}
-            >
-              Monthly
-            </button>
+        </div>
+      </AnimatedChartContainer>
+
+      {/* Anxiety History Bar Chart */}
+      <AnimatedChartContainer delay={400} animationType="zoomIn" className="lg:col-span-3">
+        <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-6 rounded-2xl shadow-xl border-0 min-w-0 w-full backdrop-blur-sm`}>
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-3">
+              <FaChartLine className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-500'}`} />
+              <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-indigo-400 to-emerald-400' : 'from-indigo-600 to-emerald-600'} bg-clip-text text-transparent`}>Anxiety Level History</h2>
+              <div className="group relative">
+                <FaInfoCircle className={`w-3 h-3 cursor-help ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'}`} />
+                <div className={`absolute left-0 top-6 w-64 p-2 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-200'} border`}>
+                  Track anxiety level trends over time. Use time range buttons to switch between daily, weekly, and monthly views. Navigate through pages using arrow buttons.
+                </div>
+              </div>
             </div>
-            
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="flex items-center gap-2 ml-4">
+            <div className="flex items-center gap-2">
+              <div className="flex">
                 <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))}
-                  disabled={currentPage === 0}
-                  className={`px-3 py-2 text-xs rounded-xl transition-all duration-200 transform hover:scale-105 ${
-                    currentPage === 0
-                      ? `${darkMode ? 'bg-gray-700/30 text-gray-500' : 'bg-gray-200/50 text-gray-400'} cursor-not-allowed opacity-50`
-                      : `${darkMode ? 'bg-gray-600/50 hover:bg-gray-500/70 text-white' : 'bg-gray-300/80 hover:bg-gray-400 text-gray-700'} shadow-md hover:shadow-lg`
+                  onClick={() => handleTimeRangeChange('daily')}
+                  className={`px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 active:scale-95 ${
+                    timeRange === 'daily' 
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg' 
+                      : darkMode ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300' : 'bg-gray-200/80 hover:bg-gray-300 text-gray-600'
                   }`}
-                  title="Previous page"
                 >
-                  ←
+                  Daily
                 </button>
-                <span className={`px-3 py-2 text-xs font-semibold rounded-xl ${darkMode ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/30' : 'bg-indigo-100 text-indigo-700 border border-indigo-200'}`}>
-                  {currentPage + 1} / {totalPages}
-                </span>
                 <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages - 1))}
-                  disabled={currentPage === totalPages - 1}
-                  className={`px-3 py-2 text-xs rounded-xl transition-all duration-200 transform hover:scale-105 ${
-                    currentPage === totalPages - 1
+                  onClick={() => handleTimeRangeChange('weekly')}
+                  className={`ml-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 active:scale-95 ${
+                    timeRange === 'weekly' 
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg' 
+                      : darkMode ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300' : 'bg-gray-200/80 hover:bg-gray-300 text-gray-600'
+                  }`}
+                >
+                  Weekly
+                </button>
+                <button
+                  onClick={() => handleTimeRangeChange('monthly')}
+                  className={`ml-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 active:scale-95 ${
+                    timeRange === 'monthly' 
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg' 
+                      : darkMode ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300' : 'bg-gray-200/80 hover:bg-gray-300 text-gray-600'
+                  }`}
+                >
+                  Monthly
+                </button>
+              </div>
+              
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center gap-2 ml-4">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))}
+                    disabled={currentPage === 0}
+                    className={`px-3 py-2 text-xs rounded-xl transition-all duration-300 transform hover:scale-110 hover:-translate-x-0.5 active:scale-95 ${
+                      currentPage === 0
+                        ? `${darkMode ? 'bg-gray-700/30 text-gray-500' : 'bg-gray-200/50 text-gray-400'} cursor-not-allowed opacity-50`
+                        : `${darkMode ? 'bg-gray-600/50 hover:bg-gray-500/70 text-white' : 'bg-gray-300/80 hover:bg-gray-400 text-gray-700'} shadow-md hover:shadow-lg`
+                    }`}
+                    title="Previous page"
+                  >
+                    ←
+                  </button>
+                  <span className={`px-3 py-2 text-xs font-semibold rounded-xl ${darkMode ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/30' : 'bg-indigo-100 text-indigo-700 border border-indigo-200'}`}>
+                    {currentPage + 1} / {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages - 1))}
+                    disabled={currentPage === totalPages - 1}
+                    className={`px-3 py-2 text-xs rounded-xl transition-all duration-300 transform hover:scale-110 hover:translate-x-0.5 active:scale-95 ${
+                      currentPage === totalPages - 1
                       ? `${darkMode ? 'bg-gray-700/30 text-gray-500' : 'bg-gray-200/50 text-gray-400'} cursor-not-allowed opacity-50`
                       : `${darkMode ? 'bg-gray-600/50 hover:bg-gray-500/70 text-white' : 'bg-gray-300/80 hover:bg-gray-400 text-gray-700'} shadow-md hover:shadow-lg`
                   }`}
@@ -907,10 +1016,10 @@ return (
                 </button>
               </div>
             )}
+            </div>
           </div>
-        </div>
-        <div className={`h-72 w-full min-w-0`}>
-          <Bar data={{ labels: anxietyLabels, datasets: anxietyDatasets }} options={{
+          <div className={`h-72 w-full min-w-0`}>
+            <Bar data={{ labels: anxietyLabels, datasets: anxietyDatasets }} options={{
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -992,116 +1101,121 @@ return (
               intersect: false,
               mode: 'index'
             }
-          }} />
+            }} />
+          </div>
         </div>
-      </div>
+      </AnimatedChartContainer>
 
       {/* Anxiety History Line Chart (Average Percentage) */}
-      <div className={`lg:col-span-3 ${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-6 rounded-2xl shadow-xl border-0 min-w-0 w-full backdrop-blur-sm`}>
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-3">
-            <FaChartLine className={`${darkMode ? 'text-blue-300' : 'text-blue-500'} w-4 h-4`} />
-            <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-blue-300 to-indigo-400' : 'from-blue-600 to-indigo-600'} bg-clip-text text-transparent`}>Average Anxiety Percentage</h2>
-            <div className="group relative">
-              <FaInfoCircle className={`w-3 h-3 cursor-help ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'}`} />
-              <div className={`absolute left-0 top-6 w-64 p-2 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-200'} border`}>
-                Shows the average assessment percentage over time using the same time range and pages.
+      <AnimatedChartContainer delay={500} animationType="bounceIn" className="lg:col-span-3">
+        <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-6 rounded-2xl shadow-xl border-0 min-w-0 w-full backdrop-blur-sm`}>
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-3">
+              <FaChartLine className={`${darkMode ? 'text-blue-300' : 'text-blue-500'} w-4 h-4`} />
+              <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-blue-300 to-indigo-400' : 'from-blue-600 to-indigo-600'} bg-clip-text text-transparent`}>Average Anxiety Percentage</h2>
+              <div className="group relative">
+                <FaInfoCircle className={`w-3 h-3 cursor-help ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'}`} />
+                <div className={`absolute left-0 top-6 w-64 p-2 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-200'} border`}>
+                  Shows the average assessment percentage over time using the same time range and pages.
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div className={`h-72 w-full min-w-0`}>
-          <Line data={{
-            labels: anxietyLabels,
-            datasets: [
-              {
-                label: 'Average %',
-                data: averagePercentageData,
-                borderColor: 'rgba(59, 130, 246, 1)',
-                backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                pointBackgroundColor: darkMode ? '#93C5FD' : '#1D4ED8',
-                pointBorderColor: darkMode ? '#1F2937' : '#E5E7EB',
-                fill: true,
-                tension: 0.35,
-                borderWidth: 2,
-              }
-            ]
-          }} options={{
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                position: 'bottom',
-                labels: {
-                  padding: 8,
-                  font: { size: 10, weight: 'bold' },
-                  usePointStyle: true,
-                  pointStyle: 'line'
+          <div className={`h-72 w-full min-w-0`}>
+            <Line data={{
+              labels: anxietyLabels,
+              datasets: [
+                {
+                  label: 'Average %',
+                  data: averagePercentageData,
+                  borderColor: 'rgba(59, 130, 246, 1)',
+                  backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                  pointBackgroundColor: darkMode ? '#93C5FD' : '#1D4ED8',
+                  pointBorderColor: darkMode ? '#1F2937' : '#E5E7EB',
+                  fill: true,
+                  tension: 0.35,
+                  borderWidth: 2,
                 }
-              },
-              tooltip: {
-                enabled: true,
-                backgroundColor: darkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                titleColor: darkMode ? '#fff' : '#000',
-                bodyColor: darkMode ? '#fff' : '#000',
-                borderColor: darkMode ? '#6B7280' : '#D1D5DB',
-                borderWidth: 1,
-                cornerRadius: 8,
-                callbacks: {
-                  label: function(context: any) {
-                    const value = context.parsed.y;
-                    return `Average: ${value}%`;
+              ]
+            }} options={{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: {
+                    padding: 8,
+                    font: { size: 10, weight: 'bold' },
+                    usePointStyle: true,
+                    pointStyle: 'line'
+                  }
+                },
+                tooltip: {
+                  enabled: true,
+                  backgroundColor: darkMode ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                  titleColor: darkMode ? '#fff' : '#000',
+                  bodyColor: darkMode ? '#fff' : '#000',
+                  borderColor: darkMode ? '#6B7280' : '#D1D5DB',
+                  borderWidth: 1,
+                  cornerRadius: 8,
+                  callbacks: {
+                    label: function(context: any) {
+                      const value = context.parsed.y;
+                      return `Average: ${value}%`;
+                    }
                   }
                 }
-              }
-            },
-            scales: {
-              x: {
-                grid: {
-                  color: darkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(229, 231, 235, 0.8)'
+              },
+              scales: {
+                x: {
+                  grid: {
+                    color: darkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(229, 231, 235, 0.8)'
+                  },
+                  ticks: {
+                    color: darkMode ? '#D1D5DB' : '#6B7280',
+                    font: { size: 10 }
+                  }
                 },
-                ticks: {
-                  color: darkMode ? '#D1D5DB' : '#6B7280',
-                  font: { size: 10 }
+                y: {
+                  beginAtZero: true,
+                  max: 100,
+                  grid: {
+                    color: darkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(229, 231, 235, 0.8)'
+                  },
+                  ticks: {
+                    stepSize: 10,
+                    color: darkMode ? '#D1D5DB' : '#6B7280',
+                    font: { size: 10 },
+                    callback: function(value: number | string) { return `${value}%`; }
+                  },
+                  title: {
+                    display: true,
+                    text: 'Average %',
+                    color: darkMode ? '#D1D5DB' : '#6B7280',
+                    font: { size: 11, weight: 'bold' }
+                  }
                 }
               },
-              y: {
-                beginAtZero: true,
-                max: 100,
-                grid: {
-                  color: darkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(229, 231, 235, 0.8)'
-                },
-                ticks: {
-                  stepSize: 10,
-                  color: darkMode ? '#D1D5DB' : '#6B7280',
-                  font: { size: 10 },
-                  callback: function(value: number | string) { return `${value}%`; }
-                },
-                title: {
-                  display: true,
-                  text: 'Average %',
-                  color: darkMode ? '#D1D5DB' : '#6B7280',
-                  font: { size: 11, weight: 'bold' }
-                }
-              }
-            },
-            interaction: { intersect: false, mode: 'index' }
-          }} />
+              interaction: { intersect: false, mode: 'index' }
+            }} />
+          </div>
         </div>
-      </div>
+      </AnimatedChartContainer>
       
       {/* Print Button - Aligned with charts container */}
-      <div className="mt-6 justify-end w-full">
-        <button
-          onClick={() => window.print()}
-          className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 bg-gradient-to-r from-[#800000] to-[#8B0000] hover:from-[#8B0000] hover:to-[#A0522D] text-white shadow-lg hover:shadow-xl flex items-center gap-2`}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-          </svg>
-          Print Report
-        </button>
-      </div>
+      <AnimatedChartContainer delay={600} animationType="fadeInDown">
+        <div className="mt-6 justify-end w-full">
+          <button
+            onClick={() => window.print()}
+            className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-110 hover:-translate-y-1 active:scale-95 bg-gradient-to-r from-[#800000] to-[#8B0000] hover:from-[#8B0000] hover:to-[#A0522D] text-white shadow-lg hover:shadow-2xl hover:shadow-red-900/25 flex items-center gap-2`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Print Report
+          </button>
+        </div>
+      </AnimatedChartContainer>
     </div>
   );
 } 

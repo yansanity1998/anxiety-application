@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 // import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { FaCalendarAlt, FaUser, FaClock, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaChevronDown, FaEye, FaTrash, FaCalendarTimes, FaUserTimes, FaWalking } from 'react-icons/fa';
+import { FaCalendarAlt, FaUser, FaClock, FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaChevronDown, FaEye, FaTrash, FaCalendarTimes, FaUserTimes, FaWalking, FaHistory } from 'react-icons/fa';
 import { getAllAppointments, updateAppointment, deleteAppointment } from '../../lib/appointmentService';
 import type { Appointment } from '../../lib/appointmentService';
 import WalkInModal from './WalkInModal';
@@ -724,14 +724,35 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
             )}
           </div>
           
-          {/* Walk-in Button - Far Right Corner */}
-          <button
-            onClick={() => setIsWalkInModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#800000] to-[#660000] hover:from-[#660000] hover:to-[#4d0000] text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-          >
-            <FaWalking className="text-sm" />
-            <span className="hidden sm:inline">Walk-in</span>
-          </button>
+          {/* View History and Walk-in Buttons */}
+          <div className="flex items-center gap-2">
+            {/* View History Button */}
+            <button
+              onClick={() => {
+                const historyElement = document.getElementById('schedule-history-section');
+                if (historyElement) {
+                  historyElement.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start'
+                  });
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              title="View Schedule History"
+            >
+              <FaHistory className="text-sm" />
+              <span className="hidden sm:inline">History</span>
+            </button>
+            
+            {/* Walk-in Button */}
+            <button
+              onClick={() => setIsWalkInModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#800000] to-[#660000] hover:from-[#660000] hover:to-[#4d0000] text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              <FaWalking className="text-sm" />
+              <span className="hidden sm:inline">Walk-in</span>
+            </button>
+          </div>
         </div>
         {searchTerm && (
           <p className={`mt-1.5 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>

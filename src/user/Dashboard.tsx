@@ -28,6 +28,7 @@ import {
   FaCheck,
   FaSignOutAlt,
   FaSpa,
+  FaUserMd,
 } from 'react-icons/fa';
 
 // Removed framer-motion imports since animations are disabled
@@ -603,6 +604,7 @@ const Dashboard = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [todaysActivities, setTodaysActivities] = useState<any[]>([]);
+  const [referrals, setReferrals] = useState<any[]>([]);
 
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -641,6 +643,40 @@ const Dashboard = () => {
       }
     };
     fetchNotifications();
+  }, [userData]);
+
+  // Fetch referrals for the student
+  useEffect(() => {
+    const fetchReferrals = async () => {
+      try {
+        if (!userData || !userData.id) {
+          console.log('No userData or userData.id:', { userData });
+          setReferrals([]);
+          return;
+        }
+        
+        console.log('Fetching referrals for student_id:', userData.id);
+        const { data, error } = await supabase
+          .from('referrals')
+          .select('*')
+          .eq('student_id', userData.id)
+          .order('created_at', { ascending: false });
+          
+        console.log('Referrals query result:', { data, error, userId: userData.id });
+        
+        if (error) {
+          console.error('Error fetching referrals:', error);
+          setReferrals([]);
+        } else {
+          console.log('Setting referrals:', data || []);
+          setReferrals(data || []);
+        }
+      } catch (err) {
+        console.error('Unexpected error fetching referrals:', err);
+        setReferrals([]);
+      }
+    };
+    fetchReferrals();
   }, [userData]);
 
   // Fetch today's activities for notifications
@@ -942,6 +978,8 @@ const Dashboard = () => {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
+      // Scroll to top before navigating to landing page
+      window.scrollTo({ top: 0, behavior: 'instant' });
       navigate('/');
     } catch (error) {
       console.error('Error signing out:', error);
@@ -1043,9 +1081,9 @@ const Dashboard = () => {
                 aria-label="Show notifications"
               >
                 <FaBell className="text-white text-base" />
-                {(notifications.length > 0 || todaysActivities.length > 0) && (
+                {(notifications.length > 0 || todaysActivities.length > 0 || referrals.length > 0) && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-[16px] flex items-center justify-center font-medium">
-                    {(notifications.length + todaysActivities.length) > 9 ? '9+' : (notifications.length + todaysActivities.length)}
+                    {(notifications.length + todaysActivities.length + referrals.length) > 9 ? '9+' : (notifications.length + todaysActivities.length + referrals.length)}
                   </span>
                 )}
               </button>
@@ -1071,12 +1109,13 @@ const Dashboard = () => {
                     Today's Updates
                   </h3>
                   <div className="flex items-center gap-2">
-                    {(notifications.length > 0 || todaysActivities.length > 0) && (
+                    {(notifications.length > 0 || todaysActivities.length > 0 || referrals.length > 0) && (
                       <button
                         className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-medium rounded-lg transition-colors border border-red-200"
                         onClick={() => {
                           setNotifications([]);
                           setTodaysActivities([]);
+                          setReferrals([]);
                         }}
                       >
                         Clear All
@@ -1091,13 +1130,13 @@ const Dashboard = () => {
                   </div>
                 </div>
                 
-                {(notifications.length === 0 && todaysActivities.length === 0) ? (
+                {(notifications.length === 0 && todaysActivities.length === 0 && referrals.length === 0) ? (
                   <div className="text-center py-8">
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
                       <FaBell className="text-gray-400 text-xl" />
                     </div>
                     <p className="text-gray-500 text-sm">No updates for today.</p>
-                    <p className="text-gray-400 text-xs mt-1">Check back later for new activities and appointments.</p>
+                    <p className="text-gray-400 text-xs mt-1">Check back later for new activities, appointments, and referrals.</p>
                   </div>
                 ) : (
                   <div className="space-y-4 max-h-80 overflow-y-auto">
@@ -1132,6 +1171,52 @@ const Dashboard = () => {
                                       Notes: {appt.notes}
                                     </div>
                                   )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Referrals Section */}
+                    {referrals.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-gray-700 text-sm mb-2 flex items-center">
+                          <FaUserMd className="mr-2 text-purple-500" />
+                          Referrals ({referrals.length})
+                        </h4>
+                        <div className="space-y-2">
+                          {referrals.map((referral) => (
+                            <div 
+                              key={referral.id} 
+                              className="cursor-pointer bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-3 border border-purple-200 hover:border-purple-300 transition-all duration-200"
+                            >
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-semibold text-purple-700 text-sm">Psychiatric Referral</span>
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                      referral.urgency_level === 'critical' ? 'bg-red-100 text-red-700' :
+                                      referral.urgency_level === 'high' ? 'bg-orange-100 text-orange-700' :
+                                      referral.urgency_level === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                      'bg-green-100 text-green-700'
+                                    }`}>
+                                      {referral.urgency_level.charAt(0).toUpperCase() + referral.urgency_level.slice(1)} Priority
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-gray-700 mt-1">
+                                    <div className="flex items-center">
+                                      <FaUserMd className="mr-1 text-purple-500" />
+                                      Dr. {referral.psychiatrist_name} • Status: {referral.referral_status}
+                                    </div>
+                                  </div>
+                                  <div className="text-xs text-gray-600 mt-2 p-2 bg-white/60 rounded-lg">
+                                    <strong>Reason:</strong> {referral.referral_reason}
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-2">
+                                    Created: {new Date(referral.created_at).toLocaleDateString()}
+                                  </div>
                                 </div>
                               </div>
                             </div>

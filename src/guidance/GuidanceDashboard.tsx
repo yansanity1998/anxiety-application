@@ -483,6 +483,8 @@ export default function GuidanceDashboard() {
     if (result.isConfirmed) {
       try {
         await supabase.auth.signOut();
+        // Scroll to top before navigating to landing page
+        window.scrollTo({ top: 0, behavior: 'instant' });
         navigate('/');
       } catch (error) {
         console.error('Error signing out:', error);
@@ -939,7 +941,7 @@ export default function GuidanceDashboard() {
                 }`}
                 title="Go to Dashboard"
               >
-                <img src="/spc-guidance.png" alt="Guidance Service Center" className="h-15 w-15 object-contain" />
+                <img src="/spc-guidance.png" alt="Guidance Service Center" className="h-15 w-15 object-contain cursor-pointer" />
               </button>
               <div>
                 <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-red-900'}`}>
@@ -952,7 +954,7 @@ export default function GuidanceDashboard() {
             </div>
             <div className="flex items-center gap-2">
               {/* Real-time Clock */}
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md ${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="10"></circle>
                   <polyline points="12,6 12,12 16,14"></polyline>
@@ -968,7 +970,7 @@ export default function GuidanceDashboard() {
               </div>
               <button
                 onClick={toggleDarkMode}
-                className={`p-1.5 rounded-full ${darkMode ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                className={`p-1.5 rounded-full cursor-pointer ${darkMode ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                 aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
               >
                 {darkMode ? <FaSun /> : <FaMoon />}

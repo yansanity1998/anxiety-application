@@ -107,10 +107,14 @@ export default function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isVisible, setIsVisible] = useState<{[key: string]: boolean}>({});
   const [isPageLoaded, setIsPageLoaded] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   
-  // Inject animation styles
+  // Inject animation styles and scroll to top on mount
   useEffect(() => {
+    // Scroll to top when landing page loads
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    
     const styleElement = document.createElement('style');
     styleElement.textContent = animationStyles;
     document.head.appendChild(styleElement);
@@ -137,6 +141,32 @@ export default function LandingPage() {
     // Cleanup on unmount
     return () => {
       document.body.style.overflow = 'unset';
+    };
+  }, [showLogin, showRegister]);
+
+  // Handle ESC key to close modals with animation
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (showLogin || showRegister) {
+          setIsClosing(true);
+          setTimeout(() => {
+            setShowLogin(false);
+            setShowRegister(false);
+            setIsClosing(false);
+          }, 300); // Match animation duration
+        }
+      }
+    };
+
+    // Add event listener when modals are open
+    if (showLogin || showRegister) {
+      document.addEventListener('keydown', handleEscKey);
+    }
+
+    // Cleanup event listener
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
     };
   }, [showLogin, showRegister]);
 
@@ -215,6 +245,22 @@ export default function LandingPage() {
   const handleRegisterSwitch = () => {
     setShowRegister(false);
     setShowLogin(true);
+  };
+
+  const closeLoginModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setShowLogin(false);
+      setIsClosing(false);
+    }, 300);
+  };
+
+  const closeRegisterModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setShowRegister(false);
+      setIsClosing(false);
+    }, 300);
   };
 
   return (
@@ -839,12 +885,12 @@ export default function LandingPage() {
       </main>
 
       {/* Login Modal */}
-      {showLogin && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto mx-4">
+      {(showLogin || (isClosing && !showRegister)) && (
+        <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300 ${isClosing && !showRegister ? 'opacity-0' : 'opacity-100'}`}>
+          <div className={`relative bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto mx-4 transition-all duration-300 ${isClosing && !showRegister ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}>
             <button
-              onClick={() => setShowLogin(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10"
+              onClick={closeLoginModal}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10 transition-colors"
             >
               <FaTimes className="text-lg sm:text-xl" />
             </button>
@@ -856,12 +902,12 @@ export default function LandingPage() {
       )}
 
       {/* Register Modal */}
-      {showRegister && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto mx-4">
+      {(showRegister || (isClosing && !showLogin)) && (
+        <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300 ${isClosing && !showLogin ? 'opacity-0' : 'opacity-100'}`}>
+          <div className={`relative bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto mx-4 transition-all duration-300 ${isClosing && !showLogin ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}>
             <button
-              onClick={() => setShowRegister(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10"
+              onClick={closeRegisterModal}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10 transition-colors"
             >
               <FaTimes className="text-lg sm:text-xl" />
             </button>

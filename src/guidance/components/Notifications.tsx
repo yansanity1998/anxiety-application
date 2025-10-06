@@ -139,7 +139,33 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                 const newVerified = payload.new.is_verified;
                 const oldVerified = payload.old?.is_verified;
                 
-                if (newVerified === true && oldVerified !== true) {
+                // Only process verification changes if:
+                // 1. Both old and new values are explicitly defined (not null/undefined)
+                // 2. The values are actually different
+                // 3. This is not a login-related update (check if only login fields changed)
+                const isLoginUpdate = payload.old && (
+                  payload.new.last_sign_in !== payload.old.last_sign_in ||
+                  payload.new.streak !== payload.old.streak ||
+                  payload.new.last_activity_date !== payload.old.last_activity_date
+                );
+                
+                const isVerificationChange = (
+                  oldVerified !== undefined && 
+                  newVerified !== undefined && 
+                  oldVerified !== newVerified &&
+                  !isLoginUpdate // Don't trigger during login updates
+                );
+                
+                console.log('🔍 [GUIDANCE] Verification change check:', {
+                  newVerified,
+                  oldVerified,
+                  isVerificationChange,
+                  isLoginUpdate,
+                  userId: payload.new.user_id,
+                  email: payload.new.email
+                });
+                
+                if (isVerificationChange && newVerified === true && oldVerified !== true) {
                   // Student verified
                   const currentTime = new Date().toISOString();
                   const verifiedNotification: Notification = {
@@ -156,7 +182,7 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                   showNotificationToast('Student Verified', `${payload.new.full_name || 'Student'} has been verified`);
                   soundService.playVerifiedSound();
                   return;
-                } else if (newVerified === false && oldVerified === true) {
+                } else if (isVerificationChange && newVerified === false && oldVerified === true) {
                   // Student unverified
                   const currentTime = new Date().toISOString();
                   const unverifiedNotification: Notification = {
@@ -411,7 +437,7 @@ export default function Notifications({ darkMode }: NotificationsProps) {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative p-2 rounded-full ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+        className={`relative p-2 rounded-full cursor-pointer ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
         aria-label="Notifications"
       >
         {notifications.length > 0 ? (
@@ -435,7 +461,7 @@ export default function Notifications({ darkMode }: NotificationsProps) {
             {notifications.length > 0 && (
               <button
                 onClick={handleClearAll}
-                className={`text-xs ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`text-xs cursor-pointer ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 Clear all
               </button>
