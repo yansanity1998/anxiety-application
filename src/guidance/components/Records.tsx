@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaFileAlt, FaCalendarAlt, FaBrain, FaVideo, FaTasks, FaSearch, FaTimes, FaSpinner, FaUser, FaEnvelope, FaSchool, FaCheck, FaPlay, FaPause, FaBookOpen, FaEye, FaUsers, FaFileCsv, FaFileWord, FaFileExcel, FaClipboardList, FaFilePdf } from 'react-icons/fa';
+import { FaFileAlt, FaCalendarAlt, FaBrain, FaVideo, FaTasks, FaSearch, FaTimes, FaSpinner, FaUser, FaEnvelope, FaSchool, FaCheck, FaPlay, FaPause, FaBookOpen, FaEye, FaUsers, FaFileCsv, FaFileWord, FaFileExcel, FaClipboardList, FaFilePdf, FaSort } from 'react-icons/fa';
 import { supabase } from '../../lib/supabase';
 
 interface RecordsProps {
@@ -103,6 +103,7 @@ const Records = ({ darkMode }: RecordsProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [yearLevelFilter, setYearLevelFilter] = useState<string>('all');
   const [selectedStudent, setSelectedStudent] = useState<StudentRecord | null>(null);
   const [showStudentModal, setShowStudentModal] = useState(false);
 
@@ -275,16 +276,27 @@ const Records = ({ darkMode }: RecordsProps) => {
   };
 
   const filteredStudents = students.filter(student => {
-    if (!searchTerm.trim()) return true;
+    // Search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      const fullName = student.profile.full_name?.toLowerCase() || '';
+      const email = student.profile.email?.toLowerCase() || '';
+      const idNumber = student.profile.id_number?.toLowerCase() || '';
+      
+      const matchesSearch = fullName.includes(searchLower) ||
+                           email.includes(searchLower) ||
+                           idNumber.includes(searchLower);
+      
+      if (!matchesSearch) return false;
+    }
     
-    const searchLower = searchTerm.toLowerCase();
-    const fullName = student.profile.full_name?.toLowerCase() || '';
-    const email = student.profile.email?.toLowerCase() || '';
-    const idNumber = student.profile.id_number?.toLowerCase() || '';
+    // Year level filter
+    if (yearLevelFilter !== 'all') {
+      const yearLevel = student.profile.year_level?.toString() || '';
+      if (yearLevel !== yearLevelFilter) return false;
+    }
     
-    return fullName.includes(searchLower) ||
-           email.includes(searchLower) ||
-           idNumber.includes(searchLower);
+    return true;
   });
 
   const openStudentModal = (student: StudentRecord) => {
@@ -2361,35 +2373,61 @@ const Records = ({ darkMode }: RecordsProps) => {
         </div>
       )}
 
-      {/* Search Bar */}
+      {/* Search Bar and Year Level Filter */}
       <div className="mb-6">
-        <div className="relative">
-          <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
-          <input
-            type="text"
-            placeholder="Search students by name, email, or ID number..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent focus:outline-none transition-all duration-200 ${
-              darkMode 
-                ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 hover:border-gray-500' 
-                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 hover:border-gray-400'
-            }`}
-          />
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm('')}
-              className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 ${
-                darkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-200'
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+            <input
+              type="text"
+              placeholder="Search students by name, email, or ID number..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent focus:outline-none transition-all duration-200 ${
+                darkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 hover:border-gray-500' 
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 hover:border-gray-400'
+              }`}
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 ${
+                  darkMode ? 'text-gray-400 hover:bg-gray-600' : 'text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                <FaTimes className="text-sm" />
+              </button>
+            )}
+          </div>
+          
+          {/* Year Level Filter */}
+          <div className="relative sm:w-48">
+            <FaSort className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+            <select
+              value={yearLevelFilter}
+              onChange={(e) => setYearLevelFilter(e.target.value)}
+              className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-800 focus:border-transparent focus:outline-none transition-all duration-200 appearance-none cursor-pointer ${
+                darkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white hover:border-gray-500' 
+                  : 'bg-white border-gray-300 text-gray-900 hover:border-gray-400'
               }`}
             >
-              <FaTimes className="text-sm" />
-            </button>
-          )}
+              <option value="all">All Year Levels</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+            </select>
+          </div>
         </div>
-        {searchTerm && (
+        
+        {(searchTerm || yearLevelFilter !== 'all') && (
           <div className="mt-2 text-sm text-gray-500">
-            Found {filteredStudents.length} student{filteredStudents.length !== 1 ? 's' : ''} matching "{searchTerm}"
+            Found {filteredStudents.length} student{filteredStudents.length !== 1 ? 's' : ''}
+            {searchTerm && ` matching "${searchTerm}"`}
+            {yearLevelFilter !== 'all' && ` in ${yearLevelFilter}${yearLevelFilter === '1' ? 'st' : yearLevelFilter === '2' ? 'nd' : yearLevelFilter === '3' ? 'rd' : 'th'} year`}
           </div>
         )}
       </div>
@@ -2404,7 +2442,7 @@ const Records = ({ darkMode }: RecordsProps) => {
           <div className="flex items-center justify-between mb-2">
             <div>
               <p className={`text-sm font-medium ${darkMode ? 'text-blue-200' : 'text-blue-600'}`}>Total Students</p>
-              <h3 className={`text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-blue-900'}`}>{students.length}</h3>
+              <h3 className={`text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-blue-900'}`}>{filteredStudents.length}</h3>
             </div>
             <div className={`p-2 bg-blue-500 rounded-lg`}>
               <FaUsers className="text-white text-lg" />
@@ -2421,7 +2459,7 @@ const Records = ({ darkMode }: RecordsProps) => {
             <div>
               <p className={`text-sm font-medium ${darkMode ? 'text-emerald-200' : 'text-emerald-600'}`}>Total Appointments</p>
               <h3 className={`text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-emerald-900'}`}>
-                {students.reduce((total, student) => total + student.appointments.length, 0)}
+                {filteredStudents.reduce((total, student) => total + student.appointments.length, 0)}
               </h3>
             </div>
             <div className={`p-2 bg-emerald-500 rounded-lg`}>
@@ -2439,7 +2477,7 @@ const Records = ({ darkMode }: RecordsProps) => {
             <div>
               <p className={`text-sm font-medium ${darkMode ? 'text-purple-200' : 'text-purple-600'}`}>Total CBT Modules</p>
               <h3 className={`text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-purple-900'}`}>
-                {students.reduce((total, student) => total + student.cbtModules.length, 0)}
+                {filteredStudents.reduce((total, student) => total + student.cbtModules.length, 0)}
               </h3>
             </div>
             <div className={`p-2 bg-purple-500 rounded-lg`}>
@@ -2457,7 +2495,7 @@ const Records = ({ darkMode }: RecordsProps) => {
             <div>
               <p className={`text-sm font-medium ${darkMode ? 'text-orange-200' : 'text-orange-600'}`}>Total Tasks</p>
               <h3 className={`text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-orange-900'}`}>
-                {students.reduce((total, student) => total + student.todoItems.length, 0)}
+                {filteredStudents.reduce((total, student) => total + student.todoItems.length, 0)}
               </h3>
             </div>
             <div className={`p-2 bg-orange-500 rounded-lg`}>
@@ -2475,7 +2513,7 @@ const Records = ({ darkMode }: RecordsProps) => {
             <div>
               <p className={`text-sm font-medium ${darkMode ? 'text-cyan-200' : 'text-teal-600'}`}>Total Videos</p>
               <h3 className={`text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-teal-900'}`}>
-                {students.reduce((total, student) => total + student.anxietyVideos.length, 0)}
+                {filteredStudents.reduce((total, student) => total + student.anxietyVideos.length, 0)}
               </h3>
             </div>
             <div className={`p-2 bg-teal-500 rounded-lg`}>
@@ -2493,7 +2531,7 @@ const Records = ({ darkMode }: RecordsProps) => {
             <div>
               <p className={`text-sm font-medium ${darkMode ? 'text-pink-200' : 'text-pink-600'}`}>Total Assessments</p>
               <h3 className={`text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-pink-900'}`}>
-                {students.reduce((total, student) => total + student.anxietyAssessments.length, 0)}
+                {filteredStudents.reduce((total, student) => total + student.anxietyAssessments.length, 0)}
               </h3>
             </div>
             <div className={`p-2 bg-pink-500 rounded-lg`}>

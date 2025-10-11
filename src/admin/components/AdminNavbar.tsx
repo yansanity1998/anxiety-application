@@ -23,6 +23,11 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleNavigation = (view: string) => {
+    setActiveView(view);
+    setIsOpen(false);
+  };
+
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <FaTachometerAlt />, color: 'text-blue-500' },
     { id: 'users', label: 'User Management', icon: <FaUsers />, color: 'text-purple-500' },
@@ -73,10 +78,7 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
                 {navItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => {
-                      setActiveView(item.id);
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
+                    onClick={() => handleNavigation(item.id)}
                     className={navLinkClasses(item.id)}
                   >
                     <span
@@ -126,11 +128,7 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
             {navItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => {
-                  setActiveView(item.id);
-                  setIsOpen(false);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
+                onClick={() => handleNavigation(item.id)}
                 className={mobileNavLinkClasses(item.id)}
               >
                 <span

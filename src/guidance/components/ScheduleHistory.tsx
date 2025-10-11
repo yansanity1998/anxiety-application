@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaHistory, FaCalendarAlt, FaClock, FaCheckCircle, FaHourglassHalf, FaCalendarTimes, FaUserTimes, FaChevronDown, FaWalking, FaSearch, FaFilter, FaUser, FaUsers, FaEnvelope, FaTrash, FaEdit } from 'react-icons/fa';
+import { FaHistory, FaCalendarAlt, FaClock, FaCheckCircle, FaHourglassHalf, FaCalendarTimes, FaUserTimes, FaChevronDown, FaWalking, FaSearch, FaFilter, FaUser, FaUsers, FaEnvelope, FaTrash, FaEdit, FaSort } from 'react-icons/fa';
 import { getAppointmentsByProfileId, getStudentsWithAppointments, updateAppointment, deleteAppointment } from '../../lib/appointmentService';
 import type { Appointment } from '../../lib/appointmentService';
 
@@ -64,13 +64,14 @@ const getRelativeTime = (dateString: string): string => {
 
 const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStudentId, selectedStudentName, onAppointmentUpdate, refreshTrigger }) => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [students, setStudents] = useState<{profile_id: number, student_name: string, student_email: string, appointment_count: number}[]>([]);
+  const [students, setStudents] = useState<{profile_id: number, student_name: string, student_email: string, appointment_count: number, year_level?: number}[]>([]);
   const [loading, setLoading] = useState(false);
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [studentSearchTerm, setStudentSearchTerm] = useState('');
+  const [yearLevelFilter, setYearLevelFilter] = useState<string>('all');
   const [currentSelectedId, setCurrentSelectedId] = useState<number | null>(selectedStudentId || null);
   const [currentSelectedName, setCurrentSelectedName] = useState<string>(selectedStudentName || '');
   const [expandedAppointment, setExpandedAppointment] = useState<number | null>(null);
@@ -141,7 +142,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
     }, { threshold: [0, 0.15, 0.35, 0.6, 1], rootMargin: '0px 0px -5% 0px' });
     elements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [appointments, students, searchTerm, studentSearchTerm, filterStatus]);
+  }, [appointments, students, searchTerm, studentSearchTerm, filterStatus, yearLevelFilter]);
 
   const fetchAllStudents = async () => {
     setStudentsLoading(true);
@@ -233,7 +234,17 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
                   </svg>
                 </div>
                 <div class="flex-1 min-w-0">
-                  <h3 class="text-lg font-semibold text-gray-900">Edit Appointment</h3>
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-lg font-semibold text-gray-900">Edit Appointment</h3>
+                    ${appointment.notes && appointment.notes.toLowerCase().includes('walk-in') ? `
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-[#800000] to-[#660000] text-white text-xs font-medium rounded-full">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+                        </svg>
+                        Walk-in
+                      </span>
+                    ` : ''}
+                  </div>
                   <p class="text-sm text-gray-500">${appointment.student_name}</p>
                 </div>
                 <button 
@@ -291,6 +302,14 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
                     class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] resize-y"
                     placeholder="Add any notes or special instructions..."
                   >${appointment.notes || ''}</textarea>
+                  ${appointment.notes && appointment.notes.toLowerCase().includes('walk-in') ? `
+                    <p class="mt-1.5 text-xs text-[#800000] flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                      </svg>
+                      Walk-in status will be preserved automatically
+                    </p>
+                  ` : ''}
                 </div>
               </div>
 
@@ -350,10 +369,25 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
 
       if (formValues) {
         try {
+          // Check if this was originally a walk-in appointment
+          const isWalkIn = appointment.notes && appointment.notes.toLowerCase().includes('walk-in');
+          
+          // Preserve walk-in status in notes
+          let updatedNotes = formValues.notes;
+          if (isWalkIn) {
+            // If it was a walk-in, ensure "walk-in" remains in the notes
+            if (!updatedNotes.toLowerCase().includes('walk-in')) {
+              // If user removed walk-in text, add it back
+              updatedNotes = updatedNotes.trim() 
+                ? `Walk-in appointment - ${updatedNotes}` 
+                : 'Walk-in appointment';
+            }
+          }
+          
           await updateAppointment(appointment.id, {
             appointment_date: formValues.date,
             appointment_time: formValues.time,
-            notes: formValues.notes
+            notes: updatedNotes
           });
 
           // Refresh the student's appointments
@@ -481,17 +515,29 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
     noShow: appointments.filter(a => a.status === 'No Show').length,
   };
 
-  const handleStudentSelect = (student: {profile_id: number, student_name: string, student_email: string, appointment_count: number}) => {
+  const handleStudentSelect = (student: {profile_id: number, student_name: string, student_email: string, appointment_count: number, year_level?: number}) => {
     setCurrentSelectedId(student.profile_id);
     setCurrentSelectedName(student.student_name);
     fetchStudentHistory(student.profile_id);
   };
 
-  // Filter students based on search term
-  const filteredStudents = students.filter(student => 
-    student.student_name.toLowerCase().includes(studentSearchTerm.toLowerCase()) ||
-    student.student_email.toLowerCase().includes(studentSearchTerm.toLowerCase())
-  );
+  // Filter students based on search term and year level
+  const filteredStudents = students.filter(student => {
+    // Search filter
+    if (studentSearchTerm.trim()) {
+      const matchesSearch = student.student_name.toLowerCase().includes(studentSearchTerm.toLowerCase()) ||
+                           student.student_email.toLowerCase().includes(studentSearchTerm.toLowerCase());
+      if (!matchesSearch) return false;
+    }
+    
+    // Year level filter
+    if (yearLevelFilter !== 'all') {
+      const yearLevel = student.year_level?.toString() || '';
+      if (yearLevel !== yearLevelFilter) return false;
+    }
+    
+    return true;
+  });
 
   if (!currentSelectedId) {
     return (
@@ -528,27 +574,58 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
             </div>
           </div>
 
-          {/* Modern Search Bar */}
-          <div className="relative">
-            <div className={`relative rounded-2xl overflow-hidden shadow-lg backdrop-blur-sm ${
-              darkMode 
-                ? 'bg-gradient-to-r from-gray-800/50 to-gray-700/50 border border-gray-600/30' 
-                : 'bg-gradient-to-r from-white/80 to-gray-50/80 border border-gray-200/50'
-            }`}>
-              <input
-                type="text"
-                placeholder="Search students by name or email..."
-                value={studentSearchTerm}
-                onChange={(e) => setStudentSearchTerm(e.target.value)}
-                className={`w-full pl-12 pr-4 py-4 text-sm bg-transparent transition-all duration-300 ${
-                  darkMode 
-                    ? 'text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500/30' 
-                    : 'text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-500/30'
-                } focus:outline-none`}
-              />
-              <FaSearch className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-sm transition-colors ${
-                darkMode ? 'text-purple-400' : 'text-purple-500'
-              }`} />
+          {/* Modern Search Bar and Year Level Filter */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <div className={`relative rounded-2xl overflow-hidden shadow-lg backdrop-blur-sm ${
+                darkMode 
+                  ? 'bg-gradient-to-r from-gray-800/50 to-gray-700/50 border border-gray-600/30' 
+                  : 'bg-gradient-to-r from-white/80 to-gray-50/80 border border-gray-200/50'
+              }`}>
+                <input
+                  type="text"
+                  placeholder="Search students by name or email..."
+                  value={studentSearchTerm}
+                  onChange={(e) => setStudentSearchTerm(e.target.value)}
+                  className={`w-full pl-12 pr-4 py-4 text-sm bg-transparent transition-all duration-300 ${
+                    darkMode 
+                      ? 'text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500/30' 
+                      : 'text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-500/30'
+                  } focus:outline-none`}
+                />
+                <FaSearch className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-sm transition-colors ${
+                  darkMode ? 'text-purple-400' : 'text-purple-500'
+                }`} />
+              </div>
+            </div>
+            
+            {/* Year Level Filter */}
+            <div className="relative sm:w-48">
+              <div className={`relative rounded-2xl overflow-hidden shadow-lg backdrop-blur-sm ${
+                darkMode 
+                  ? 'bg-gradient-to-r from-gray-800/50 to-gray-700/50 border border-gray-600/30' 
+                  : 'bg-gradient-to-r from-white/80 to-gray-50/80 border border-gray-200/50'
+              }`}>
+                <select
+                  value={yearLevelFilter}
+                  onChange={(e) => setYearLevelFilter(e.target.value)}
+                  className={`w-full pl-12 pr-4 py-4 text-sm transition-all duration-300 appearance-none cursor-pointer ${
+                    darkMode 
+                      ? 'bg-gray-800 text-white focus:ring-2 focus:ring-purple-500/30' 
+                      : 'bg-white text-gray-900 focus:ring-2 focus:ring-purple-500/30'
+                  } focus:outline-none`}
+                >
+                  <option value="all" className={darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>All Year Levels</option>
+                  <option value="1" className={darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>1st Year</option>
+                  <option value="2" className={darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>2nd Year</option>
+                  <option value="3" className={darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>3rd Year</option>
+                  <option value="4" className={darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>4th Year</option>
+                </select>
+                <FaSort className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-sm transition-colors ${
+                  darkMode ? 'text-purple-400' : 'text-purple-500'
+                }`} />
+              </div>
             </div>
           </div>
         </div>

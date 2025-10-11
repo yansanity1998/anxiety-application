@@ -476,7 +476,17 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
                   </svg>
                 </div>
                 <div class="flex-1 min-w-0">
-                  <h3 class="text-lg font-semibold text-gray-900">Edit Appointment</h3>
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-lg font-semibold text-gray-900">Edit Appointment</h3>
+                    ${appointment.notes && appointment.notes.toLowerCase().includes('walk-in') ? `
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-[#800000] to-[#660000] text-white text-xs font-medium rounded-full">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+                        </svg>
+                        Walk-in
+                      </span>
+                    ` : ''}
+                  </div>
                   <p class="text-sm text-gray-500">${appointment.student_name}</p>
                 </div>
                 <button 
@@ -534,6 +544,14 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
                     class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#800000]/20 focus:border-[#800000] resize-y"
                     placeholder="Add any notes or special instructions..."
                   >${appointment.notes || ''}</textarea>
+                  ${appointment.notes && appointment.notes.toLowerCase().includes('walk-in') ? `
+                    <p class="mt-1.5 text-xs text-[#800000] flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                      </svg>
+                      Walk-in status will be preserved automatically
+                    </p>
+                  ` : ''}
                 </div>
               </div>
 
@@ -593,10 +611,25 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
 
       if (formValues) {
         try {
+          // Check if this was originally a walk-in appointment
+          const isWalkIn = appointment.notes && appointment.notes.toLowerCase().includes('walk-in');
+          
+          // Preserve walk-in status in notes
+          let updatedNotes = formValues.notes;
+          if (isWalkIn) {
+            // If it was a walk-in, ensure "walk-in" remains in the notes
+            if (!updatedNotes.toLowerCase().includes('walk-in')) {
+              // If user removed walk-in text, add it back
+              updatedNotes = updatedNotes.trim() 
+                ? `Walk-in appointment - ${updatedNotes}` 
+                : 'Walk-in appointment';
+            }
+          }
+          
           await updateAppointment(appointment.id, {
             appointment_date: formValues.date,
             appointment_time: formValues.time,
-            notes: formValues.notes
+            notes: updatedNotes
           });
 
           const data = await getAllAppointments();

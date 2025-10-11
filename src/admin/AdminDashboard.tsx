@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { supabase } from '../lib/supabase';
 import { FaSearch, FaUser, FaEnvelope, FaCalendarAlt, FaSignOutAlt, FaChartLine, FaClipboardList, FaChevronRight, FaMoon, FaSun, FaSync } from 'react-icons/fa';
 import { FaArchive, FaBoxOpen } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import AdminCharts from './components/AdminCharts';
 import Footer from './components/Footer';
@@ -150,6 +150,8 @@ const isNewlyRegistered = (createdAt?: string) => {
 
 export default function AdminDashboard() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
+  const { view: urlView } = useParams<{ view?: string }>();
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [assessments, setAssessments] = useState<{ [key: string]: Assessment[] }>({});
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -159,15 +161,9 @@ export default function AdminDashboard() {
   const [yearFilter, setYearFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [activeView, setActiveViewState] = useState(() => {
-    return localStorage.getItem('adminActiveView') || 'dashboard';
-  });
-  const navigate = useNavigate();
-
-  // Persist activeView to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('adminActiveView', activeView);
-  }, [activeView]);
+  
+  // Get activeView from URL or default to 'dashboard'
+  const activeView = urlView || 'dashboard';
 
   // Update clock every second
   useEffect(() => {
@@ -178,10 +174,10 @@ export default function AdminDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  // Custom setter to update both state and localStorage
+  // Function to change view and update URL
   const setActiveView = (view: string) => {
-    setActiveViewState(view);
-    localStorage.setItem('adminActiveView', view);
+    navigate(`/admin/${view}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const Toast = Swal.mixin({

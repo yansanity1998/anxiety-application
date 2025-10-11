@@ -383,22 +383,42 @@ export const getAppointmentsByDateRange = async (startDate: string, endDate: str
 };
 
 // Get all unique students who have appointments
-export const getStudentsWithAppointments = async (): Promise<{profile_id: number, student_name: string, student_email: string, appointment_count: number}[]> => {
+export const getStudentsWithAppointments = async (): Promise<{profile_id: number, student_name: string, student_email: string, appointment_count: number, year_level?: number}[]> => {
   try {
-    const { data, error } = await supabase
+    // First get appointments
+    const { data: appointmentsData, error: appointmentsError } = await supabase
       .from('appointments')
       .select('profile_id, student_name, student_email')
       .order('student_name', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching students with appointments:', error);
-      throw error;
+    if (appointmentsError) {
+      console.error('Error fetching students with appointments:', appointmentsError);
+      throw appointmentsError;
     }
 
+    // Get unique profile IDs
+    const profileIds = [...new Set((appointmentsData || []).map(a => a.profile_id))];
+
+    // Fetch year_level from profiles table
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, year_level')
+      .in('id', profileIds);
+
+    if (profilesError) {
+      console.error('Error fetching profiles:', profilesError);
+    }
+
+    // Create a map of profile_id to year_level
+    const yearLevelMap = new Map<number, number>();
+    (profilesData || []).forEach(profile => {
+      yearLevelMap.set(profile.id, profile.year_level);
+    });
+
     // Group by profile_id and count appointments
-    const studentMap = new Map<number, {profile_id: number, student_name: string, student_email: string, appointment_count: number}>();
+    const studentMap = new Map<number, {profile_id: number, student_name: string, student_email: string, appointment_count: number, year_level?: number}>();
     
-    (data || []).forEach(appointment => {
+    (appointmentsData || []).forEach(appointment => {
       const existing = studentMap.get(appointment.profile_id);
       if (existing) {
         existing.appointment_count++;
@@ -407,7 +427,8 @@ export const getStudentsWithAppointments = async (): Promise<{profile_id: number
           profile_id: appointment.profile_id,
           student_name: appointment.student_name,
           student_email: appointment.student_email,
-          appointment_count: 1
+          appointment_count: 1,
+          year_level: yearLevelMap.get(appointment.profile_id)
         });
       }
     });

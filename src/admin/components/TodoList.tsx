@@ -564,7 +564,7 @@ const TodoList = ({ darkMode }: TodoListProps) => {
           {filteredTodos.map((todo) => (
             <div
               key={todo.id}
-              className={`group relative p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-1 ${
+              className={`group relative p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-1 flex flex-col ${
                 darkMode ? 'bg-gray-700/50 border-gray-600 hover:bg-gray-700' : 'bg-white border-gray-200 hover:shadow-xl'
               } ${isOverdue(todo) ? 'ring-2 ring-red-500/20 border-red-300' : ''}`}
             >
@@ -574,6 +574,7 @@ const TodoList = ({ darkMode }: TodoListProps) => {
                 </div>
               )}
 
+              {/* Card Header */}
               <div className="flex items-start justify-between mb-3 mt-2">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <button
@@ -592,73 +593,77 @@ const TodoList = ({ darkMode }: TodoListProps) => {
                     {todo.title}
                   </h3>
                 </div>
-                <div className={`px-2 py-1 rounded text-xs font-medium flex items-center gap-1 ${getPriorityColor(todo.priority)}`}>
-                  <FaFlag className="text-xs" />
-                  <span className="hidden sm:inline">{PRIORITY_LABELS[todo.priority]}</span>
+                <div className="flex items-center gap-2">
+                  <div className={`px-2 py-1 rounded text-xs font-medium flex items-center gap-1 ${getPriorityColor(todo.priority)}`}>
+                    <FaFlag className="text-xs" />
+                    <span className="hidden sm:inline">{PRIORITY_LABELS[todo.priority]}</span>
+                  </div>
+                  <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={() => handleEditTodo(todo)}
+                      className={`p-1.5 rounded-lg text-xs transition-colors ${
+                        darkMode 
+                          ? 'text-blue-400 hover:bg-blue-900/50 hover:text-blue-300' 
+                          : 'text-blue-600 hover:bg-blue-50 hover:text-blue-700'
+                      }`}
+                      title="Edit todo"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTodo(todo)}
+                      className={`p-1.5 rounded-lg text-xs transition-colors ${
+                        darkMode 
+                          ? 'text-red-400 hover:bg-red-900/50 hover:text-red-300' 
+                          : 'text-red-600 hover:bg-red-50 hover:text-red-700'
+                      }`}
+                      title="Delete todo"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {isOverdue(todo) && (
-                <div className="flex items-center gap-2 mb-3 p-2 bg-red-50 border border-red-200 rounded-lg">
-                  <FaExclamationTriangle className="text-red-500 text-xs" />
-                  <span className="text-red-700 text-xs font-medium">Overdue</span>
-                </div>
-              )}
-
-              {todo.description && (
-                <p className={`text-xs leading-relaxed mb-3 ${
-                  darkMode ? 'text-gray-300' : 'text-gray-600'
-                } ${todo.status === 'completed' ? 'line-through opacity-60' : ''}`}>
-                  {todo.description.length > 100 ? `${todo.description.substring(0, 100)}...` : todo.description}
-                </p>
-              )}
-
-              <div className="flex items-center justify-between mb-3">
-                <span className={`px-2 py-1 text-xs rounded-full font-medium ${getStatusColor(todo.status)}`}>
-                  {STATUS_LABELS[todo.status]}
-                </span>
-              </div>
-
-              <div className="space-y-2 pt-3 border-t border-gray-200/50">
-                {todo.due_at && (
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <FaCalendarAlt className="text-xs" />
-                    <span>Due: {new Date(todo.due_at).toLocaleDateString()}</span>
+              {/* Card Content - Flexible */}
+              <div className="flex-1 flex flex-col">
+                {isOverdue(todo) && (
+                  <div className="flex items-center gap-2 mb-3 p-2 bg-red-50 border border-red-200 rounded-lg">
+                    <FaExclamationTriangle className="text-red-500 text-xs" />
+                    <span className="text-red-700 text-xs font-medium">Overdue</span>
                   </div>
                 )}
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <FaUser className="text-xs" />
-                  <span className="truncate">{todo.profiles?.full_name || getUserName(todo.profile_id)}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <FaClock className="text-xs" />
-                  <span>Created: {new Date(todo.created_at!).toLocaleDateString()}</span>
-                </div>
-              </div>
 
-              <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <button
-                  onClick={() => handleEditTodo(todo)}
-                  className={`p-1.5 rounded-lg text-xs transition-colors ${
-                    darkMode 
-                      ? 'text-blue-400 hover:bg-blue-900/50 hover:text-blue-300' 
-                      : 'text-blue-600 hover:bg-blue-50 hover:text-blue-700'
-                  }`}
-                  title="Edit todo"
-                >
-                  <FaEdit />
-                </button>
-                <button
-                  onClick={() => handleDeleteTodo(todo)}
-                  className={`p-1.5 rounded-lg text-xs transition-colors ${
-                    darkMode 
-                      ? 'text-red-400 hover:bg-red-900/50 hover:text-red-300' 
-                      : 'text-red-600 hover:bg-red-50 hover:text-red-700'
-                  }`}
-                  title="Delete todo"
-                >
-                  <FaTrash />
-                </button>
+                {todo.description && (
+                  <p className={`text-xs leading-relaxed mb-3 ${
+                    darkMode ? 'text-gray-300' : 'text-gray-600'
+                  } ${todo.status === 'completed' ? 'line-through opacity-60' : ''}`}>
+                    {todo.description.length > 100 ? `${todo.description.substring(0, 100)}...` : todo.description}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between mb-3">
+                  <span className={`px-2 py-1 text-xs rounded-full font-medium ${getStatusColor(todo.status)}`}>
+                    {STATUS_LABELS[todo.status]}
+                  </span>
+                </div>
+
+                <div className="space-y-2 pt-3 border-t border-gray-200/50">
+                  {todo.due_at && (
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <FaCalendarAlt className="text-xs" />
+                      <span>Due: {new Date(todo.due_at).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <FaUser className="text-xs" />
+                    <span className="truncate">{todo.profiles?.full_name || getUserName(todo.profile_id)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <FaClock className="text-xs" />
+                    <span>Created: {new Date(todo.created_at!).toLocaleDateString()}</span>
+                  </div>
+                </div>
               </div>
             </div>
           ))}

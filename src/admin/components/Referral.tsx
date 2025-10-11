@@ -1193,13 +1193,13 @@ const Referral = ({ darkMode }: ReferralProps) => {
             <div
               key={referral.id}
               onClick={() => handleReferralClick(referral)}
-              className={`group relative p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-1 overflow-hidden cursor-pointer ${
+              className={`group relative p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-1 overflow-hidden cursor-pointer flex flex-col ${
                 darkMode 
                   ? 'bg-gray-700/50 border-gray-600 hover:bg-gray-700' 
                   : 'bg-white border-gray-200 hover:shadow-xl'
               }`}
             >
-              {/* Header Section with Student Info */}
+              {/* Card Header */}
               <div className="flex items-start mb-3">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <div className={`p-2 rounded-lg ${darkMode ? 'bg-red-500/10' : 'bg-red-50'}`}>
@@ -1217,65 +1217,65 @@ const Referral = ({ darkMode }: ReferralProps) => {
                 </div>
               </div>
 
-              {/* Description Section */}
-              <div className="mb-3">
-                <p className={`text-xs leading-relaxed line-clamp-2 transition-colors ${
-                  darkMode ? 'text-gray-300 group-hover:text-white' : 'text-gray-600 group-hover:text-gray-700'
-                }`}>
-                  {referral.brief_description_of_concern}
-                </p>
-              </div>
+              {/* Card Content - Flexible */}
+              <div className="flex-1 flex flex-col">
+                <div className="mb-3">
+                  <p className={`text-xs leading-relaxed line-clamp-2 transition-colors ${
+                    darkMode ? 'text-gray-300 group-hover:text-white' : 'text-gray-600 group-hover:text-gray-700'
+                  }`}>
+                    {referral.brief_description_of_concern}
+                  </p>
+                </div>
 
-              {/* Status and Urgency Section */}
-              <div className="flex items-center justify-between mb-3">
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors ${
-                  referral.urgency_level === 'critical' 
-                    ? 'bg-red-100 text-red-800' 
-                    : referral.urgency_level === 'high'
-                    ? 'bg-orange-100 text-orange-800'
-                    : referral.urgency_level === 'medium'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-green-100 text-green-800'
-                } group-hover:bg-opacity-100`}>
-                  {getUrgencyIcon(referral.urgency_level)}
-                  <span className="ml-1 capitalize">{referral.urgency_level}</span>
-                </span>
-              </div>
-
-              {/* Info Section */}
-              <div className="space-y-2 pt-3 border-t border-gray-200/50">
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <FaInfoCircle className="text-xs" />
+                <div className="flex items-center justify-between mb-3">
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors ${
-                    referral.referral_status === 'completed' 
-                      ? 'bg-green-100 text-green-800' 
-                      : referral.referral_status === 'pending'
+                    referral.urgency_level === 'critical' 
+                      ? 'bg-red-100 text-red-800' 
+                      : referral.urgency_level === 'high'
+                      ? 'bg-orange-100 text-orange-800'
+                      : referral.urgency_level === 'medium'
                       ? 'bg-yellow-100 text-yellow-800'
-                      : referral.referral_status === 'sent'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-800'
+                      : 'bg-green-100 text-green-800'
                   } group-hover:bg-opacity-100`}>
-                    {referral.referral_status.replace('_', ' ').charAt(0).toUpperCase() + referral.referral_status.replace('_', ' ').slice(1)}
+                    {getUrgencyIcon(referral.urgency_level)}
+                    <span className="ml-1 capitalize">{referral.urgency_level}</span>
                   </span>
                 </div>
-                
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <FaClock className="text-xs" />
-                  <span className={`transition-colors ${
-                    darkMode ? 'group-hover:text-white' : 'group-hover:text-gray-700'
-                  }`}>Created: {new Date(referral.created_at).toLocaleDateString()}</span>
-                </div>
-                
-                {referral.attachments && referral.attachments.length > 0 && (
+
+                <div className="space-y-2 pt-3 border-t border-gray-200/50">
                   <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <FaPaperclip className="text-xs" />
-                    <span className={`transition-colors ${
-                      darkMode ? 'group-hover:text-white' : 'group-hover:text-gray-700'
-                    }`}>
-                      {referral.attachments.length} file{referral.attachments.length !== 1 ? 's' : ''} attached
+                    <FaInfoCircle className="text-xs" />
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors ${
+                      referral.referral_status === 'completed' 
+                        ? 'bg-green-100 text-green-800' 
+                        : referral.referral_status === 'pending'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : referral.referral_status === 'sent'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
+                    } group-hover:bg-opacity-100`}>
+                      {referral.referral_status.replace('_', ' ').charAt(0).toUpperCase() + referral.referral_status.replace('_', ' ').slice(1)}
                     </span>
                   </div>
-                )}
+                  
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <FaClock className="text-xs" />
+                    <span className={`transition-colors ${
+                      darkMode ? 'group-hover:text-white' : 'group-hover:text-gray-700'
+                    }`}>Created: {new Date(referral.created_at).toLocaleDateString()}</span>
+                  </div>
+                  
+                  {referral.attachments && referral.attachments.length > 0 && (
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <FaPaperclip className="text-xs" />
+                      <span className={`transition-colors ${
+                        darkMode ? 'group-hover:text-white' : 'group-hover:text-gray-700'
+                      }`}>
+                        {referral.attachments.length} file{referral.attachments.length !== 1 ? 's' : ''} attached
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Hover Actions */}

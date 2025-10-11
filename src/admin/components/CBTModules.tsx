@@ -570,7 +570,7 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
           {filteredAndSortedModules.map((module) => (
             <div
               key={module.id}
-              className={`group relative p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-1 overflow-hidden ${
+              className={`group relative p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-1 overflow-hidden flex flex-col ${
                 darkMode 
                   ? 'bg-gray-700/50 border-gray-600 hover:bg-gray-700' 
                   : 'bg-white border-gray-200 hover:shadow-xl'
@@ -587,6 +587,7 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
                 </div>
               )}
 
+              {/* Card Header */}
               <div className="flex items-start mb-3">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <div className={`p-2 rounded-lg ${darkMode ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
@@ -598,61 +599,64 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
                     {module.module_title}
                   </h3>
                 </div>
-              </div>
-
-              <p className={`text-xs leading-relaxed mb-3 line-clamp-2 transition-colors ${
-                darkMode ? 'text-gray-300 group-hover:text-white' : 'text-gray-600 group-hover:text-gray-700'
-              }`}>
-                {module.module_description}
-              </p>
-
-              <div className="flex items-center justify-between mb-3">
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors ${getStatusColor(module.module_status)} group-hover:bg-opacity-100`}>
-                  {getStatusIcon(module.module_status)}
-                  <span className="ml-1 capitalize">{module.module_status.replace('_', ' ')}</span>
-                </span>
-              </div>
-
-              <div className="space-y-2 pt-3 border-t border-gray-200/50">
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <FaUser className="text-xs" />
-                  <span className={`truncate font-bold transition-colors ${
-                    darkMode ? 'group-hover:text-white' : 'group-hover:text-gray-700'
-                  }`}>{getUserName(module.profile_id)}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <FaClock className="text-xs" />
-                  <span className={`transition-colors ${
-                    darkMode ? 'group-hover:text-white' : 'group-hover:text-gray-700'
-                  }`}>Created: {new Date(module.created_at!).toLocaleDateString()}</span>
+                <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <button
+                    onClick={() => openEditModal(module)}
+                    className={`p-1.5 rounded-lg text-xs transition-colors ${
+                      darkMode 
+                        ? 'text-blue-400 hover:bg-blue-900/50 hover:text-blue-300' 
+                        : 'text-blue-600 hover:bg-blue-50 hover:text-blue-700'
+                    }`}
+                    title="Edit module"
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteModule(module)}
+                    className={`p-1.5 rounded-lg text-xs transition-colors ${
+                      darkMode 
+                        ? 'text-red-400 hover:bg-red-900/50 hover:text-red-300' 
+                        : 'text-red-600 hover:bg-red-50 hover:text-red-700'
+                    }`}
+                    title="Delete module"
+                  >
+                    <FaTrash />
+                  </button>
                 </div>
               </div>
 
-              <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <button
-                  onClick={() => openEditModal(module)}
-                  className={`p-1.5 rounded-lg text-xs transition-colors ${
-                    darkMode 
-                      ? 'text-blue-400 hover:bg-blue-900/50 hover:text-blue-300' 
-                      : 'text-blue-600 hover:bg-blue-50 hover:text-blue-700'
-                  }`}
-                  title="Edit module"
-                >
-                  <FaEdit />
-                </button>
-                <button
-                  onClick={() => handleDeleteModule(module)}
-                  className={`p-1.5 rounded-lg text-xs transition-colors ${
-                    darkMode 
-                      ? 'text-red-400 hover:bg-red-900/50 hover:text-red-300' 
-                      : 'text-red-600 hover:bg-red-50 hover:text-red-700'
-                  }`}
-                  title="Delete module"
-                >
-                  <FaTrash />
-                </button>
+              {/* Card Content - Flexible */}
+              <div className="flex-1 flex flex-col">
+                <p className={`text-xs leading-relaxed mb-3 line-clamp-2 transition-colors ${
+                  darkMode ? 'text-gray-300 group-hover:text-white' : 'text-gray-600 group-hover:text-gray-700'
+                }`}>
+                  {module.module_description}
+                </p>
+
+                <div className="flex items-center justify-between mb-3">
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors ${getStatusColor(module.module_status)} group-hover:bg-opacity-100`}>
+                    {getStatusIcon(module.module_status)}
+                    <span className="ml-1 capitalize">{module.module_status.replace('_', ' ')}</span>
+                  </span>
+                </div>
+
+                <div className="space-y-2 pt-3 border-t border-gray-200/50">
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <FaUser className="text-xs" />
+                    <span className={`truncate font-bold transition-colors ${
+                      darkMode ? 'group-hover:text-white' : 'group-hover:text-gray-700'
+                    }`}>{getUserName(module.profile_id)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <FaClock className="text-xs" />
+                    <span className={`transition-colors ${
+                      darkMode ? 'group-hover:text-white' : 'group-hover:text-gray-700'
+                    }`}>Created: {new Date(module.created_at!).toLocaleDateString()}</span>
+                  </div>
+                </div>
               </div>
 
+              {/* Card Actions - Fixed at bottom */}
               <div className="flex gap-1.5 mt-3">
                 {module.module_status !== 'in_progress' && (
                   <button

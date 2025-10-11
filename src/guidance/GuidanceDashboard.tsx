@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { supabase } from '../lib/supabase';
 import { FaSearch, FaUser, FaEnvelope, FaCalendarAlt, FaSignOutAlt, FaChartLine, FaClipboardList, FaChevronRight, FaMoon, FaSun, FaSync } from 'react-icons/fa';
 import { FaArchive, FaBoxOpen } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import GuidanceCharts from './components/GuidanceCharts';
 import Footer from './components/Footer';
@@ -151,6 +151,8 @@ const isNewlyRegistered = (createdAt?: string) => {
 
 export default function GuidanceDashboard() {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
+  const { view: urlView } = useParams<{ view?: string }>();
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [assessments, setAssessments] = useState<{ [key: string]: Assessment[] }>({});
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -161,15 +163,9 @@ export default function GuidanceDashboard() {
 
   const [yearFilter, setYearFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeView, setActiveViewState] = useState(() => {
-    return localStorage.getItem('guidanceActiveView') || 'dashboard';
-  });
-  const navigate = useNavigate();
-
-  // Persist activeView to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('guidanceActiveView', activeView);
-  }, [activeView]);
+  
+  // Get activeView from URL or default to 'dashboard'
+  const activeView = urlView || 'dashboard';
 
   // Update clock every second
   useEffect(() => {
@@ -180,10 +176,10 @@ export default function GuidanceDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  // Custom setter to update both state and localStorage
+  // Function to change view and update URL
   const setActiveView = (view: string) => {
-    setActiveViewState(view);
-    localStorage.setItem('guidanceActiveView', view);
+    navigate(`/guidance/${view}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const Toast = Swal.mixin({
@@ -521,6 +517,10 @@ export default function GuidanceDashboard() {
         focusCancel: true
       });
 
+      // Ensure body overflow is restored after modal closes
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+
       if (result.isConfirmed) {
         console.log('📦 Archiving user:', user.id, 'profile:', user.profile_id);
         await archiveUser(user.profile_id);
@@ -539,6 +539,11 @@ export default function GuidanceDashboard() {
       console.error('❌ Error archiving user:', error);
       let errorMessage = 'Failed to archive user';
       if (error instanceof Error) errorMessage = error.message;
+      
+      // Ensure body overflow is restored even on error
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+      
       await Toast.fire({
         icon: 'error',
         iconColor: '#ef4444',
@@ -575,6 +580,89 @@ export default function GuidanceDashboard() {
   
   // Handler for scheduling a guidance visit
   const handleSchedule = async (user: UserProfile) => {
+    // Check if user is verified
+    if (!(user as any).is_verified) {
+      Swal.fire({
+        title: 'Verification Required',
+        html: `
+          <div class="max-h-[60vh] overflow-y-auto pr-2" style="scrollbar-width: thin; scrollbar-color: #800000 ${darkMode ? '#374151' : '#e5e7eb'};">
+            <!-- Icon Header -->
+            <div class="text-center mb-4">
+              <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full mb-3 shadow-lg">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+            </div>
+
+            <!-- Student Info -->
+            <div class="text-center mb-4">
+              <p class="text-base font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-2">
+                ${user.full_name || user.email}
+              </p>
+              <p class="text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}">
+                must be verified before scheduling an appointment.
+              </p>
+            </div>
+
+            <!-- Status Card -->
+            <div class="p-4 bg-gradient-to-br ${darkMode ? 'from-yellow-900/30 to-orange-900/30 border-yellow-600/40' : 'from-yellow-50 to-orange-50 border-yellow-300'} border-2 rounded-xl shadow-lg backdrop-blur-sm">
+              <div class="flex items-start space-x-3">
+                <div class="flex-shrink-0">
+                  <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center shadow-md">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-bold ${darkMode ? 'text-yellow-300' : 'text-yellow-800'} mb-1">
+                    Status: Pending Verification
+                  </p>
+                  <p class="text-xs ${darkMode ? 'text-yellow-200/90' : 'text-yellow-700'} leading-relaxed">
+                    Please verify this student first using the verify button in the user management section.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Help Text -->
+            <div class="text-center mt-4">
+              <p class="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} flex items-center justify-center">
+                <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Verification ensures student identity and data accuracy
+              </p>
+            </div>
+          </div>
+        `,
+        confirmButtonText: 'Okay',
+        confirmButtonColor: '#800000',
+        background: darkMode ? '#1f2937' : '#ffffff',
+        color: darkMode ? '#f3f4f6' : '#1f2937',
+        width: '450px',
+        scrollbarPadding: false,
+        heightAuto: false,
+        customClass: {
+          popup: `rounded-2xl shadow-2xl border-2 ${darkMode ? 'border-yellow-600/50 bg-gradient-to-br from-gray-900 to-gray-800' : 'border-yellow-400/50 bg-gradient-to-br from-white to-gray-50'}`,
+          title: `text-xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent mb-4`,
+          htmlContainer: `${darkMode ? 'text-gray-200' : 'text-gray-700'}`,
+          confirmButton: 'bg-gradient-to-r from-[#800000] to-[#660000] hover:from-[#660000] hover:to-[#4d0000] text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105',
+          icon: 'hidden'
+        },
+        didOpen: () => {
+          document.body.style.overflow = 'hidden';
+          document.body.style.paddingRight = '0px';
+        },
+        didClose: () => {
+          document.body.style.overflow = '';
+          document.body.style.paddingRight = '';
+        }
+      });
+      return;
+    }
+    
     try {
       // Get existing appointments for context (but don't block scheduling)
       const existingAppointments = appointments.filter(app => app.profile_id === user.profile_id);
@@ -587,7 +675,7 @@ export default function GuidanceDashboard() {
       const { value: formValues } = await Swal.fire({
         title: 'Schedule New Appointment',
         html: `
-          <div class="space-y-4">
+          <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2" style="scrollbar-width: thin; scrollbar-color: #800000 ${darkMode ? '#374151' : '#e5e7eb'};">
             <!-- User Info Header -->
             <div class="text-center mb-3">
               <div class="inline-flex items-center justify-center w-12 h-12 ${darkMode ? 'bg-[#800000]/20' : 'bg-[#800000]/10'} rounded-full mb-2">
@@ -628,7 +716,7 @@ export default function GuidanceDashboard() {
             <!-- Date Selection -->
             <div class="space-y-2">
               <label class="block text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">
-                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-red-400' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 Appointment Date
@@ -658,7 +746,7 @@ export default function GuidanceDashboard() {
             <!-- Time Selection -->
             <div class="space-y-2">
               <label class="block text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">
-                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-red-400' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Appointment Time
@@ -687,7 +775,7 @@ export default function GuidanceDashboard() {
             <!-- Notes -->
             <div class="space-y-2">
               <label class="block text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">
-                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-red-400' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
                 Notes (Optional)
@@ -727,13 +815,25 @@ export default function GuidanceDashboard() {
           return { date, time, notes };
         },
         width: '400px',
+        background: darkMode ? '#1f2937' : '#ffffff',
+        color: darkMode ? '#f3f4f6' : '#1f2937',
+        scrollbarPadding: false,
+        heightAuto: false,
         customClass: {
-          popup: `rounded-xl shadow-xl border-2 ${darkMode ? 'border-[#800000] bg-gray-900' : 'border-[#800000] bg-white'}`,
-          title: `text-lg font-bold ${darkMode ? 'text-[#800000]' : 'text-[#800000]'} mb-3`,
+          popup: `rounded-2xl shadow-2xl border-2 ${darkMode ? 'border-[#800000]/50 bg-gradient-to-br from-gray-900 to-gray-800' : 'border-[#800000]/50 bg-gradient-to-br from-white to-gray-50'}`,
+          title: `text-xl font-bold ${darkMode ? 'bg-gradient-to-r from-red-400 to-rose-500 bg-clip-text text-transparent' : 'text-[#800000]'} mb-4`,
           htmlContainer: `${darkMode ? 'text-gray-200' : 'text-gray-700'}`,
-          confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105',
-          cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border-2 font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow hover:shadow-md`,
+          confirmButton: 'bg-gradient-to-r from-[#800000] to-[#660000] hover:from-[#660000] hover:to-[#4d0000] text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105',
+          cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border-2 font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow hover:shadow-md`,
           icon: 'hidden'
+        },
+        didOpen: () => {
+          document.body.style.overflow = 'hidden';
+          document.body.style.paddingRight = '0px';
+        },
+        didClose: () => {
+          document.body.style.overflow = '';
+          document.body.style.paddingRight = '';
         }
       });
 

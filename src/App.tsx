@@ -224,7 +224,23 @@ function App() {
             } 
           />
           <Route 
+            path="/admin/:view" 
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="/guidance" 
+            element={
+              <ProtectedRoute>
+                <GuidanceDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/guidance/:view" 
             element={
               <ProtectedRoute>
                 <GuidanceDashboard />
