@@ -294,10 +294,13 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
   };
 
   const showStudentInfo = (appointment: Appointment) => {
+    // Prevent background scrolling
+    document.body.style.overflow = 'hidden';
+    
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4';
     modal.innerHTML = `
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-gray-200">
         <div class="p-5">
           <div class="flex items-center gap-4 mb-5">
             <div class="p-3 rounded-lg bg-gradient-to-br from-[#800000]/10 to-[#800000]/20">
@@ -388,8 +391,19 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
       </div>
     `;
     
+    const closeModalHandler = () => {
+      document.body.style.overflow = '';
+      modal.remove();
+    };
+    
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) modal.remove();
+      if (e.target === modal) closeModalHandler();
+    });
+    
+    // Update close button handlers
+    modal.querySelectorAll('[onclick*="remove"]').forEach(btn => {
+      btn.removeAttribute('onclick');
+      btn.addEventListener('click', closeModalHandler);
     });
     
     document.body.appendChild(modal);
@@ -397,6 +411,9 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
 
   const handleDeleteAppointment = async (appointment: Appointment) => {
     const confirmed = await new Promise<boolean>((resolve) => {
+      // Prevent background scrolling
+      document.body.style.overflow = 'hidden';
+      
       const modal = document.createElement('div');
       modal.className = 'fixed inset-0 bg-white/20 backdrop-blur-md flex items-center justify-center z-50 p-4';
       modal.innerHTML = `
@@ -429,20 +446,17 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
       const cancelBtn = modal.querySelector('#cancelBtn');
       const confirmBtn = modal.querySelector('#confirmBtn');
       
-      cancelBtn?.addEventListener('click', () => {
+      const closeModalHandler = (result: boolean) => {
+        document.body.style.overflow = '';
         modal.remove();
-        resolve(false);
-      });
-      confirmBtn?.addEventListener('click', () => {
-        modal.remove();
-        resolve(true);
-      });
+        resolve(result);
+      };
+      
+      cancelBtn?.addEventListener('click', () => closeModalHandler(false));
+      confirmBtn?.addEventListener('click', () => closeModalHandler(true));
       
       modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.remove();
-          resolve(false);
-        }
+        if (e.target === modal) closeModalHandler(false);
       });
     });
 
@@ -464,10 +478,13 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
   const handleEditAppointment = async (appointment: Appointment) => {
     try {
       const formValues = await new Promise<{date: string, time: string, notes: string} | null>((resolve) => {
+        // Prevent background scrolling
+        document.body.style.overflow = 'hidden';
+        
         const modal = document.createElement('div');
         modal.className = 'fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4';
         modal.innerHTML = `
-          <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-gray-200">
+          <div class="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-gray-200">
             <div class="p-5">
               <div class="flex items-center gap-4 mb-5">
                 <div class="p-3 rounded-lg bg-gradient-to-br from-[#800000]/10 to-[#800000]/20">
@@ -579,13 +596,14 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
         const cancelBtn2 = modal.querySelector('#cancelBtn2');
         const confirmBtn = modal.querySelector('#confirmBtn');
         
-        const closeModal = () => {
+        const closeModal = (result: {date: string, time: string, notes: string} | null = null) => {
+          document.body.style.overflow = '';
           modal.remove();
-          resolve(null);
+          resolve(result);
         };
 
-        cancelBtn?.addEventListener('click', closeModal);
-        cancelBtn2?.addEventListener('click', closeModal);
+        cancelBtn?.addEventListener('click', () => closeModal());
+        cancelBtn2?.addEventListener('click', () => closeModal());
         
         confirmBtn?.addEventListener('click', () => {
           const date = (modal.querySelector('#edit-date') as HTMLInputElement)?.value;
@@ -597,15 +615,11 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
             return;
           }
           
-          modal.remove();
-          resolve({ date, time, notes });
+          closeModal({ date, time, notes });
         });
         
         modal.addEventListener('click', (e) => {
-          if (e.target === modal) {
-            modal.remove();
-            resolve(null);
-          }
+          if (e.target === modal) closeModal();
         });
       });
 

@@ -1427,7 +1427,7 @@ export default function GuidanceDashboard() {
                                          Modal.fire({
                                            title: 'Assessment Details',
                                            html: `
-                                             <div class="text-left space-y-2">
+                                             <div class="text-left space-y-3">
                                                <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : colors.border}">
                                                  <div class="flex items-center justify-between mb-2">
                                                    <p class="mb-1"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Anxiety Level:</strong></p>
@@ -1439,6 +1439,35 @@ export default function GuidanceDashboard() {
                                                  <p class="mb-1 text-xs"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Percentage:</strong> <span class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">${latestAssessment.percentage}%</span></p>
                                                  <p class="mb-1 text-xs"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Date:</strong> <span class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">${new Date(latestAssessment.created_at).toLocaleString()}</span></p>
                                                </div>
+                                               
+                                               ${anxietyLevel.toLowerCase() === 'moderate' || anxietyLevel.toLowerCase() === 'severe' ? `
+                                               <!-- Compact Immediate Action Alert -->
+                                               <div class="${darkMode ? 'bg-gradient-to-r from-orange-900/20 to-red-900/20 border-orange-600/40' : 'bg-gradient-to-r from-orange-50/80 to-red-50/80 border-orange-300/40'} border rounded-lg p-2.5 shadow-sm">
+                                                 <div class="flex items-center space-x-2">
+                                                   <div class="flex-shrink-0">
+                                                     <div class="w-6 h-6 ${anxietyLevel.toLowerCase() === 'severe' ? 'bg-red-500' : 'bg-orange-500'} rounded-full flex items-center justify-center">
+                                                       <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                       </svg>
+                                                     </div>
+                                                   </div>
+                                                   <div class="flex-1">
+                                                     <div class="flex items-center space-x-1 mb-1">
+                                                       <span class="w-1.5 h-1.5 ${anxietyLevel.toLowerCase() === 'severe' ? 'bg-red-500' : 'bg-orange-500'} rounded-full animate-pulse"></span>
+                                                       <span class="text-xs font-bold ${darkMode ? 'text-orange-300' : 'text-orange-800'}">
+                                                         ${anxietyLevel.toLowerCase() === 'severe' ? 'IMMEDIATE ACTION REQUIRED' : 'IMMEDIATE ATTENTION NEEDED'}
+                                                       </span>
+                                                     </div>
+                                                     <div class="flex flex-wrap gap-1.5 text-xs ${darkMode ? 'text-orange-200' : 'text-orange-700'}">
+                                                       <span class="px-1.5 py-0.5 ${darkMode ? 'bg-orange-800/30' : 'bg-orange-100'} rounded">Schedule counseling</span>
+                                                       <span class="px-1.5 py-0.5 ${darkMode ? 'bg-orange-800/30' : 'bg-orange-100'} rounded">Contact student</span>
+                                                       <span class="px-1.5 py-0.5 ${darkMode ? 'bg-orange-800/30' : 'bg-orange-100'} rounded">Monitor closely</span>
+                                                       ${anxietyLevel.toLowerCase() === 'severe' ? `<span class="px-1.5 py-0.5 ${darkMode ? 'bg-red-800/30' : 'bg-red-100'} rounded text-red-700">Consider referral</span>` : ''}
+                                                     </div>
+                                                   </div>
+                                                 </div>
+                                               </div>
+                                               ` : ''}
                                                <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
                                                  <p class="mb-1 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'} text-xs">Answers:</p>
                                                  <div class="text-xs space-y-1">

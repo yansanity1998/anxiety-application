@@ -602,7 +602,7 @@ export default function AdminDashboard() {
       const { value: formValues } = await Swal.fire({
         title: 'Schedule New Appointment',
         html: `
-          <div class="space-y-4">
+          <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2" style="scrollbar-width: thin; scrollbar-color: #800000 ${darkMode ? '#374151' : '#e5e7eb'};">
             <!-- User Info Header -->
             <div class="text-center mb-3">
               <div class="inline-flex items-center justify-center w-12 h-12 ${darkMode ? 'bg-[#800000]/20' : 'bg-[#800000]/10'} rounded-full mb-2">
@@ -643,7 +643,7 @@ export default function AdminDashboard() {
             <!-- Date Selection -->
             <div class="space-y-2">
               <label class="block text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">
-                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-red-400' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 Appointment Date
@@ -673,7 +673,7 @@ export default function AdminDashboard() {
             <!-- Time Selection -->
             <div class="space-y-2">
               <label class="block text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">
-                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-red-400' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Appointment Time
@@ -702,7 +702,7 @@ export default function AdminDashboard() {
             <!-- Notes -->
             <div class="space-y-2">
               <label class="block text-xs font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'} mb-1">
-                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-[#800000]' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="inline w-3 h-3 mr-1 ${darkMode ? 'text-red-400' : 'text-[#800000]'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
                 Notes (Optional)
@@ -718,7 +718,7 @@ export default function AdminDashboard() {
             <!-- Help Text -->
             <div class="text-center">
               <p class="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}">
-                <svg class="inline w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="inline w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 You can schedule multiple appointments for the same student
@@ -742,13 +742,25 @@ export default function AdminDashboard() {
           return { date, time, notes };
         },
         width: '400px',
+        background: darkMode ? '#1f2937' : '#ffffff',
+        color: darkMode ? '#f3f4f6' : '#1f2937',
+        scrollbarPadding: false,
+        heightAuto: false,
         customClass: {
-          popup: `rounded-xl shadow-xl border-2 ${darkMode ? 'border-[#800000] bg-gray-900' : 'border-[#800000] bg-white'}`,
-          title: `text-lg font-bold ${darkMode ? 'text-[#800000]' : 'text-[#800000]'} mb-3`,
+          popup: `rounded-2xl shadow-2xl border-2 ${darkMode ? 'border-[#800000]/50 bg-gradient-to-br from-gray-900 to-gray-800' : 'border-[#800000]/50 bg-gradient-to-br from-white to-gray-50'}`,
+          title: `text-xl font-bold ${darkMode ? 'bg-gradient-to-r from-red-400 to-rose-500 bg-clip-text text-transparent' : 'text-[#800000]'} mb-4`,
           htmlContainer: `${darkMode ? 'text-gray-200' : 'text-gray-700'}`,
-          confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105',
-          cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border-2 font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow hover:shadow-md`,
+          confirmButton: 'bg-gradient-to-r from-[#800000] to-[#660000] hover:from-[#660000] hover:to-[#4d0000] text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105',
+          cancelButton: `${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} border-2 font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow hover:shadow-md`,
           icon: 'hidden'
+        },
+        didOpen: () => {
+          document.body.style.overflow = 'hidden';
+          document.body.style.paddingRight = '0px';
+        },
+        didClose: () => {
+          document.body.style.overflow = '';
+          document.body.style.paddingRight = '';
         }
       });
 
@@ -1462,7 +1474,7 @@ export default function AdminDashboard() {
                                             Modal.fire({
                                               title: 'Assessment Details',
                                               html: `
-                                                <div class="text-left space-y-2">
+                                                <div class="text-left space-y-3">
                                                   <div class="${darkMode ? 'bg-rose-900' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : colors.border}">
                                                     <div class="flex items-center justify-between mb-2">
                                                       <p class="mb-1"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Anxiety Level:</strong></p>
@@ -1474,6 +1486,35 @@ export default function AdminDashboard() {
                                                     <p class="mb-1 text-xs"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Percentage:</strong> <span class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">${latestAssessment.percentage}%</span></p>
                                                     <p class="mb-1 text-xs"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Date:</strong> <span class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">${new Date(latestAssessment.created_at).toLocaleString()}</span></p>
                                                   </div>
+                                                  
+                                                  ${anxietyLevel.toLowerCase() === 'moderate' || anxietyLevel.toLowerCase() === 'severe' ? `
+                                                  <!-- Compact Immediate Action Alert -->
+                                                  <div class="${darkMode ? 'bg-gradient-to-r from-orange-900/20 to-red-900/20 border-orange-600/40' : 'bg-gradient-to-r from-orange-50/80 to-red-50/80 border-orange-300/40'} border rounded-lg p-2.5 shadow-sm">
+                                                    <div class="flex items-center space-x-2">
+                                                      <div class="flex-shrink-0">
+                                                        <div class="w-6 h-6 ${anxietyLevel.toLowerCase() === 'severe' ? 'bg-red-500' : 'bg-orange-500'} rounded-full flex items-center justify-center">
+                                                          <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                          </svg>
+                                                        </div>
+                                                      </div>
+                                                      <div class="flex-1">
+                                                        <div class="flex items-center space-x-1 mb-1">
+                                                          <span class="w-1.5 h-1.5 ${anxietyLevel.toLowerCase() === 'severe' ? 'bg-red-500' : 'bg-orange-500'} rounded-full animate-pulse"></span>
+                                                          <span class="text-xs font-bold ${darkMode ? 'text-orange-300' : 'text-orange-800'}">
+                                                            ${anxietyLevel.toLowerCase() === 'severe' ? 'IMMEDIATE ACTION REQUIRED' : 'IMMEDIATE ATTENTION NEEDED'}
+                                                          </span>
+                                                        </div>
+                                                        <div class="flex flex-wrap gap-1.5 text-xs ${darkMode ? 'text-orange-200' : 'text-orange-700'}">
+                                                          <span class="px-1.5 py-0.5 ${darkMode ? 'bg-orange-800/30' : 'bg-orange-100'} rounded">Schedule counseling</span>
+                                                          <span class="px-1.5 py-0.5 ${darkMode ? 'bg-orange-800/30' : 'bg-orange-100'} rounded">Contact student</span>
+                                                          <span class="px-1.5 py-0.5 ${darkMode ? 'bg-orange-800/30' : 'bg-orange-100'} rounded">Monitor closely</span>
+                                                          ${anxietyLevel.toLowerCase() === 'severe' ? `<span class="px-1.5 py-0.5 ${darkMode ? 'bg-red-800/30' : 'bg-red-100'} rounded text-red-700">Consider referral</span>` : ''}
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                  ` : ''}
                                                   <div class="${darkMode ? 'bg-rose-900' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
                                                     <p class="mb-1 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'} text-xs">Answers:</p>
                                                     <div class="text-xs space-y-1">

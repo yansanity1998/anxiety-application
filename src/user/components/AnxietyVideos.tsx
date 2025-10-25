@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaVideo, FaArrowLeft, FaClock, FaCheck, FaPlay, FaExternalLinkAlt, FaSearch, FaFilter, FaTimes, FaHeart, FaCalendarAlt, FaEye } from 'react-icons/fa';
+import { FaVideo, FaArrowLeft, FaClock, FaCheck, FaPlay, FaSearch, FaFilter, FaTimes, FaHeart, FaCalendarAlt, FaEye } from 'react-icons/fa';
 import { anxietyVideoService } from '../../lib/anxietyVideoService';
 import type { AnxietyVideo } from '../../lib/anxietyVideoService';
 import { useNavigate } from 'react-router-dom';
@@ -91,6 +91,32 @@ const AnxietyVideos = () => {
   const openVideoDetail = (video: AnxietyVideo) => {
     setSelectedVideo(video);
     setShowVideoDetail(true);
+  };
+
+  // Convert YouTube URL to embed format with full controls enabled
+  const getEmbedUrl = (url: string) => {
+    try {
+      // Handle youtube.com/watch?v= format
+      if (url.includes('youtube.com/watch')) {
+        const videoId = new URL(url).searchParams.get('v');
+        return `https://www.youtube.com/embed/${videoId}?controls=1&modestbranding=1&rel=0&enablejsapi=1`;
+      }
+      // Handle youtu.be/ format
+      if (url.includes('youtu.be/')) {
+        const videoId = url.split('youtu.be/')[1].split('?')[0];
+        return `https://www.youtube.com/embed/${videoId}?controls=1&modestbranding=1&rel=0&enablejsapi=1`;
+      }
+      // Handle vimeo
+      if (url.includes('vimeo.com/')) {
+        const videoId = url.split('vimeo.com/')[1].split('?')[0];
+        return `https://player.vimeo.com/video/${videoId}?controls=1&title=0&byline=0&portrait=0`;
+      }
+      // If already an embed URL or other format, return as is
+      return url;
+    } catch (error) {
+      console.error('Error parsing video URL:', error);
+      return url;
+    }
   };
 
 
@@ -415,45 +441,54 @@ const AnxietyVideos = () => {
               className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Modal Header with Large Video Placeholder */}
-              <div className="relative">
-                <div className="h-80 bg-gradient-to-br from-red-400 via-pink-500 to-purple-600 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-6 border-2 border-white/30 mx-auto">
-                      <FaPlay className="text-white text-3xl ml-1" />
-                    </div>
-                    {selectedVideo.video_duration && (
-                      <span className="inline-flex items-center px-4 py-2 rounded-2xl text-lg font-bold bg-black/40 backdrop-blur-md text-white border border-white/20 mb-4">
-                        <FaClock className="mr-2" />
-                        {formatDuration(selectedVideo.video_duration)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Close Button */}
+              {/* Close Button - Outside Video Area */}
+              <div className="absolute top-2 right-2 z-50">
                 <button
                   onClick={() => setShowVideoDetail(false)}
-                  className="absolute top-4 right-4 p-3 rounded-2xl bg-black/20 backdrop-blur-md text-white hover:bg-black/40 transition-all duration-200"
+                  className="p-3 rounded-full bg-black/80 backdrop-blur-md text-white hover:bg-black/95 transition-all duration-200 shadow-lg"
                 >
                   <FaTimes className="text-xl" />
                 </button>
+              </div>
 
-                {/* Title Overlay */}
-                <div className="absolute bottom-6 left-6 right-6">
-                  <h2 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">
-                    {selectedVideo.video_title}
-                  </h2>
-                  <span className={`inline-flex items-center px-4 py-2 rounded-2xl text-sm font-bold backdrop-blur-md ${
+              {/* Modal Header with Video Player */}
+              <div className="relative">
+                {/* Video Player */}
+                <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
+                  <iframe
+                    src={getEmbedUrl(selectedVideo.video_url)}
+                    className="absolute top-0 left-0 w-full h-full rounded-t-3xl sm:rounded-t-3xl"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                    allowFullScreen={true}
+                    frameBorder="0"
+                    title={selectedVideo.video_title}
+                    style={{ border: 'none', pointerEvents: 'auto' }}
+                  />
+                </div>
+              </div>
+
+              {/* Title and Status Below Video */}
+              <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+                <h2 className="text-2xl font-bold text-gray-800 mb-3">
+                  {selectedVideo.video_title}
+                </h2>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className={`inline-flex items-center px-4 py-2 rounded-2xl text-sm font-bold ${
                     selectedVideo.video_status === 'completed' 
-                      ? 'text-emerald-700 bg-emerald-100/80' 
+                      ? 'text-emerald-700 bg-emerald-100 border border-emerald-200' 
                       : selectedVideo.video_status === 'in_progress'
-                      ? 'text-amber-700 bg-amber-100/80'
-                      : 'text-slate-700 bg-slate-100/80'
+                      ? 'text-amber-700 bg-amber-100 border border-amber-200'
+                      : 'text-slate-700 bg-slate-100 border border-slate-200'
                   }`}>
                     {getStatusIcon(selectedVideo.video_status)}
                     <span className="ml-2 capitalize">{selectedVideo.video_status.replace('_', ' ')}</span>
                   </span>
+                  {selectedVideo.video_duration && (
+                    <span className="inline-flex items-center px-4 py-2 rounded-2xl text-sm font-bold bg-gray-100 text-gray-700 border border-gray-200">
+                      <FaClock className="mr-2" />
+                      {formatDuration(selectedVideo.video_duration)}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -503,29 +538,18 @@ const AnxietyVideos = () => {
                     Close
                   </button>
                   
-                  <div className="flex gap-3 flex-1">
-                    <a 
-                      href={selectedVideo.video_url} 
-                      target="_blank" 
-                      rel="noreferrer"
-                      className="flex-1 py-4 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white rounded-2xl font-semibold transition-all duration-200 shadow-lg flex items-center justify-center gap-3"
+                  {selectedVideo.video_status !== 'completed' && (
+                    <button
+                      onClick={() => {
+                        handleStatusChange(selectedVideo, 'completed');
+                        setShowVideoDetail(false);
+                      }}
+                      className="flex-1 py-4 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-2xl font-semibold transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
                     >
-                      <FaExternalLinkAlt />
-                      Watch Video
-                    </a>
-                    
-                    {selectedVideo.video_status !== 'completed' && (
-                      <button
-                        onClick={() => {
-                          handleStatusChange(selectedVideo, 'completed');
-                          setShowVideoDetail(false);
-                        }}
-                        className="flex-1 py-4 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-2xl font-semibold transition-all duration-200 shadow-lg"
-                      >
-                        Complete
-                      </button>
-                    )}
-                  </div>
+                      <FaCheck />
+                      Mark as Complete
+                    </button>
+                  )}
                 </div>
               </div>
             </motion.div>

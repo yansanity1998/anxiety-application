@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { FaTasks, FaCheck, FaClock, FaExclamationTriangle, FaCalendarAlt, FaFlag, FaPause, FaUndo } from 'react-icons/fa';
-import { getTodoItems, updateTodoItem, getTodoStats, TODO_CATEGORIES, PRIORITY_LABELS, STATUS_LABELS, type TodoItem } from '../../lib/todoService';
+import { FaTasks, FaCheck, FaClock, FaExclamationTriangle, FaCalendarAlt, FaFlag, FaPause, FaUndo, FaPlus, FaTimes } from 'react-icons/fa';
+import { getTodoItems, updateTodoItem, getTodoStats, createTodoItem, TODO_CATEGORIES, PRIORITY_LABELS, STATUS_LABELS, type TodoItem } from '../../lib/todoService';
 import { supabase } from '../../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -12,12 +12,21 @@ const StudentTodoList = ({ darkMode = false }: TodoListProps) => {
 	const [todos, setTodos] = useState<TodoItem[]>([]);
 	const [filteredTodos, setFilteredTodos] = useState<TodoItem[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
-	const [, setUserProfile] = useState<any>(null);
+	const [userProfile, setUserProfile] = useState<any>(null);
 	const [statusFilter, setStatusFilter] = useState<string>('all');
 	const [categoryFilter, setCategoryFilter] = useState<string>('all');
 	const [stats, setStats] = useState({ total: 0, completed: 0, inProgress: 0, overdue: 0 });
 	const [statusModalOpen, setStatusModalOpen] = useState(false);
 	const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+	const [showCreateModal, setShowCreateModal] = useState(false);
+	const [createFormData, setCreateFormData] = useState({
+		title: '',
+		description: '',
+		category: '',
+		priority: 3 as 1 | 2 | 3 | 4 | 5,
+		due_at: ''
+	});
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	useEffect(() => {
 		fetchUserAndTodos();
@@ -82,6 +91,48 @@ const StudentTodoList = ({ darkMode = false }: TodoListProps) => {
 			await fetchUserAndTodos(); // Refresh data
 		} catch (error) {
 			console.error('Error updating todo status:', error);
+		}
+	};
+
+	const handleCreateTask = async () => {
+		if (!createFormData.title.trim()) {
+			alert('Please enter a task title');
+			return;
+		}
+
+		if (!userProfile) {
+			alert('User profile not found');
+			return;
+		}
+
+		try {
+			setIsSubmitting(true);
+			await createTodoItem({
+				profile_id: userProfile.id,
+				title: createFormData.title.trim(),
+				description: createFormData.description.trim() || undefined,
+				category: createFormData.category || undefined,
+				priority: createFormData.priority,
+				due_at: createFormData.due_at || undefined
+			});
+
+			// Reset form and close modal
+			setCreateFormData({
+				title: '',
+				description: '',
+				category: '',
+				priority: 3,
+				due_at: ''
+			});
+			setShowCreateModal(false);
+
+			// Refresh todos
+			await fetchUserAndTodos();
+		} catch (error) {
+			console.error('Error creating task:', error);
+			alert('Failed to create task. Please try again.');
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -151,17 +202,27 @@ const StudentTodoList = ({ darkMode = false }: TodoListProps) => {
 	return (
 		<div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-4 sm:p-6 border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
 			{/* Header */}
-			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-				<div className="flex items-center">
-					<div className="p-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl mr-3">
-						<FaTasks className="text-white text-xl" />
+			<div className="flex flex-col gap-4 mb-6">
+				<div className="flex items-center justify-between">
+					<div className="flex items-center min-w-0 flex-1">
+						<div className="p-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl mr-3 flex-shrink-0">
+							<FaTasks className="text-white text-lg sm:text-xl" />
+						</div>
+						<div className="min-w-0 flex-1">
+							<h2 className={`text-lg sm:text-xl md:text-2xl font-bold truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>My To-Do List</h2>
+							<p className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} truncate`}>Track your anxiety therapy tasks</p>
+						</div>
 					</div>
-					<div>
-						<h2 className={`text-xl sm:text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>My To-Do List</h2>
-						<p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Track your anxiety therapy tasks</p>
-					</div>
+					<button
+						onClick={() => setShowCreateModal(true)}
+						className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl hover:from-emerald-600 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95 sm:hover:scale-105 text-xs sm:text-sm font-medium flex-shrink-0 whitespace-nowrap"
+					>
+						<FaPlus className="text-xs" />
+						<span className="hidden sm:inline">Add Task</span>
+						<span className="sm:hidden">Add</span>
+					</button>
 				</div>
-				<div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} bg-gradient-to-r from-green-50 to-emerald-50 px-3 py-2 rounded-xl border border-green-200`}>
+				<div className={`text-xs sm:text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} bg-gradient-to-r from-green-50 to-emerald-50 px-3 py-2 rounded-xl border border-green-200 text-center`}>
 					<span className="font-semibold text-green-700">{stats.completed}</span>
 					<span className="text-green-600"> of </span>
 					<span className="font-semibold text-green-700">{stats.total}</span>
@@ -450,8 +511,152 @@ const StudentTodoList = ({ darkMode = false }: TodoListProps) => {
 					</AnimatePresence>
 				</div>
 			)}
+
+			{/* Create Task Modal */}
+			<AnimatePresence>
+				{showCreateModal && (
+					<motion.div
+						className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4 overflow-y-auto"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						onClick={() => setShowCreateModal(false)}
+					>
+						<motion.div
+							className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto`}
+							initial={{ scale: 0.9, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							exit={{ scale: 0.9, opacity: 0 }}
+							onClick={(e) => e.stopPropagation()}
+						>
+							<div className="p-4 sm:p-6">
+								{/* Modal Header */}
+								<div className="flex items-start justify-between mb-4 sm:mb-6">
+									<div className="flex items-start gap-2 sm:gap-3 min-w-0 flex-1">
+										<div className="p-1.5 sm:p-2 bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl flex-shrink-0">
+											<FaPlus className="text-white text-base sm:text-lg" />
+										</div>
+										<div className="min-w-0 flex-1">
+											<h3 className={`text-lg sm:text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+												Create New Task
+											</h3>
+											<p className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+												Add a personal task to track
+											</p>
+										</div>
+									</div>
+									<button
+										onClick={() => setShowCreateModal(false)}
+										className={`p-2 rounded-xl transition-colors flex-shrink-0 ${darkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+									>
+										<FaTimes className="text-base sm:text-lg" />
+									</button>
+								</div>
+
+								{/* Form Fields */}
+							<div className="space-y-3 sm:space-y-4">
+								{/* Title */}
+								<div>
+									<label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+										Task Title <span className="text-red-500">*</span>
+									</label>
+									<input
+										type="text"
+										value={createFormData.title}
+										onChange={(e) => setCreateFormData(prev => ({ ...prev, title: e.target.value }))}
+										placeholder="Enter task title..."
+										className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl border transition-colors ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-emerald-500' : 'bg-white border-gray-300 placeholder-gray-500 focus:border-emerald-500'} focus:ring-2 focus:ring-emerald-500/20 focus:outline-none`}
+									/>
+								</div>
+
+								{/* Description */}
+								<div>
+									<label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+										Description
+									</label>
+									<textarea
+										value={createFormData.description}
+										onChange={(e) => setCreateFormData(prev => ({ ...prev, description: e.target.value }))}
+										placeholder="Add details about your task..."
+										rows={3}
+										className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl border transition-colors resize-none ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-emerald-500' : 'bg-white border-gray-300 placeholder-gray-500 focus:border-emerald-500'} focus:ring-2 focus:ring-emerald-500/20 focus:outline-none`}
+									/>
+								</div>
+
+								{/* Category and Priority */}
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+									<div>
+										<label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+											Category
+										</label>
+										<select
+											value={createFormData.category}
+											onChange={(e) => setCreateFormData(prev => ({ ...prev, category: e.target.value }))}
+											className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl border transition-colors ${darkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-emerald-500' : 'bg-white border-gray-300 focus:border-emerald-500'} focus:ring-2 focus:ring-emerald-500/20 focus:outline-none`}
+										>
+											<option value="">Select category</option>
+											{TODO_CATEGORIES.map(cat => (
+												<option key={cat} value={cat}>{cat}</option>
+											))}
+										</select>
+									</div>
+
+									<div>
+										<label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+											Priority
+										</label>
+										<select
+											value={createFormData.priority}
+											onChange={(e) => setCreateFormData(prev => ({ ...prev, priority: parseInt(e.target.value) as any }))}
+											className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl border transition-colors ${darkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-emerald-500' : 'bg-white border-gray-300 focus:border-emerald-500'} focus:ring-2 focus:ring-emerald-500/20 focus:outline-none`}
+										>
+											<option value="3">Medium</option>
+											<option value="1">Urgent</option>
+											<option value="2">High</option>
+											<option value="4">Low</option>
+											<option value="5">Very Low</option>
+										</select>
+									</div>
+								</div>
+
+								{/* Due Date */}
+								<div>
+									<label className={`block text-xs sm:text-sm font-medium mb-1.5 sm:mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+										Due Date
+									</label>
+									<input
+										type="datetime-local"
+										value={createFormData.due_at}
+										onChange={(e) => setCreateFormData(prev => ({ ...prev, due_at: e.target.value }))}
+										className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl border transition-colors ${darkMode ? 'bg-gray-700 border-gray-600 text-white focus:border-emerald-500' : 'bg-white border-gray-300 focus:border-emerald-500'} focus:ring-2 focus:ring-emerald-500/20 focus:outline-none`}
+									/>
+								</div>
+							</div>
+
+							{/* Action Buttons */}
+							<div className={`flex flex-col sm:flex-row gap-2 sm:gap-3 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+								<button
+									onClick={() => setShowCreateModal(false)}
+									disabled={isSubmitting}
+									className={`w-full sm:flex-1 px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl font-medium transition-all duration-200 ${darkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+								>
+									Cancel
+								</button>
+								<button
+									onClick={handleCreateTask}
+									disabled={isSubmitting || !createFormData.title.trim()}
+									className={`w-full sm:flex-1 px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-xl font-medium transition-all duration-200 bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:from-emerald-600 hover:to-green-700 shadow-lg hover:shadow-xl active:scale-95 sm:hover:scale-105 ${(isSubmitting || !createFormData.title.trim()) ? 'opacity-50 cursor-not-allowed hover:scale-100 active:scale-100' : ''}`}
+								>
+									{isSubmitting ? 'Creating...' : 'Create Task'}
+								</button>
+							</div>
+							</div>
+						</motion.div>
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</div>
 	);
 };
 
-export default StudentTodoList; 
+export default StudentTodoList;
