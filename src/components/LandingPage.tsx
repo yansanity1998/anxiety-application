@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaBrain, FaHeart, FaUsers, FaShieldAlt, FaChevronLeft, FaChevronRight, FaTimes, FaArrowDown, FaStar, FaQuoteLeft, FaPlay, FaCheckCircle, FaAward, FaClock, FaGraduationCap } from 'react-icons/fa';
+import { FaBrain, FaHeart, FaUsers, FaShieldAlt, FaChevronLeft, FaChevronRight, FaTimes, FaArrowDown, FaStar, FaQuoteLeft, FaPlay, FaCheckCircle, FaAward, FaClock, FaGraduationCap, FaArrowUp } from 'react-icons/fa';
 import Login from '../auth/Login';
 import Register from '../auth/Register';
 
@@ -108,6 +108,7 @@ export default function LandingPage() {
   const [isVisible, setIsVisible] = useState<{[key: string]: boolean}>({});
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   
   // Inject animation styles and scroll to top on mount
@@ -228,6 +229,24 @@ export default function LandingPage() {
 
     return () => observerRef.current?.disconnect();
   }, []);
+
+  // Scroll to top button visibility
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 500) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % carouselImages.length);
@@ -917,6 +936,20 @@ export default function LandingPage() {
           </div>
         </div>
       )}
+
+      {/* Scroll to Top Button */}
+      <button
+        onClick={scrollToTop}
+        className={`fixed bottom-8 right-8 z-40 bg-gradient-to-r from-[#800000] to-[#a00000] text-white p-4 rounded-full shadow-2xl hover:shadow-3xl transform hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer group ${
+          showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16 pointer-events-none'
+        }`}
+        aria-label="Scroll to top"
+      >
+        <FaArrowUp className="text-xl group-hover:animate-bounce" />
+        <div className="absolute -top-12 right-0 bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+          Back to top
+        </div>
+      </button>
     </div>
   );
 }
