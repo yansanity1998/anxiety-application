@@ -509,18 +509,20 @@ export default function Register({ onSwitch }: RegisterProps) {
                 required
                 autoComplete="new-password"
               />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 pr-2 flex items-center"
-                onClick={() => setShowPassword(!showPassword)}
-                tabIndex={-1}
-              >
-                {showPassword ? (
-                  <FaEyeSlash className="text-gray-600 hover:text-gray-800 transition-colors text-xs" />
-                ) : (
-                  <FaEye className="text-gray-600 hover:text-gray-800 transition-colors text-xs" />
-                )}
-              </button>
+              {password && (
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-2 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <FaEyeSlash className="text-gray-600 hover:text-gray-800 transition-colors text-xs" />
+                  ) : (
+                    <FaEye className="text-gray-600 hover:text-gray-800 transition-colors text-xs" />
+                  )}
+                </button>
+              )}
             </div>
           </div>
           <div className="mt-3">
@@ -538,18 +540,20 @@ export default function Register({ onSwitch }: RegisterProps) {
                 required
                 autoComplete="new-password"
               />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-0 pr-2 flex items-center"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                tabIndex={-1}
-              >
-                {showConfirmPassword ? (
-                  <FaEyeSlash className="text-gray-600 hover:text-gray-800 transition-colors text-xs" />
-                ) : (
-                  <FaEye className="text-gray-600 hover:text-gray-800 transition-colors text-xs" />
-                )}
-              </button>
+              {confirmPassword && (
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-2 flex items-center"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? (
+                    <FaEyeSlash className="text-gray-600 hover:text-gray-800 transition-colors text-xs" />
+                  ) : (
+                    <FaEye className="text-gray-600 hover:text-gray-800 transition-colors text-xs" />
+                  )}
+                </button>
+              )}
             </div>
           </div>
 

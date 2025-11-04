@@ -20,6 +20,7 @@ import Referral from './components/Referral';
 import Schedule from './components/Schedule';
 import Records from '../guidance/components/Records';
 import { realtimeService } from '../lib/realtimeService';
+import AnxietyHistoryModal from './components/AnxietyHistoryModal';
 
 type UserProfile = {
   id: string;
@@ -161,6 +162,8 @@ export default function AdminDashboard() {
   const [yearFilter, setYearFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [selectedUserForHistory, setSelectedUserForHistory] = useState<{ name: string; assessments: Assessment[] } | null>(null);
   
   // Get activeView from URL or default to 'dashboard'
   const activeView = urlView || 'dashboard';
@@ -1475,7 +1478,7 @@ export default function AdminDashboard() {
                                               title: 'Assessment Details',
                                               html: `
                                                 <div class="text-left space-y-3">
-                                                  <div class="${darkMode ? 'bg-rose-900' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : colors.border}">
+                                                  <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : colors.border}">
                                                     <div class="flex items-center justify-between mb-2">
                                                       <p class="mb-1"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Anxiety Level:</strong></p>
                                                       <span class="px-2 py-0.5 rounded-full ${darkMode ? 'bg-gray-600' : colors.bg} ${colors.text} font-medium text-xs">
@@ -1515,7 +1518,7 @@ export default function AdminDashboard() {
                                                     </div>
                                                   </div>
                                                   ` : ''}
-                                                  <div class="${darkMode ? 'bg-rose-900' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
+                                                  <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
                                                     <p class="mb-1 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'} text-xs">Answers:</p>
                                                     <div class="text-xs space-y-1">
                                                       ${latestAssessment.answers.map((answer, index) => `
@@ -1543,11 +1546,22 @@ export default function AdminDashboard() {
                                               customClass: {
                                                 popup: 'rounded-lg shadow-lg border border-gray-200',
                                                 title: 'text-base font-bold text-gray-900',
-                                                confirmButton: 'bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors'
+                                                confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-4 rounded-lg transition-colors view-full-history-button',
                                               },
                                               showConfirmButton: true,
-                                              confirmButtonText: 'Close',
-                                              showCancelButton: false,
+                                              confirmButtonText: '📊 View Full History',
+                                              showCancelButton: true,
+                                              cancelButtonText: 'Close',
+                                              focusCancel: false,
+                                            }).then((result) => {
+                                              if (result.isConfirmed) {
+                                                // Open the history modal
+                                                setSelectedUserForHistory({ 
+                                                  name: user.full_name || user.email, 
+                                                  assessments: assessments[user.profile_id] 
+                                                });
+                                                setIsHistoryModalOpen(true);
+                                              }
                                             });
                                           } else {
                                             Modal.fire({
@@ -1850,6 +1864,19 @@ export default function AdminDashboard() {
           </div>
           <Footer darkMode={darkMode} />
         </>
+      )}
+      
+      {/* Anxiety History Modal */}
+      {selectedUserForHistory && (
+        <AnxietyHistoryModal
+          isOpen={isHistoryModalOpen}
+          onClose={() => {
+            setIsHistoryModalOpen(false);
+            setSelectedUserForHistory(null);
+          }}
+          userName={selectedUserForHistory.name}
+          assessments={selectedUserForHistory.assessments}
+        />
       )}
     </div>
   );

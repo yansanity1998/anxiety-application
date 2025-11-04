@@ -461,17 +461,19 @@
                   required
                   autoComplete="current-password"
                 />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <FaEyeSlash className="text-gray-600 hover:text-gray-800 transition-colors" />
-                  ) : (
-                    <FaEye className="text-gray-600 hover:text-gray-800 transition-colors" />
-                  )}
-                </button>
+                {password && (
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <FaEyeSlash className="text-gray-600 hover:text-gray-800 transition-colors" />
+                    ) : (
+                      <FaEye className="text-gray-600 hover:text-gray-800 transition-colors" />
+                    )}
+                  </button>
+                )}
               </div>
             </div>
 

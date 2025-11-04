@@ -19,6 +19,7 @@ import Referral from './components/Referral';
 import Schedule from './components/Schedule';
 import Records from './components/Records';
 import { realtimeService } from '../lib/realtimeService';
+import AnxietyHistoryModal from './components/AnxietyHistoryModal';
 
 type UserProfile = {
   id: string;
@@ -163,7 +164,9 @@ export default function GuidanceDashboard() {
 
   const [yearFilter, setYearFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [selectedUserForHistory, setSelectedUserForHistory] = useState<{ name: string; assessments: Assessment[] } | null>(null);
+
   // Get activeView from URL or default to 'dashboard'
   const activeView = urlView || 'dashboard';
 
@@ -1496,11 +1499,22 @@ export default function GuidanceDashboard() {
                                            customClass: {
                                              popup: 'rounded-lg shadow-lg border border-gray-200',
                                              title: 'text-base font-bold text-gray-900',
-                                             confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-4 rounded-lg transition-colors'
+                                             confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-4 rounded-lg transition-colors view-full-history-button',
                                            },
                                            showConfirmButton: true,
-                                           confirmButtonText: 'Close',
-                                           showCancelButton: false,
+                                           confirmButtonText: '📊 View Full History',
+                                           showCancelButton: true,
+                                           cancelButtonText: 'Close',
+                                           focusCancel: false,
+                                         }).then((result) => {
+                                           if (result.isConfirmed) {
+                                             // Open the history modal
+                                             setSelectedUserForHistory({ 
+                                               name: user.full_name || user.email, 
+                                               assessments: assessments[user.profile_id] 
+                                             });
+                                             setIsHistoryModalOpen(true);
+                                           }
                                          });
                                        } else {
                                          Modal.fire({
@@ -1869,6 +1883,18 @@ export default function GuidanceDashboard() {
         {activeView === 'schedule' && <Schedule darkMode={darkMode} />}
         {activeView === 'records' && <Records darkMode={darkMode} />}
       </div>
+      {/* Anxiety History Modal */}
+      {selectedUserForHistory && (
+        <AnxietyHistoryModal
+          isOpen={isHistoryModalOpen}
+          onClose={() => {
+            setIsHistoryModalOpen(false);
+            setSelectedUserForHistory(null);
+          }}
+          userName={selectedUserForHistory.name}
+          assessments={selectedUserForHistory.assessments}
+        />
+      )}
       <Footer darkMode={darkMode} />
     </div>
   );
