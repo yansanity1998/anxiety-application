@@ -55,12 +55,12 @@ const answerOptions = [
 ];
 
 const getAnxietyLevel = (percentage: number) => {
-  // GAD-7 scoring: 0-4 minimal, 5-9 mild, 10-14 moderate, 15-21 severe
-  const totalScore = Math.round((percentage / 100) * 21); // Convert percentage back to score
+  // GAD-7 based percentage thresholds: 0-19% minimal, 20-47% mild, 48-71% moderate, 72-100% severe
+  // This aligns with GAD-7 scoring: 0-4 minimal, 5-9 mild, 10-14 moderate, 15-21 severe (out of 21 max)
   
-  if (totalScore <= 4) return { level: "Minimal", color: "text-green-600", bgColor: "bg-green-50", borderColor: "border-green-200" };
-  if (totalScore <= 9) return { level: "Mild", color: "text-blue-600", bgColor: "bg-blue-50", borderColor: "border-blue-200" };
-  if (totalScore <= 14) return { level: "Moderate", color: "text-yellow-600", bgColor: "bg-yellow-50", borderColor: "border-yellow-200" };
+  if (percentage < 20) return { level: "Minimal", color: "text-green-600", bgColor: "bg-green-50", borderColor: "border-green-200" };
+  if (percentage < 48) return { level: "Mild", color: "text-blue-600", bgColor: "bg-blue-50", borderColor: "border-blue-200" };
+  if (percentage < 72) return { level: "Moderate", color: "text-yellow-600", bgColor: "bg-yellow-50", borderColor: "border-yellow-200" };
   return { level: "Severe", color: "text-red-600", bgColor: "bg-red-50", borderColor: "border-red-200" };
 };
 

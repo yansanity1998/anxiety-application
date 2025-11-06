@@ -5,6 +5,9 @@ import {
   FaFire, FaDove, FaCloud, FaMountain, FaBrain, FaEye, FaHandPaper, 
   FaHome, FaExpand, FaCompress
 } from 'react-icons/fa';
+import GuidedMeditation from './GuidedMeditation';
+import ProgressiveMuscleRelaxation from './ProgressiveMuscleRelaxation';
+import VisualizationJourney from './VisualizationJourney';
 
 interface RelaxationToolsProps {
   onClose?: () => void;
@@ -24,6 +27,7 @@ const RelaxationTools: React.FC<RelaxationToolsProps> = ({ onClose }) => {
   const masterGainRef = useRef<GainNode | null>(null);
   const soundNodesRef = useRef<{ stop?: () => void; cleanup?: () => void } | null>(null);
   const [activeNatureSound, setActiveNatureSound] = useState<string | null>(null);
+  const [selectedSession, setSelectedSession] = useState<any>(null);
 
   const relaxationTools = [
     {
@@ -401,6 +405,7 @@ const RelaxationTools: React.FC<RelaxationToolsProps> = ({ onClose }) => {
   const startSession = (toolId: string, sessionOrSound?: any) => {
     setActiveSession(toolId);
     setSelectedTool(toolId);
+    setSelectedSession(sessionOrSound);
     setIsPlaying(true);
     setSessionTime(0);
 
@@ -451,6 +456,13 @@ const RelaxationTools: React.FC<RelaxationToolsProps> = ({ onClose }) => {
       try { audioCtxRef.current?.close?.(); } catch {}
     };
   }, []);
+
+  // Scroll to top when tool is selected
+  useEffect(() => {
+    if (selectedTool) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [selectedTool]);
 
   // Tool session interface
   if (selectedTool) {
@@ -506,63 +518,117 @@ const RelaxationTools: React.FC<RelaxationToolsProps> = ({ onClose }) => {
         </div>
 
         {/* Session Content */}
-        <div className="relative z-10 p-6 min-h-[400px]">
-          {activeSession && (
-            <motion.div 
-              className="text-center mb-6"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            >
-              <div className={`inline-flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg border ${tool.borderColor}`}>
-                <div className="text-3xl font-mono font-bold text-gray-800">
-                  {formatTime(sessionTime)}
-                </div>
-                <div className="flex items-center gap-2">
-                  <motion.button
-                    onClick={togglePlayPause}
-                    className={`w-12 h-12 bg-gradient-to-r ${tool.gradient} text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all`}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {isPlaying ? <FaPause /> : <FaPlay className="ml-1" />}
-                  </motion.button>
-                  <motion.button
-                    onClick={stopSession}
-                    className="w-12 h-12 bg-gray-500 hover:bg-gray-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <FaStop />
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Tool-specific content */}
-          {tool.id === 'nature-sounds' ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {tool.sounds?.map((sound, index) => (
-                <motion.button
-                  key={sound.sound}
-                  onClick={() => startSession(tool.id, sound)}
-                  className={`p-4 bg-white/60 hover:bg-white/80 rounded-xl border-2 transition-all text-center ${
-                    activeSession === tool.id && activeNatureSound === sound.sound ? `${tool.borderColor} shadow-lg` : 'border-gray-200'
-                  }`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -5, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+        <div className="relative z-10 min-h-[400px]">
+          {/* Render appropriate component based on tool type */}
+          {tool.id === 'meditation' && selectedSession ? (
+            <GuidedMeditation
+              session={selectedSession}
+              onStop={stopSession}
+              isPlaying={isPlaying}
+              onTogglePlay={togglePlayPause}
+            />
+          ) : tool.id === 'progressive-muscle' && selectedSession ? (
+            <ProgressiveMuscleRelaxation
+              session={selectedSession}
+              onStop={stopSession}
+              isPlaying={isPlaying}
+              onTogglePlay={togglePlayPause}
+            />
+          ) : tool.id === 'visualization' && selectedSession ? (
+            <VisualizationJourney
+              session={selectedSession}
+              onStop={stopSession}
+              isPlaying={isPlaying}
+              onTogglePlay={togglePlayPause}
+            />
+          ) : tool.id === 'nature-sounds' ? (
+            <div className="p-6">
+              {activeSession && (
+                <motion.div 
+                  className="text-center mb-6"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
                 >
-                  <sound.icon className={`text-2xl mb-2 mx-auto text-teal-600`} />
-                  <p className="font-semibold text-gray-800">{sound.name}</p>
-                </motion.button>
-              ))}
+                  <div className={`inline-flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-2xl px-6 py-4 shadow-lg border ${tool.borderColor}`}>
+                    <div className="text-3xl font-mono font-bold text-gray-800">
+                      {formatTime(sessionTime)}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <motion.button
+                        onClick={togglePlayPause}
+                        className={`w-12 h-12 bg-gradient-to-r ${tool.gradient} text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all`}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {isPlaying ? <FaPause /> : <FaPlay className="ml-1" />}
+                      </motion.button>
+                      <motion.button
+                        onClick={stopSession}
+                        className="w-12 h-12 bg-gray-500 hover:bg-gray-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <FaStop />
+                      </motion.button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {tool.sounds?.map((sound, index) => (
+                  <motion.button
+                    key={sound.sound}
+                    onClick={() => startSession(tool.id, sound)}
+                    className={`p-4 bg-white/60 hover:bg-white/80 rounded-xl border-2 transition-all text-center ${
+                      activeSession === tool.id && activeNatureSound === sound.sound ? `${tool.borderColor} shadow-lg` : 'border-gray-200'
+                    }`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ y: -5, scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <sound.icon className={`text-2xl mb-2 mx-auto text-teal-600`} />
+                    <p className="font-semibold text-gray-800">{sound.name}</p>
+                  </motion.button>
+                ))}
+              </div>
+
+              {activeSession && (
+                <motion.div 
+                  className="mt-6 flex items-center justify-center gap-4 bg-white/60 backdrop-blur-sm rounded-xl p-4"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <motion.button
+                    onClick={() => setIsMuted(!isMuted)}
+                    className="w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-lg flex items-center justify-center transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {isMuted ? <FaVolumeMute className="text-gray-600" /> : <FaVolumeUp className="text-gray-600" />}
+                  </motion.button>
+                  <div className="flex-1 max-w-xs">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={isMuted ? 0 : volume}
+                      onChange={(e) => setVolume(Number(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                  </div>
+                  <span className="text-sm text-gray-600 font-medium min-w-[3rem]">
+                    {isMuted ? '0%' : `${volume}%`}
+                  </span>
+                </motion.div>
+              )}
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="p-6 space-y-4">
               {tool.sessions?.map((session, index) => (
                 <motion.button
                   key={session.script}
@@ -587,38 +653,6 @@ const RelaxationTools: React.FC<RelaxationToolsProps> = ({ onClose }) => {
                 </motion.button>
               ))}
             </div>
-          )}
-
-          {/* Volume Control */}
-          {activeSession && (
-            <motion.div 
-              className="mt-6 flex items-center justify-center gap-4 bg-white/60 backdrop-blur-sm rounded-xl p-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              <motion.button
-                onClick={() => setIsMuted(!isMuted)}
-                className="w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-lg flex items-center justify-center transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {isMuted ? <FaVolumeMute className="text-gray-600" /> : <FaVolumeUp className="text-gray-600" />}
-              </motion.button>
-              <div className="flex-1 max-w-xs">
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={isMuted ? 0 : volume}
-                  onChange={(e) => setVolume(Number(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                />
-              </div>
-              <span className="text-sm text-gray-600 font-medium min-w-[3rem]">
-                {isMuted ? '0%' : `${volume}%`}
-              </span>
-            </motion.div>
           )}
         </div>
       </motion.div>

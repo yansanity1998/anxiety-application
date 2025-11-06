@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   FaGamepad, 
   FaHeart, 
@@ -15,6 +15,7 @@ import {
   FaFire,
   FaInfoCircle
 } from 'react-icons/fa';
+import gameSoundService from '../../lib/gameSoundService';
 
 interface AnxietyReliefGameProps {
   userData?: any;
@@ -44,6 +45,9 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
   const [highScore, setHighScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [showCombo, setShowCombo] = useState(false);
+  
+  // Track collected items to prevent double-processing
+  const collectedItemsRef = useRef<Set<number>>(new Set());
 
   // Positive items (collect these)
   const positiveItems = [
@@ -60,13 +64,47 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
     { icon: FaSnowflake, color: 'text-blue-500', bgColor: 'bg-blue-100', damage: 1 }
   ];
 
-  // Load high score from localStorage
+  // Load high score and current score from localStorage
   useEffect(() => {
     const savedHighScore = localStorage.getItem('anxietyGameHighScore');
     if (savedHighScore) {
       setHighScore(parseInt(savedHighScore));
     }
+
+    const savedScore = localStorage.getItem('anxietyGameCurrentScore');
+    if (savedScore) {
+      setScore(parseInt(savedScore));
+    }
+
+    const savedLevel = localStorage.getItem('anxietyGameCurrentLevel');
+    if (savedLevel) {
+      setLevel(parseInt(savedLevel));
+    }
+
+    const savedLives = localStorage.getItem('anxietyGameCurrentLives');
+    if (savedLives) {
+      setLives(parseInt(savedLives));
+    }
   }, []);
+
+  // Save current score to localStorage whenever it changes
+  useEffect(() => {
+    if (score > 0) {
+      localStorage.setItem('anxietyGameCurrentScore', score.toString());
+    }
+  }, [score]);
+
+  // Save current level to localStorage whenever it changes
+  useEffect(() => {
+    if (level > 1) {
+      localStorage.setItem('anxietyGameCurrentLevel', level.toString());
+    }
+  }, [level]);
+
+  // Save current lives to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('anxietyGameCurrentLives', lives.toString());
+  }, [lives]);
 
   // Game loop
   useEffect(() => {
@@ -117,6 +155,8 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
     const newLevel = Math.floor(gameTime / 300) + 1; // Level up every 30 seconds
     if (newLevel > level) {
       setLevel(newLevel);
+      // Play level up sound
+      gameSoundService.playLevelUpSound();
     }
   }, [gameTime, level]);
 
@@ -140,10 +180,29 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
     setGameItems(prev => [...prev, newItem]);
   }, [level]);
 
-  const collectItem = (itemId: number) => {
+  const collectItem = (itemId: number, event?: React.MouseEvent) => {
+    // Prevent event bubbling
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    // Check if item was already collected using ref
+    if (collectedItemsRef.current.has(itemId)) {
+      return;
+    }
+    
+    // Mark as collected in ref immediately
+    collectedItemsRef.current.add(itemId);
+    
     setGameItems(prevItems => {
       const targetItem = prevItems.find(item => item.id === itemId && !item.collected);
       if (!targetItem) return prevItems;
+      
+      // Mark as collected immediately to prevent double-processing
+      const updatedItems = prevItems.map(item => 
+        item.id === itemId ? { ...item, collected: true } : item
+      );
       
       if (targetItem.type === 'positive') {
         const basePoints = positiveItems.find(p => p.icon === targetItem.icon)?.points || 10;
@@ -154,7 +213,16 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
         setCombo(prev => prev + 1);
         setShowCombo(true);
         setTimeout(() => setShowCombo(false), 1000);
+        
+        // Play collect sound (gentle chime for positive items)
+        gameSoundService.playCollectSound();
+        
+        // Play combo sound for combos
+        if (combo > 0 && combo % 5 === 0) {
+          gameSoundService.playComboSound();
+        }
       } else {
+        // Only deduct 1 life for negative items
         setLives(prev => {
           const newLives = prev - 1;
           if (newLives <= 0) {
@@ -163,11 +231,12 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
           return newLives;
         });
         setCombo(0); // Reset combo on negative item
+        
+        // Play avoid sound for negative items (soft warning)
+        gameSoundService.playAvoidSound();
       }
       
-      return prevItems.map(item => 
-        item.id === itemId ? { ...item, collected: true } : item
-      );
+      return updatedItems;
     });
   };
 
@@ -181,6 +250,17 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
     setLevel(1);
     setCombo(0);
     setShowInstructions(false);
+    
+    // Clear collected items tracking
+    collectedItemsRef.current.clear();
+    
+    // Clear saved game state
+    localStorage.removeItem('anxietyGameCurrentScore');
+    localStorage.removeItem('anxietyGameCurrentLevel');
+    localStorage.removeItem('anxietyGameCurrentLives');
+    
+    // Play start game sound
+    gameSoundService.playGameStartSound();
   };
 
   const pauseGame = () => {
@@ -199,7 +279,17 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
     if (score > highScore) {
       setHighScore(score);
       localStorage.setItem('anxietyGameHighScore', score.toString());
+      // Play victory sound for new high score
+      gameSoundService.playNewHighScoreSound();
+    } else {
+      // Play game over sound
+      gameSoundService.playGameOverSound();
     }
+    
+    // Clear saved game state
+    localStorage.removeItem('anxietyGameCurrentScore');
+    localStorage.removeItem('anxietyGameCurrentLevel');
+    localStorage.removeItem('anxietyGameCurrentLives');
   };
 
   const resetGame = () => {
@@ -212,35 +302,39 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
     setLevel(1);
     setCombo(0);
     setShowInstructions(true);
+    
+    // Clear collected items tracking
+    collectedItemsRef.current.clear();
+    
+    // Clear saved game state
+    localStorage.removeItem('anxietyGameCurrentScore');
+    localStorage.removeItem('anxietyGameCurrentLevel');
+    localStorage.removeItem('anxietyGameCurrentLives');
   };
 
   return (
-    <div className="mb-8">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 px-2">
-        <div className="flex items-center gap-3 sm:gap-4">
-          <div className="relative">
-            <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-2xl sm:rounded-3xl shadow-2xl transform hover:scale-110 transition-all duration-300">
-              <FaGamepad className="text-white text-lg sm:text-xl" />
+    <div className="mb-6 sm:mb-8">
+      {/* Header - Compact on Mobile */}
+      <div className="flex items-center justify-between gap-2 sm:gap-4 mb-3 sm:mb-6 px-1 sm:px-2">
+        <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+          <div className="relative flex-shrink-0">
+            <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-xl sm:rounded-3xl shadow-xl sm:shadow-2xl transform hover:scale-110 transition-all duration-300">
+              <FaGamepad className="text-white text-base sm:text-xl" />
             </div>
-            <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
-              <FaStar className="text-white text-xs" />
+            <div className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-pulse">
+              <FaStar className="text-white text-[8px] sm:text-xs" />
             </div>
           </div>
-          <div className="flex-1">
-            <h2 className="font-bold text-xl sm:text-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 bg-clip-text text-transparent mb-1">
+          <div className="flex-1 min-w-0">
+            <h2 className="font-bold text-base sm:text-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 bg-clip-text text-transparent truncate">
               Mindful Collector
             </h2>
-            <p className="text-xs sm:text-sm text-gray-600 font-medium">Collect positive thoughts, avoid negativity</p>
-            <p className="text-xs text-gray-500 sm:hidden">Build mindfulness through play</p>
+            <p className="text-[10px] sm:text-sm text-gray-600 font-medium truncate">Collect positive thoughts, avoid negativity</p>
           </div>
         </div>
-        <div className="flex sm:hidden items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200 self-start">
-          <FaInfoCircle className="text-purple-500 text-xs" />
-          <span className="text-xs font-medium text-purple-700">Anxiety Relief</span>
-        </div>
-        <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl border border-purple-200">
-          <FaInfoCircle className="text-purple-500 text-sm" />
-          <span className="text-xs font-medium text-purple-700">Anxiety Relief</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg sm:rounded-2xl border border-purple-200 flex-shrink-0">
+          <FaInfoCircle className="text-purple-500 text-[10px] sm:text-sm" />
+          <span className="text-[10px] sm:text-xs font-medium text-purple-700 whitespace-nowrap">Anxiety Relief</span>
         </div>
       </div>
 
@@ -248,77 +342,84 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
         {/* Decorative background elements */}
         <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-purple-200/30 to-transparent rounded-full -translate-x-16 -translate-y-16"></div>
         <div className="absolute bottom-0 right-0 w-40 h-40 bg-gradient-to-tl from-pink-200/30 to-transparent rounded-full translate-x-20 translate-y-20"></div>
-        {/* Game Stats */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
-          <div className="flex flex-wrap gap-2 sm:gap-4 lg:gap-6 w-full sm:w-auto">
-            <div className="text-center bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300 flex-1 sm:flex-none min-w-0">
-              <div className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent truncate">{score}</div>
-              <div className="text-xs font-medium text-gray-600 mt-1">Score</div>
+        {/* Game Stats - Mobile Optimized Grid */}
+        <div className="mb-4 sm:mb-6">
+          {/* Main Stats Grid */}
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4 lg:gap-6 mb-2 sm:mb-0">
+            {/* Score */}
+            <div className="text-center bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl px-2 py-2 sm:px-4 sm:py-3 border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="text-lg sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{score}</div>
+              <div className="text-xs font-medium text-gray-600 mt-0.5 sm:mt-1">Score</div>
             </div>
-            <div className="text-center bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center justify-center gap-0.5 sm:gap-1 mb-1">
+            
+            {/* Lives */}
+            <div className="text-center bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl px-2 py-2 sm:px-4 sm:py-3 border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center justify-center gap-0.5 sm:gap-1 mb-0.5 sm:mb-1">
                 {[...Array(3)].map((_, i) => (
                   <FaHeart 
                     key={i} 
-                    className={`text-base sm:text-lg lg:text-xl transition-all duration-300 ${i < lives ? 'text-red-500 drop-shadow-sm animate-pulse' : 'text-gray-300'}`} 
+                    className={`text-sm sm:text-lg lg:text-xl transition-all duration-300 ${i < lives ? 'text-red-500 drop-shadow-sm animate-pulse' : 'text-gray-300'}`} 
                   />
                 ))}
               </div>
               <div className="text-xs font-medium text-gray-600">Lives</div>
             </div>
-            <div className="text-center bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300">
+            
+            {/* Level */}
+            <div className="text-center bg-white/60 backdrop-blur-sm rounded-xl sm:rounded-2xl px-2 py-2 sm:px-4 sm:py-3 border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300">
               <div className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">L{level}</div>
-              <div className="text-xs font-medium text-gray-600 mt-1">Level</div>
+              <div className="text-xs font-medium text-gray-600 mt-0.5 sm:mt-1">Level</div>
             </div>
+            
+            {/* High Score */}
             {highScore > 0 && (
-              <div className="text-center bg-gradient-to-br from-yellow-50 to-orange-50 backdrop-blur-sm rounded-xl sm:rounded-2xl px-3 py-2 sm:px-4 sm:py-3 border border-yellow-200 shadow-lg hover:shadow-xl transition-all duration-300 flex-1 sm:flex-none min-w-0">
-                <div className="flex items-center justify-center gap-1 sm:gap-2 mb-1">
-                  <FaTrophy className="text-yellow-500 text-sm sm:text-base lg:text-lg animate-bounce" />
-                  <span className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent truncate">{highScore}</span>
+              <div className="text-center bg-gradient-to-br from-yellow-50 to-orange-50 backdrop-blur-sm rounded-xl sm:rounded-2xl px-2 py-2 sm:px-4 sm:py-3 border border-yellow-200 shadow-lg hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center justify-center gap-1 sm:gap-2 mb-0.5 sm:mb-1">
+                  <FaTrophy className="text-yellow-500 text-xs sm:text-base lg:text-lg animate-bounce" />
+                  <span className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">{highScore}</span>
                 </div>
                 <div className="text-xs font-medium text-yellow-700">Best</div>
               </div>
             )}
           </div>
           
+          {/* Combo Badge - Separate Row on Mobile */}
           {combo > 0 && (
-            <div className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl bg-gradient-to-r from-orange-100 via-red-100 to-pink-100 border border-orange-300 shadow-lg transition-all duration-300 ${showCombo ? 'scale-110 shadow-2xl' : ''} mt-2 sm:mt-0 self-start sm:self-auto`}>
-              <FaFire className="text-orange-500 text-sm sm:text-base lg:text-lg animate-pulse" />
-              <span className="text-sm sm:text-base lg:text-lg font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">{combo}x</span>
-              <span className="text-xs font-medium text-orange-700 hidden sm:inline">COMBO</span>
+            <div className={`flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2 rounded-xl sm:rounded-2xl bg-gradient-to-r from-orange-100 via-red-100 to-pink-100 border border-orange-300 shadow-lg transition-all duration-300 ${showCombo ? 'scale-105 shadow-2xl' : ''} mt-2 sm:mt-3 w-full sm:w-auto sm:inline-flex`}>
+              <FaFire className="text-orange-500 text-base sm:text-base lg:text-lg animate-pulse" />
+              <span className="text-base sm:text-base lg:text-lg font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">{combo}x</span>
+              <span className="text-xs sm:text-xs font-medium text-orange-700">COMBO STREAK</span>
             </div>
           )}
         </div>
 
-        {/* Compact Instructions */}
+        {/* Instructions - Mobile Optimized */}
         {showInstructions && (
-          <div className="bg-gradient-to-br from-white/90 to-purple-50/90 backdrop-blur-md rounded-2xl p-4 mb-4 border border-white/60 shadow-xl relative overflow-hidden">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
-                <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                  <FaGamepad className="text-white text-xs" />
-                </div>
-                <span className="bg-gradient-to-r from-purple-700 to-pink-700 bg-clip-text text-transparent">Quick Guide</span>
-              </h3>
+          <div className="bg-gradient-to-br from-white/90 to-purple-50/90 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 mb-3 sm:mb-4 border border-white/60 shadow-xl relative overflow-hidden">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                <FaGamepad className="text-white text-[10px] sm:text-xs" />
+              </div>
+              <h3 className="font-bold text-sm sm:text-lg text-gray-800 bg-gradient-to-r from-purple-700 to-pink-700 bg-clip-text text-transparent">Quick Guide</h3>
             </div>
-            <div className="flex items-center justify-center gap-6 text-xs text-gray-700">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                  <FaHeart className="text-white text-xs" />
+            <div className="grid grid-cols-3 gap-2 sm:flex sm:items-center sm:justify-center sm:gap-6 text-[10px] sm:text-xs text-gray-700">
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                <div className="w-6 h-6 sm:w-4 sm:h-4 bg-green-500 rounded-full flex items-center justify-center">
+                  <FaHeart className="text-white text-xs sm:text-xs" />
                 </div>
-                <span className="font-medium text-green-700">Collect +</span>
+                <span className="font-medium text-green-700 text-center sm:text-left">Collect +</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                  <FaCloud className="text-white text-xs" />
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                <div className="w-6 h-6 sm:w-4 sm:h-4 bg-red-500 rounded-full flex items-center justify-center">
+                  <FaCloud className="text-white text-xs sm:text-xs" />
                 </div>
-                <span className="font-medium text-red-700">Avoid -</span>
+                <span className="font-medium text-red-700 text-center sm:text-left">Avoid -</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-orange-500 rounded-full flex items-center justify-center">
-                  <FaFire className="text-white text-xs" />
+              <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                <div className="w-6 h-6 sm:w-4 sm:h-4 bg-orange-500 rounded-full flex items-center justify-center">
+                  <FaFire className="text-white text-xs sm:text-xs" />
                 </div>
-                <span className="font-medium text-orange-700">Combo!</span>
+                <span className="font-medium text-orange-700 text-center sm:text-left">Combo!</span>
               </div>
             </div>
           </div>
@@ -345,7 +446,7 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
                 minHeight: '48px',
                 minWidth: '48px'
               }}
-              onClick={() => collectItem(item.id)}
+              onClick={(e) => collectItem(item.id, e)}
               disabled={item.collected}
             >
               <item.icon className={`${item.color} text-lg sm:text-xl drop-shadow-sm`} />

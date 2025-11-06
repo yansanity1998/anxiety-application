@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   FaBrain, 
   FaPlay, 
@@ -11,6 +11,7 @@ import {
   FaStar,
   FaLightbulb
 } from 'react-icons/fa';
+import memorySoundService from '../../lib/memorySoundService';
 
 interface BrainTrainingGameProps {
   userData?: any;
@@ -44,6 +45,9 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
     accuracyBonus: 0,
     completionBonus: 0
   });
+  
+  // Track flipped cards to prevent double sound
+  const lastFlippedRef = useRef<number>(-1);
 
   // Memory symbols with colors
   const symbols = [
@@ -57,13 +61,53 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
     { value: '💎', color: 'bg-purple-100' }
   ];
 
-  // Load high score from localStorage
+  // Load high score and current game state from localStorage
   useEffect(() => {
     const savedHighScore = localStorage.getItem('brainGameHighScore');
     if (savedHighScore) {
       setHighScore(parseInt(savedHighScore));
     }
+
+    const savedScore = localStorage.getItem('brainGameCurrentScore');
+    if (savedScore) {
+      setScore(parseInt(savedScore));
+    }
+
+    const savedLevel = localStorage.getItem('brainGameCurrentLevel');
+    if (savedLevel) {
+      setLevel(parseInt(savedLevel));
+    }
+
+    const savedMatches = localStorage.getItem('brainGameCurrentMatches');
+    if (savedMatches) {
+      setMatches(parseInt(savedMatches));
+    }
+
+    const savedAttempts = localStorage.getItem('brainGameCurrentAttempts');
+    if (savedAttempts) {
+      setAttempts(parseInt(savedAttempts));
+    }
   }, []);
+
+  // Save current score to localStorage whenever it changes
+  useEffect(() => {
+    if (score > 0) {
+      localStorage.setItem('brainGameCurrentScore', score.toString());
+    }
+  }, [score]);
+
+  // Save current level to localStorage
+  useEffect(() => {
+    if (level > 1) {
+      localStorage.setItem('brainGameCurrentLevel', level.toString());
+    }
+  }, [level]);
+
+  // Save matches and attempts
+  useEffect(() => {
+    localStorage.setItem('brainGameCurrentMatches', matches.toString());
+    localStorage.setItem('brainGameCurrentAttempts', attempts.toString());
+  }, [matches, attempts]);
 
   // Game timer
   useEffect(() => {
@@ -98,6 +142,9 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
       });
       
       if (level < 5) {
+        // Play level complete sound
+        memorySoundService.playLevelCompleteSound();
+        
         // Next level
         setTimeout(() => {
           setLevel(prev => prev + 1);
@@ -116,6 +163,10 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
           ...prev,
           completionBonus: completionBonus
         }));
+        
+        // Play game complete sound
+        memorySoundService.playGameCompleteSound();
+        
         endGame();
       }
     }
@@ -155,6 +206,12 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
   const flipCard = (cardId: number) => {
     if (flippedCards.length >= 2 || flippedCards.includes(cardId)) return;
     
+    // Play flip sound
+    if (lastFlippedRef.current !== cardId) {
+      memorySoundService.playFlipSound();
+      lastFlippedRef.current = cardId;
+    }
+    
     const newFlippedCards = [...flippedCards, cardId];
     setFlippedCards(newFlippedCards);
     
@@ -175,7 +232,9 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
         const secondCard = cards.find(c => c.id === secondId);
         
         if (firstCard && secondCard && firstCard.value === secondCard.value) {
-          // Match found
+          // Match found - play match sound
+          memorySoundService.playMatchSound();
+          
           setCards(prevCards => 
             prevCards.map(card => 
               (card.id === firstId || card.id === secondId) 
@@ -188,7 +247,9 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
           const matchPoints = 75 + (level * 25);
           setScore(prev => prev + matchPoints);
         } else {
-          // No match - flip cards back
+          // No match - play mismatch sound and flip cards back
+          memorySoundService.playMismatchSound();
+          
           setCards(prevCards => 
             prevCards.map(card => 
               (card.id === firstId || card.id === secondId) 
@@ -214,6 +275,19 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
     setFinalScore(0);
     setScoreBreakdown({ matchPoints: 0, timeBonus: 0, levelBonus: 0, accuracyBonus: 0, completionBonus: 0 });
     setShowInstructions(false);
+    
+    // Clear saved game state
+    localStorage.removeItem('brainGameCurrentScore');
+    localStorage.removeItem('brainGameCurrentLevel');
+    localStorage.removeItem('brainGameCurrentMatches');
+    localStorage.removeItem('brainGameCurrentAttempts');
+    
+    // Reset flip tracking
+    lastFlippedRef.current = -1;
+    
+    // Play game start sound
+    memorySoundService.playGameStartSound();
+    
     initializeCards(1);
   };
 
@@ -236,7 +310,15 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
     if (currentFinalScore > highScore) {
       setHighScore(currentFinalScore);
       localStorage.setItem('brainGameHighScore', currentFinalScore.toString());
+      // Play new high score sound
+      memorySoundService.playNewHighScoreSound();
     }
+    
+    // Clear saved game state
+    localStorage.removeItem('brainGameCurrentScore');
+    localStorage.removeItem('brainGameCurrentLevel');
+    localStorage.removeItem('brainGameCurrentMatches');
+    localStorage.removeItem('brainGameCurrentAttempts');
   };
 
   const resetGame = () => {
@@ -252,6 +334,15 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
     setCards([]);
     setFlippedCards([]);
     setShowInstructions(true);
+    
+    // Clear saved game state
+    localStorage.removeItem('brainGameCurrentScore');
+    localStorage.removeItem('brainGameCurrentLevel');
+    localStorage.removeItem('brainGameCurrentMatches');
+    localStorage.removeItem('brainGameCurrentAttempts');
+    
+    // Reset flip tracking
+    lastFlippedRef.current = -1;
   };
 
   const formatTime = (seconds: number) => {

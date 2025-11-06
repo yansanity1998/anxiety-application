@@ -51,37 +51,38 @@ const AssessmentRecordsModal = ({ isOpen, onClose, userId }: AssessmentRecordsMo
     }
   };
 
+  // GAD-7 based anxiety level colors: Green (Minimal 0-19%), Blue (Mild 20-47%), Yellow (Moderate 48-71%), Red (Severe 72-100%)
   const getAnxietyLevelColor = (percentage: number) => {
-    if (percentage < 25) return {
-      bg: 'bg-gradient-to-br from-green-50 to-emerald-100',
-      border: 'border-green-400',
+    if (percentage < 20) return {
+      bg: 'bg-green-100',
+      border: 'border-green-200',
       text: 'text-green-800',
       icon: 'text-green-600'
-    };
-    if (percentage < 50) return {
-      bg: 'bg-gradient-to-br from-blue-50 to-blue-100',
-      border: 'border-blue-400',
+    }; // Green - Minimal anxiety (0-19%)
+    if (percentage < 48) return {
+      bg: 'bg-blue-100',
+      border: 'border-blue-200',
       text: 'text-blue-800',
       icon: 'text-blue-600'
-    };
-    if (percentage < 75) return {
-      bg: 'bg-gradient-to-br from-yellow-50 to-orange-100',
-      border: 'border-yellow-400',
+    }; // Blue - Mild anxiety (20-47%)
+    if (percentage < 72) return {
+      bg: 'bg-yellow-100',
+      border: 'border-yellow-200',
       text: 'text-yellow-800',
       icon: 'text-yellow-600'
-    };
+    }; // Yellow - Moderate anxiety (48-71%)
     return {
-      bg: 'bg-gradient-to-br from-red-50 to-red-100',
-      border: 'border-red-400',
+      bg: 'bg-red-100',
+      border: 'border-red-200',
       text: 'text-red-800',
       icon: 'text-red-600'
-    };
+    }; // Red - Severe anxiety (72-100%)
   };
 
   const getAnxietyLevelLabel = (percentage: number) => {
-    if (percentage < 25) return 'Minimal';
-    if (percentage < 50) return 'Mild';
-    if (percentage < 75) return 'Moderate';
+    if (percentage < 20) return 'Minimal';
+    if (percentage < 48) return 'Mild';
+    if (percentage < 72) return 'Moderate';
     return 'Severe';
   };
 
@@ -241,10 +242,10 @@ const AssessmentRecordsModal = ({ isOpen, onClose, userId }: AssessmentRecordsMo
                           <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                             <div
                               className={`h-2 rounded-full transition-all duration-300 ${
-                                assessment.percentage < 25 ? 'bg-gradient-to-r from-green-400 to-emerald-500' :
-                                assessment.percentage < 50 ? 'bg-gradient-to-r from-blue-400 to-blue-500' :
-                                assessment.percentage < 75 ? 'bg-gradient-to-r from-yellow-400 to-orange-500' :
-                                'bg-gradient-to-r from-red-400 to-red-500'
+                                assessment.percentage < 20 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                assessment.percentage < 48 ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
+                                assessment.percentage < 72 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                                'bg-gradient-to-r from-red-500 to-red-600'
                               }`}
                               style={{ width: `${assessment.percentage}%` }}
                             />

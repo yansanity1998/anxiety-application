@@ -303,32 +303,32 @@ type ProgressRingProps = {
 const ProgressRing = ({ progress, size = 60 }: ProgressRingProps) => {
 
   // Determine color and icon based on progress (lower is better for anxiety)
-  // Standardized anxiety level colors: Green (Minimal 0-24%), Blue (Mild 25-49%), Yellow (Moderate 50-74%), Red (Severe 75-100%)
+  // GAD-7 based anxiety level colors: Green (Minimal 0-19%), Blue (Mild 20-47%), Yellow (Moderate 48-71%), Red (Severe 72-100%)
   const getProgressInfo = () => {
-    if (progress < 25) return { 
+    if (progress < 20) return { 
       color: "text-green-600", 
       bgColor: "bg-green-100", 
       icon: FaSmile,
       borderColor: "border-green-200"
-    }; // Green - Minimal anxiety (0-24%)
-    if (progress < 50) return { 
+    }; // Green - Minimal anxiety (0-19%)
+    if (progress < 48) return { 
       color: "text-blue-600", 
       bgColor: "bg-blue-100", 
       icon: FaHeart,
       borderColor: "border-blue-200"
-    }; // Blue - Mild anxiety (25-49%)
-    if (progress < 75) return { 
+    }; // Blue - Mild anxiety (20-47%)
+    if (progress < 72) return { 
       color: "text-yellow-600", 
       bgColor: "bg-yellow-100", 
       icon: FaBrain,
       borderColor: "border-yellow-200"
-    }; // Yellow - Moderate anxiety (50-74%)
+    }; // Yellow - Moderate anxiety (48-71%)
     return { 
       color: "text-red-600", 
       bgColor: "bg-red-100", 
       icon: FaHeart,
       borderColor: "border-red-200"
-    }; // Red - Severe anxiety (75-100%)
+    }; // Red - Severe anxiety (72-100%)
   };
 
   const progressInfo = getProgressInfo();
@@ -1506,9 +1506,9 @@ const Dashboard = () => {
             className={`relative overflow-hidden rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-lg border-2 w-full ${
               loadingAssessment ? 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-300' :
               !recentAssessment ? 'bg-gradient-to-br from-[#800000]/10 to-[#800000]/20 border-[#800000]/30' :
-              recentAssessment.percentage < 25 ? 'bg-gradient-to-br from-green-50 to-emerald-100 border-green-400' :
-              recentAssessment.percentage < 50 ? 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-400' :
-              recentAssessment.percentage < 75 ? 'bg-gradient-to-br from-yellow-50 to-orange-100 border-yellow-400' :
+              recentAssessment.percentage < 20 ? 'bg-gradient-to-br from-green-50 to-emerald-100 border-green-400' :
+              recentAssessment.percentage < 48 ? 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-400' :
+              recentAssessment.percentage < 72 ? 'bg-gradient-to-br from-yellow-50 to-orange-100 border-yellow-400' :
               'bg-gradient-to-br from-red-50 to-red-100 border-red-400'
             } ${recentAssessment ? 'cursor-pointer hover:scale-105 transition-transform duration-200' : ''}`}
           >
@@ -1517,9 +1517,9 @@ const Dashboard = () => {
               <div className={`w-full h-full ${
                 loadingAssessment ? 'bg-gray-200' :
                 !recentAssessment ? 'bg-[#800000]' :
-                recentAssessment.percentage < 25 ? 'bg-green-500' :
-                recentAssessment.percentage < 50 ? 'bg-blue-500' :
-                recentAssessment.percentage < 75 ? 'bg-yellow-500' :
+                recentAssessment.percentage < 20 ? 'bg-green-500' :
+                recentAssessment.percentage < 48 ? 'bg-blue-500' :
+                recentAssessment.percentage < 72 ? 'bg-yellow-500' :
                 'bg-red-500'
               }`} style={{
                 backgroundImage: 'radial-gradient(circle at 20% 80%, currentColor 15%, transparent 16%), radial-gradient(circle at 80% 20%, currentColor 15%, transparent 16%), radial-gradient(circle at 40% 40%, currentColor 15%, transparent 16%)'
@@ -1533,9 +1533,9 @@ const Dashboard = () => {
                   className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg ${
                     loadingAssessment ? 'bg-gradient-to-r from-gray-400 to-gray-500' :
                     !recentAssessment ? 'bg-gradient-to-r from-[#800000] to-[#a00000]' :
-                    recentAssessment.percentage < 25 ? 'bg-gradient-to-r from-green-500 to-emerald-600' :
-                    recentAssessment.percentage < 50 ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
-                    recentAssessment.percentage < 75 ? 'bg-gradient-to-r from-yellow-500 to-orange-600' :
+                    recentAssessment.percentage < 20 ? 'bg-gradient-to-r from-green-500 to-emerald-600' :
+                    recentAssessment.percentage < 48 ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
+                    recentAssessment.percentage < 72 ? 'bg-gradient-to-r from-yellow-500 to-orange-600' :
                     'bg-gradient-to-r from-red-500 to-red-600'
                   }`}
                 >
@@ -1577,18 +1577,18 @@ const Dashboard = () => {
                 <>
                   <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
                     <p className={`text-xs sm:text-sm font-semibold ${
-                      recentAssessment.percentage < 25 ? 'text-green-800' :
-                      recentAssessment.percentage < 50 ? 'text-blue-800' :
-                      recentAssessment.percentage < 75 ? 'text-yellow-800' :
+                      recentAssessment.percentage < 20 ? 'text-green-800' :
+                      recentAssessment.percentage < 48 ? 'text-blue-800' :
+                      recentAssessment.percentage < 72 ? 'text-yellow-800' :
                       'text-red-800'
                     }`}>
                       {recentAssessment.anxiety_level}
                     </p>
                     {/* Status Badge */}
                     <span className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold border ${
-                      recentAssessment.percentage < 25 ? 'bg-green-100 text-green-800 border-green-200' :
-                      recentAssessment.percentage < 50 ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                      recentAssessment.percentage < 75 ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                      recentAssessment.percentage < 20 ? 'bg-green-100 text-green-800 border-green-200' :
+                      recentAssessment.percentage < 48 ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                      recentAssessment.percentage < 72 ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
                       'bg-red-100 text-red-800 border-red-200'
                     }`}>
                       {recentAssessment.percentage}%
@@ -1598,9 +1598,9 @@ const Dashboard = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
                       <FaCalendarAlt className={`text-xs flex-shrink-0 ${
-                        recentAssessment.percentage < 25 ? 'text-green-600' :
-                        recentAssessment.percentage < 50 ? 'text-blue-600' :
-                        recentAssessment.percentage < 75 ? 'text-yellow-600' :
+                        recentAssessment.percentage < 20 ? 'text-green-600' :
+                        recentAssessment.percentage < 48 ? 'text-blue-600' :
+                        recentAssessment.percentage < 72 ? 'text-yellow-600' :
                         'text-red-600'
                       }`} />
                       <span className="text-xs font-medium text-gray-600 truncate">
