@@ -140,6 +140,15 @@ const formatDate = (dateString: string): string => {
   return date.toLocaleDateString('en-US', options);
 };
 
+// Compact date formatter for table columns
+const formatCompactDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const year = date.getFullYear().toString().slice(-2);
+  return `${month}/${day}/${year}`;
+};
+
 // Mark users as NEW if registered within the last N days
 const NEW_USER_DAYS = 1;
 const isNewlyRegistered = (createdAt?: string) => {
@@ -632,7 +641,7 @@ export default function GuidanceDashboard() {
             <!-- Help Text -->
             <div class="text-center mt-4">
               <p class="text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} flex items-center justify-center">
-                <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Verification ensures student identity and data accuracy
@@ -1235,9 +1244,11 @@ export default function GuidanceDashboard() {
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <div className={`flex items-center text-xs ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                              <FaEnvelope className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-                              {user.email}
+                            <div className={`flex items-center text-xs ${darkMode ? 'text-gray-200' : 'text-gray-900'} overflow-hidden`}>
+                              <FaEnvelope className={`mr-2 flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                              <span className="truncate max-w-[150px] block" title={user.email}>
+                                {user.email}
+                              </span>
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
@@ -1256,359 +1267,359 @@ export default function GuidanceDashboard() {
                               {user.role}
                             </span>
                           </td>
-                                                     <td className="px-4 py-3">
-                             <div className={`text-xs ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                               <div className="flex items-center">
-                                 <FaClipboardList className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-                                 <button
-                                   onClick={() => {
-                                     Modal.fire({
-                                       title: 'Registration Details',
-                                       html: `
-                                         <div class="text-left space-y-2">
-                                           <div class="${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
-                                             <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center justify-between">
-                                               <div class="flex items-center">
-                                                 <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
-                                                   <svg class="w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
-                                                     <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                                                   </svg>
-                                                 </div>
-                                                 Personal Information
-                                               </div>
-                                               <button onclick="window.editPersonalInfo && window.editPersonalInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Personal Information">
-                                                 <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
-                                                   <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                                 </svg>
-                                               </button>
-                                             </h3>
-                                             <div class="space-y-1">
-                                               <div class="flex items-center group">
-                                                 <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Full Name</label>
-                                                 <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
-                                                   <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.full_name || 'Not provided'}</p>
-                                                 </div>
-                                               </div>
-                                               <div class="flex items-center group">
-                                                 <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Email</label>
-                                                 <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
-                                                   <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.email}</p>
-                                                 </div>
-                                               </div>
-                                               <div class="flex items-center group">
-                                                 <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Age</label>
-                                                 <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
-                                                   <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.age || 'Not provided'}</p>
-                                                 </div>
-                                               </div>
-                                               <div class="flex items-center group">
-                                                 <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Gender</label>
-                                                 <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
-                                                   <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.gender || 'Not provided'}</p>
-                                                 </div>
-                                               </div>
-                                               <div class="flex items-center group">
-                                                 <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Phone</label>
-                                                 <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
-                                                   <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.phone_number || 'Not provided'}</p>
-                                                 </div>
-                                               </div>
-                                               <div class="flex items-center group">
-                                                 <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Address</label>
-                                                 <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
-                                                   <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.address || 'Not provided'}</p>
-                                                 </div>
-                                               </div>
-                                             </div>
-                                           </div>
-                                           <div class="${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
-                                             <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center justify-between">
-                                               <div class="flex items-center">
-                                                 <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
-                                                   <svg class="w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
-                                                     <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                                                     <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
-                                                   </svg>
-                                                 </div>
-                                                 Academic Information
-                                               </div>
-                                               <button onclick="window.editAcademicInfo && window.editAcademicInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Academic Information">
-                                                 <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
-                                                   <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                                 </svg>
-                                               </button>
-                                             </h3>
-                                             <div class="space-y-1">
-                                               <div class="flex items-center group">
-                                                 <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">School</label>
-                                                 <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
-                                                   <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.school || 'Not provided'}</p>
-                                                 </div>
-                                               </div>
-                                               <div class="flex items-center group">
-                                                 <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Course</label>
-                                                 <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
-                                                   <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.course || 'Not provided'}</p>
-                                                 </div>
-                                               </div>
-                                               <div class="flex items-center group">
-                                                 <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Year Level</label>
-                                                 <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
-                                                   <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.year_level || 'Not provided'}</p>
-                                                 </div>
-                                               </div>
-                                               <div class="flex items-center group">
-                                                 <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">ID Number</label>
-                                                 <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
-                                                   <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.id_number || 'Not provided'}</p>
-                                                 </div>
-                                               </div>
-                                             </div>
-                                           </div>
-                                           <div class="${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
-                                             <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center justify-between">
-                                               <div class="flex items-center">
-                                                 <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
-                                                   <svg class="w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
-                                                     <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
-                                                   </svg>
-                                                 </div>
-                                                 Guardian Information
-                                               </div>
-                                               <button onclick="window.editGuardianInfo && window.editGuardianInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Guardian Information">
-                                                 <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
-                                                   <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                                 </svg>
-                                               </button>
-                                             </h3>
-                                             <div class="space-y-1">
-                                               <div class="flex items-center group">
-                                                 <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Guardian Name</label>
-                                                 <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
-                                                   <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.guardian_name || 'Not provided'}</p>
-                                                 </div>
-                                               </div>
-                                               <div class="flex items-center group">
-                                                 <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Guardian Phone</label>
-                                                 <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
-                                                   <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.guardian_phone_number || 'Not provided'}</p>
-                                                 </div>
-                                               </div>
-                                             </div>
-                                           </div>
-                                         </div>
-                                       `,
-                                       width: '370px',
-                                       customClass: {
-                                         popup: 'rounded-lg shadow-lg border border-gray-200',
-                                         title: 'text-base font-bold text-gray-900'
-                                       },
-                                       showConfirmButton: true,
-                                       confirmButtonText: 'Close',
-                                       showCancelButton: false,
-                                     });
-                                   }}
-                                   className={`${darkMode ? 'text-[#f3f4f6] hover:text-white' : 'text-[#800000] hover:text-[#660000]'} text-xs font-medium flex items-center`}
-                                 >
-                                   View Registration Details
-                                   <FaChevronRight className="ml-1 text-xs" />
-                                 </button>
-                               </div>
-                             </div>
-                           </td>
-                                                     <td className="px-4 py-3">
-                             <div className={`text-xs ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                               <div className="flex items-center">
-                                 <FaChartLine className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-                                 <button
-                                   onClick={() => {
-                                     if (assessments[user.profile_id] && assessments[user.profile_id].length > 0) {
-                                       const latestAssessment = getLatestAssessment(assessments[user.profile_id]);
-                                       if (latestAssessment) {
-                                         const anxietyLevel = latestAssessment.anxiety_level;
-                                         const colors = getAnxietyLevelColor(anxietyLevel);
-                                         Modal.fire({
-                                           title: 'Assessment Details',
-                                           html: `
-                                             <div class="text-left space-y-3">
-                                               <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : colors.border}">
-                                                 <div class="flex items-center justify-between mb-2">
-                                                   <p class="mb-1"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Anxiety Level:</strong></p>
-                                                   <span class="px-2 py-0.5 rounded-full ${darkMode ? 'bg-gray-600' : colors.bg} ${colors.text} font-medium text-xs">
-                                                     ${anxietyLevel}
-                                                   </span>
-                                                 </div>
-                                                 <p class="mb-1 text-xs"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Total Score:</strong> <span class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">${latestAssessment.total_score}</span></p>
-                                                 <p class="mb-1 text-xs"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Percentage:</strong> <span class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">${latestAssessment.percentage}%</span></p>
-                                                 <p class="mb-1 text-xs"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Date:</strong> <span class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">${new Date(latestAssessment.created_at).toLocaleString()}</span></p>
-                                               </div>
-                                               
-                                               ${anxietyLevel.toLowerCase() === 'moderate' || anxietyLevel.toLowerCase() === 'severe' ? `
-                                               <!-- Compact Immediate Action Alert -->
-                                               <div class="${darkMode ? 'bg-gradient-to-r from-orange-900/20 to-red-900/20 border-orange-600/40' : 'bg-gradient-to-r from-orange-50/80 to-red-50/80 border-orange-300/40'} border rounded-lg p-2.5 shadow-sm">
-                                                 <div class="flex items-center space-x-2">
-                                                   <div class="flex-shrink-0">
-                                                     <div class="w-6 h-6 ${anxietyLevel.toLowerCase() === 'severe' ? 'bg-red-500' : 'bg-orange-500'} rounded-full flex items-center justify-center">
-                                                       <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                                       </svg>
-                                                     </div>
-                                                   </div>
-                                                   <div class="flex-1">
-                                                     <div class="flex items-center space-x-1 mb-1">
-                                                       <span class="w-1.5 h-1.5 ${anxietyLevel.toLowerCase() === 'severe' ? 'bg-red-500' : 'bg-orange-500'} rounded-full animate-pulse"></span>
-                                                       <span class="text-xs font-bold ${darkMode ? 'text-orange-300' : 'text-orange-800'}">
-                                                         ${anxietyLevel.toLowerCase() === 'severe' ? 'IMMEDIATE ACTION REQUIRED' : 'IMMEDIATE ATTENTION NEEDED'}
-                                                       </span>
-                                                     </div>
-                                                     <div class="flex flex-wrap gap-1.5 text-xs ${darkMode ? 'text-orange-200' : 'text-orange-700'}">
-                                                       <span class="px-1.5 py-0.5 ${darkMode ? 'bg-orange-800/30' : 'bg-orange-100'} rounded">Schedule counseling</span>
-                                                       <span class="px-1.5 py-0.5 ${darkMode ? 'bg-orange-800/30' : 'bg-orange-100'} rounded">Contact student</span>
-                                                       <span class="px-1.5 py-0.5 ${darkMode ? 'bg-orange-800/30' : 'bg-orange-100'} rounded">Monitor closely</span>
-                                                       ${anxietyLevel.toLowerCase() === 'severe' ? `<span class="px-1.5 py-0.5 ${darkMode ? 'bg-red-800/30' : 'bg-red-100'} rounded text-red-700">Consider referral</span>` : ''}
-                                                     </div>
-                                                   </div>
-                                                 </div>
-                                               </div>
-                                               ` : ''}
-                                               <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
-                                                 <p class="mb-1 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'} text-xs">Answers:</p>
-                                                 <div class="text-xs space-y-1">
-                                                   ${latestAssessment.answers.map((answer, index) => `
-                                                     <div class="flex items-center justify-between py-0.5 px-2 rounded-lg ${darkMode ? 'bg-gray-600' : 'bg-gray-50'}">
-                                                       <span class="${darkMode ? 'text-gray-300' : 'text-gray-700'}">Q${index + 1}</span>
-                                                       <span class="font-medium text-xs ${
-                                                         answer === 0 ? 'text-green-600' :
-                                                         answer === 1 ? 'text-green-500' :
-                                                         answer === 2 ? 'text-yellow-500' :
-                                                         answer === 3 ? 'text-orange-500' :
-                                                         'text-red-500'
-                                                       }">
-                                                         ${answer === 0 ? 'Never' : 
-                                                           answer === 1 ? 'Rarely' : 
-                                                           answer === 2 ? 'Sometimes' : 
-                                                           answer === 3 ? 'Often' : 'Very Often'}
-                                                       </span>
-                                                     </div>
-                                                   `).join('')}
-                                                 </div>
-                                               </div>
-                                             </div>
-                                           `,
-                                           width: '370px',
-                                           customClass: {
-                                             popup: 'rounded-lg shadow-lg border border-gray-200',
-                                             title: 'text-base font-bold text-gray-900',
-                                             confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-4 rounded-lg transition-colors view-full-history-button',
-                                           },
-                                           showConfirmButton: true,
-                                           confirmButtonText: '📊 View Full History',
-                                           showCancelButton: true,
-                                           cancelButtonText: 'Close',
-                                           focusCancel: false,
-                                         }).then((result) => {
-                                           if (result.isConfirmed) {
-                                             // Open the history modal
-                                             setSelectedUserForHistory({ 
-                                               name: user.full_name || user.email, 
-                                               assessments: assessments[user.profile_id] 
-                                             });
-                                             setIsHistoryModalOpen(true);
-                                           }
-                                         });
-                                       } else {
-                                         Modal.fire({
-                                           title: 'Assessment Details',
-                                           html: `
-                                             <div class="text-left space-y-2">
-                                               <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
-                                                 <p class="${darkMode ? 'text-gray-300' : 'text-gray-600'} text-center text-xs">No assessments available for this user yet.</p>
-                                               </div>
-                                             </div>
-                                           `,
-                                           width: '370px',
-                                           customClass: {
-                                             popup: 'rounded-lg shadow-lg border border-gray-200',
-                                             title: 'text-base font-bold text-gray-900',
-                                             confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-4 rounded-lg transition-colors'
-                                           },
-                                           showConfirmButton: true,
-                                           confirmButtonText: 'Close',
-                                           showCancelButton: false,
-                                         });
-                                       }
-                                     } else {
-                                       Modal.fire({
-                                         title: 'Assessment Details',
-                                         html: `
-                                           <div class="text-left space-y-2">
-                                             <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
-                                               <p class="${darkMode ? 'text-gray-300' : 'text-gray-600'} text-center text-xs">No assessments available for this user yet.</p>
-                                             </div>
-                                           </div>
-                                         `,
-                                         width: '370px',
-                                         customClass: {
-                                           popup: 'rounded-lg shadow-lg border border-gray-200',
-                                           title: 'text-base font-bold text-gray-900'
-                                         },
-                                         showConfirmButton: true,
-                                         confirmButtonText: 'Close',
-                                         showCancelButton: false,
-                                       });
-                                     }
-                                   }}
-                                   className={`text-xs font-medium flex items-center px-3 py-1.5 rounded-lg transition-colors ${
-                                     assessments[user.profile_id] && assessments[user.profile_id].length > 0
-                                       ? (() => {
-                                           const latestAssessment = getLatestAssessment(assessments[user.profile_id]);
-                                           if (latestAssessment) {
-                                             const colors = getAnxietyLevelColor(latestAssessment.anxiety_level);
-                                             return darkMode
-                                               ? `${colors.darkModeButton}`
-                                               : `${colors.button}`;
-                                           }
-                                           return darkMode
-                                           ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                                             : 'bg-gray-50 hover:bg-gray-100 text-gray-700';
-                                         })()
-                                       : (darkMode
-                                           ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
-                                           : 'bg-gray-50 hover:bg-gray-100 text-gray-700')
-                                   }`}
-                                 >
-                                   {assessments[user.profile_id] && assessments[user.profile_id].length > 0 ? (
-                                     <>
-                                       {(() => {
-                                         const latestAssessment = getLatestAssessment(assessments[user.profile_id]);
-                                         if (latestAssessment) {
-                                           return `${latestAssessment.anxiety_level || 'Unknown'} Anxiety`;
-                                         }
-                                         return 'Unknown Anxiety';
-                                       })()}
-                                       <FaChevronRight className="ml-1 text-xs" />
-                                     </>
-                                   ) : (
-                                     <>
-                                       No Assessment Yet
-                                       <FaChevronRight className="ml-1 text-xs" />
-                                     </>
-                                   )}
-                                 </button>
-                               </div>
-                             </div>
-                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className={`flex items-center text-xs ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                              <FaCalendarAlt className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-                              {formatDate(user.created_at)}
+                          <td className="px-4 py-3">
+                            <div className={`text-xs ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                              <div className="flex items-center">
+                                <FaClipboardList className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                                <button
+                                  onClick={() => {
+                                    Modal.fire({
+                                      title: 'Registration Details',
+                                      html: `
+                                        <div class="text-left space-y-2">
+                                          <div class="${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
+                                            <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center justify-between">
+                                              <div class="flex items-center">
+                                                <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
+                                                  <svg class="w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                                                  </svg>
+                                                </div>
+                                                Personal Information
+                                              </div>
+                                              <button onclick="window.editPersonalInfo && window.editPersonalInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Personal Information">
+                                                <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
+                                                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                                </svg>
+                                              </button>
+                                            </h3>
+                                            <div class="space-y-1">
+                                              <div class="flex items-center group">
+                                                <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Full Name</label>
+                                                <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
+                                                  <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.full_name || 'Not provided'}</p>
+                                                </div>
+                                              </div>
+                                              <div class="flex items-center group">
+                                                <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Email</label>
+                                                <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
+                                                  <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.email}</p>
+                                                </div>
+                                              </div>
+                                              <div class="flex items-center group">
+                                                <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Age</label>
+                                                <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
+                                                  <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.age || 'Not provided'}</p>
+                                                </div>
+                                              </div>
+                                              <div class="flex items-center group">
+                                                <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Gender</label>
+                                                <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
+                                                  <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.gender || 'Not provided'}</p>
+                                                </div>
+                                              </div>
+                                              <div class="flex items-center group">
+                                                <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Phone</label>
+                                                <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
+                                                  <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.phone_number || 'Not provided'}</p>
+                                                </div>
+                                              </div>
+                                              <div class="flex items-center group">
+                                                <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Address</label>
+                                                <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
+                                                  <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.address || 'Not provided'}</p>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div class="${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
+                                            <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center justify-between">
+                                              <div class="flex items-center">
+                                                <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
+                                                  <svg class="w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                                                  </svg>
+                                                </div>
+                                                Academic Information
+                                              </div>
+                                              <button onclick="window.editAcademicInfo && window.editAcademicInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Academic Information">
+                                                <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
+                                                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                                </svg>
+                                              </button>
+                                            </h3>
+                                            <div class="space-y-1">
+                                              <div class="flex items-center group">
+                                                <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">School</label>
+                                                <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
+                                                  <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.school || 'Not provided'}</p>
+                                                </div>
+                                              </div>
+                                              <div class="flex items-center group">
+                                                <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Course</label>
+                                                <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
+                                                  <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.course || 'Not provided'}</p>
+                                                </div>
+                                              </div>
+                                              <div class="flex items-center group">
+                                                <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Year Level</label>
+                                                <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
+                                                  <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.year_level || 'Not provided'}</p>
+                                                </div>
+                                              </div>
+                                              <div class="flex items-center group">
+                                                <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">ID Number</label>
+                                                <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
+                                                  <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.id_number || 'Not provided'}</p>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <div class="${darkMode ? 'bg-gray-700' : 'bg-white'} rounded-xl p-2 border ${darkMode ? 'border-gray-600' : 'border-gray-200'} shadow-sm">
+                                            <h3 class="text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'} mb-1 flex items-center justify-between">
+                                              <div class="flex items-center">
+                                                <div class="${darkMode ? 'bg-gray-600' : 'bg-[#800000]/10'} p-1 rounded-lg mr-2">
+                                                  <svg class="w-4 h-4 ${darkMode ? 'text-gray-300' : 'text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                                                  </svg>
+                                                </div>
+                                                Guardian Information
+                                              </div>
+                                              <button onclick="window.editGuardianInfo && window.editGuardianInfo('${user.profile_id}')" class="p-1 rounded-full ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'} transition-colors" title="Edit Guardian Information">
+                                                <svg class="w-4 h-4 ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-[#800000]'}" fill="currentColor" viewBox="0 0 20 20">
+                                                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                                </svg>
+                                              </button>
+                                            </h3>
+                                            <div class="space-y-1">
+                                              <div class="flex items-center group">
+                                                <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Guardian Name</label>
+                                                <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
+                                                  <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.guardian_name || 'Not provided'}</p>
+                                                </div>
+                                              </div>
+                                              <div class="flex items-center group">
+                                                <label class="text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'} w-20">Guardian Phone</label>
+                                                <div class="flex-1 ml-2 p-1 ${darkMode ? 'bg-gray-600' : 'bg-gray-50'} rounded-lg">
+                                                  <p class="text-xs ${darkMode ? 'text-gray-200' : 'text-gray-800'}">${user.guardian_phone_number || 'Not provided'}</p>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      `,
+                                      width: '370px',
+                                      customClass: {
+                                        popup: 'rounded-lg shadow-lg border border-gray-200',
+                                        title: 'text-base font-bold text-gray-900'
+                                      },
+                                      showConfirmButton: true,
+                                      confirmButtonText: 'Close',
+                                      showCancelButton: false,
+                                    });
+                                  }}
+                                  className={`${darkMode ? 'text-[#f3f4f6] hover:text-white' : 'text-[#800000] hover:text-[#660000]'} text-xs font-medium flex items-center`}
+                                >
+                                  Registration Details
+                                  <FaChevronRight className="ml-1 text-xs" />
+                                </button>
+                              </div>
                             </div>
                           </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className={`flex items-center text-xs ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                              <FaCalendarAlt className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                          <td className="px-4 py-3">
+                            <div className={`text-xs ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                              <div className="flex items-center">
+                                <FaChartLine className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                                <button
+                                  onClick={() => {
+                                    if (assessments[user.profile_id] && assessments[user.profile_id].length > 0) {
+                                      const latestAssessment = getLatestAssessment(assessments[user.profile_id]);
+                                      if (latestAssessment) {
+                                        const anxietyLevel = latestAssessment.anxiety_level;
+                                        const colors = getAnxietyLevelColor(anxietyLevel);
+                                        Modal.fire({
+                                          title: 'Assessment Details',
+                                          html: `
+                                            <div class="text-left space-y-3">
+                                              <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : colors.border}">
+                                                <div class="flex items-center justify-between mb-2">
+                                                  <p class="mb-1"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Anxiety Level:</strong></p>
+                                                  <span class="px-2 py-0.5 rounded-full ${darkMode ? 'bg-gray-600' : colors.bg} ${colors.text} font-medium text-xs">
+                                                    ${anxietyLevel}
+                                                  </span>
+                                                </div>
+                                                <p class="mb-1 text-xs"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Total Score:</strong> <span class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">${latestAssessment.total_score}</span></p>
+                                                <p class="mb-1 text-xs"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Percentage:</strong> <span class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">${latestAssessment.percentage}%</span></p>
+                                                <p class="mb-1 text-xs"><strong class="${darkMode ? 'text-gray-200' : 'text-gray-800'}">Date:</strong> <span class="${darkMode ? 'text-gray-300' : 'text-gray-600'}">${new Date(latestAssessment.created_at).toLocaleString()}</span></p>
+                                              </div>
+                                              
+                                              ${anxietyLevel.toLowerCase() === 'moderate' || anxietyLevel.toLowerCase() === 'severe' ? `
+                                              <!-- Compact Immediate Action Alert -->
+                                              <div class="${darkMode ? 'bg-gradient-to-r from-orange-900/20 to-red-900/20 border-orange-600/40' : 'bg-gradient-to-r from-orange-50/80 to-red-50/80 border-orange-300/40'} border rounded-lg p-2.5 shadow-sm">
+                                                <div class="flex items-center space-x-2">
+                                                  <div class="flex-shrink-0">
+                                                    <div class="w-6 h-6 ${anxietyLevel.toLowerCase() === 'severe' ? 'bg-red-500' : 'bg-orange-500'} rounded-full flex items-center justify-center">
+                                                      <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                      </svg>
+                                                    </div>
+                                                  </div>
+                                                  <div class="flex-1">
+                                                    <div class="flex items-center space-x-1 mb-1">
+                                                      <span class="w-1.5 h-1.5 ${anxietyLevel.toLowerCase() === 'severe' ? 'bg-red-500' : 'bg-orange-500'} rounded-full animate-pulse"></span>
+                                                      <span class="text-xs font-bold ${darkMode ? 'text-orange-300' : 'text-orange-800'}">
+                                                        ${anxietyLevel.toLowerCase() === 'severe' ? 'IMMEDIATE ACTION REQUIRED' : 'IMMEDIATE ATTENTION NEEDED'}
+                                                      </span>
+                                                    </div>
+                                                    <div class="flex flex-wrap gap-1.5 text-xs ${darkMode ? 'text-orange-200' : 'text-orange-700'}">
+                                                      <span class="px-1.5 py-0.5 ${darkMode ? 'bg-orange-800/30' : 'bg-orange-100'} rounded">Schedule counseling</span>
+                                                      <span class="px-1.5 py-0.5 ${darkMode ? 'bg-orange-800/30' : 'bg-orange-100'} rounded">Contact student</span>
+                                                      <span class="px-1.5 py-0.5 ${darkMode ? 'bg-orange-800/30' : 'bg-orange-100'} rounded">Monitor closely</span>
+                                                      ${anxietyLevel.toLowerCase() === 'severe' ? `<span class="px-1.5 py-0.5 ${darkMode ? 'bg-red-800/30' : 'bg-red-100'} rounded text-red-700">Consider referral</span>` : ''}
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                              ` : ''}
+                                              <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
+                                                <p class="mb-1 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'} text-xs">Answers:</p>
+                                                <div class="text-xs space-y-1">
+                                                  ${latestAssessment.answers.map((answer, index) => `
+                                                    <div class="flex items-center justify-between py-0.5 px-2 rounded-lg ${darkMode ? 'bg-gray-600' : 'bg-gray-50'}">
+                                                      <span class="${darkMode ? 'text-gray-300' : 'text-gray-700'}">Q${index + 1}</span>
+                                                      <span class="font-medium text-xs ${
+                                                        answer === 0 ? 'text-green-600' :
+                                                        answer === 1 ? 'text-green-500' :
+                                                        answer === 2 ? 'text-yellow-500' :
+                                                        answer === 3 ? 'text-orange-500' :
+                                                        'text-red-500'
+                                                      }">
+                                                        ${answer === 0 ? 'Never' : 
+                                                          answer === 1 ? 'Rarely' : 
+                                                          answer === 2 ? 'Sometimes' : 
+                                                          answer === 3 ? 'Often' : 'Very Often'}
+                                                      </span>
+                                                    </div>
+                                                  `).join('')}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          `,
+                                          width: '370px',
+                                          customClass: {
+                                            popup: 'rounded-lg shadow-lg border border-gray-200',
+                                            title: 'text-base font-bold text-gray-900',
+                                            confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-4 rounded-lg transition-colors view-full-history-button',
+                                          },
+                                          showConfirmButton: true,
+                                          confirmButtonText: '📊 View Full History',
+                                          showCancelButton: true,
+                                          cancelButtonText: 'Close',
+                                          focusCancel: false,
+                                        }).then((result) => {
+                                          if (result.isConfirmed) {
+                                            // Open the history modal
+                                            setSelectedUserForHistory({ 
+                                              name: user.full_name || user.email, 
+                                              assessments: assessments[user.profile_id] 
+                                            });
+                                            setIsHistoryModalOpen(true);
+                                          }
+                                        });
+                                      } else {
+                                        Modal.fire({
+                                          title: 'Assessment Details',
+                                          html: `
+                                            <div class="text-left space-y-2">
+                                              <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
+                                                <p class="${darkMode ? 'text-gray-300' : 'text-gray-600'} text-center text-xs">No assessments available for this user yet.</p>
+                                              </div>
+                                            </div>
+                                          `,
+                                          width: '370px',
+                                          customClass: {
+                                            popup: 'rounded-lg shadow-lg border border-gray-200',
+                                            title: 'text-base font-bold text-gray-900',
+                                            confirmButton: 'bg-[#800000] hover:bg-[#660000] text-white font-medium py-2 px-4 rounded-lg transition-colors'
+                                          },
+                                          showConfirmButton: true,
+                                          confirmButtonText: 'Close',
+                                          showCancelButton: false,
+                                        });
+                                      }
+                                    } else {
+                                      Modal.fire({
+                                        title: 'Assessment Details',
+                                        html: `
+                                          <div class="text-left space-y-2">
+                                            <div class="${darkMode ? 'bg-gray-700' : 'bg-white/80'} rounded-xl p-3 border ${darkMode ? 'border-gray-600' : 'border-gray-200'}">
+                                              <p class="${darkMode ? 'text-gray-300' : 'text-gray-600'} text-center text-xs">No assessments available for this user yet.</p>
+                                            </div>
+                                          </div>
+                                        `,
+                                        width: '370px',
+                                        customClass: {
+                                          popup: 'rounded-lg shadow-lg border border-gray-200',
+                                          title: 'text-base font-bold text-gray-900'
+                                        },
+                                        showConfirmButton: true,
+                                        confirmButtonText: 'Close',
+                                        showCancelButton: false,
+                                      });
+                                    }
+                                  }}
+                                  className={`text-xs font-medium flex items-center px-3 py-1.5 rounded-lg transition-colors ${
+                                    assessments[user.profile_id] && assessments[user.profile_id].length > 0
+                                      ? (() => {
+                                          const latestAssessment = getLatestAssessment(assessments[user.profile_id]);
+                                          if (latestAssessment) {
+                                            const colors = getAnxietyLevelColor(latestAssessment.anxiety_level);
+                                            return darkMode
+                                              ? `${colors.darkModeButton}`
+                                              : `${colors.button}`;
+                                          }
+                                          return darkMode
+                                          ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                                            : 'bg-gray-50 hover:bg-gray-100 text-gray-700';
+                                        })()
+                                      : (darkMode
+                                          ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                                          : 'bg-gray-50 hover:bg-gray-100 text-gray-700')
+                                  }`}
+                                >
+                                  {assessments[user.profile_id] && assessments[user.profile_id].length > 0 ? (
+                                    <>
+                                      {(() => {
+                                        const latestAssessment = getLatestAssessment(assessments[user.profile_id]);
+                                        if (latestAssessment) {
+                                          return `${latestAssessment.anxiety_level || 'Unknown'} Anxiety`;
+                                        }
+                                        return 'Unknown Anxiety';
+                                      })()}
+                                      <FaChevronRight className="ml-1 text-xs" />
+                                    </>
+                                  ) : (
+                                    <>
+                                      No Assessment Yet
+                                      <FaChevronRight className="ml-1 text-xs" />
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-2 py-3 whitespace-nowrap">
+                            <div className={`flex items-center justify-center text-[10px] ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                              <FaCalendarAlt className={`mr-1 text-[9px] ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                              {formatCompactDate(user.created_at)}
+                            </div>
+                          </td>
+                          <td className="px-2 py-3 whitespace-nowrap">
+                            <div className={`flex items-center justify-center text-[10px] ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                              <FaCalendarAlt className={`mr-1 text-[9px] ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
                               {user.last_sign_in 
-                                ? formatDate(user.last_sign_in)
+                                ? formatCompactDate(user.last_sign_in)
                                 : 'Never'}
                             </div>
                           </td>
@@ -1824,9 +1835,11 @@ export default function GuidanceDashboard() {
                              </div>
                            </td>
                            <td className="px-4 py-3 whitespace-nowrap">
-                             <div className={`flex items-center text-xs ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                               <FaEnvelope className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-                               {user.email}
+                             <div className={`flex items-center text-xs ${darkMode ? 'text-gray-200' : 'text-gray-900'} overflow-hidden`}>
+                               <FaEnvelope className={`mr-2 flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                               <span className="truncate max-w-[150px] block" title={user.email}>
+                                 {user.email}
+                               </span>
                              </div>
                            </td>
                            <td className="px-4 py-3 whitespace-nowrap">
@@ -1851,8 +1864,8 @@ export default function GuidanceDashboard() {
                                <button
                                  onClick={async () => {
                                    try {
-                                     await unarchiveUser(user.profile_id);
-                                     setUsers(prev => prev.map(u => u.profile_id === user.profile_id ? { ...u, role: 'student' } : u));
+                                     const restoredRole = await unarchiveUser(user.profile_id);
+                                     setUsers(prev => prev.map(u => u.profile_id === user.profile_id ? { ...u, role: restoredRole } : u));
                                      await Toast.fire({ icon: 'success', iconColor: '#22c55e', title: 'Unarchived', text: 'User unarchived successfully' });
                                    } catch (e) {
                                      await Toast.fire({ icon: 'error', iconColor: '#ef4444', title: 'Error', text: e instanceof Error ? e.message : 'Failed to unarchive' });

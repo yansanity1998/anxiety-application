@@ -139,6 +139,15 @@ const formatDate = (dateString: string): string => {
   return date.toLocaleDateString('en-US', options);
 };
 
+// Compact date formatter for table columns
+const formatCompactDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  const year = date.getFullYear().toString().slice(-2);
+  return `${month}/${day}/${year}`;
+};
+
 // Mark users as NEW if registered within the last N days
 const NEW_USER_DAYS = 1;
 const isNewlyRegistered = (createdAt?: string) => {
@@ -1217,8 +1226,8 @@ export default function AdminDashboard() {
                           <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Role</th>
                           <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Registration Info</th>
                           <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Latest Assessment</th>
-                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Joined</th>
-                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Last Sign In</th>
+                          <th className="px-2 py-3 text-center text-[10px] font-bold uppercase text-white">Joined</th>
+                          <th className="px-2 py-3 text-center text-[10px] font-bold uppercase text-white">Last Sign In</th>
                           <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Actions</th>
                         </tr>
                       </thead>
@@ -1267,12 +1276,15 @@ export default function AdminDashboard() {
                                   </div>
                                   <div className="ml-3">
                                     <div className="flex items-center gap-2">
-                                      <div className={`text-xs font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                      <div 
+                                        className={`text-xs font-medium ${darkMode ? 'text-white' : 'text-gray-900'} truncate max-w-[120px]`}
+                                        title={user.full_name || 'No name'}
+                                      >
                                         {user.full_name || 'No name'}
                                       </div>
                                       {isNewlyRegistered(user.created_at) && !isArchived(user.role) && (
                                         <span
-                                          className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border inline-flex items-center gap-1 ${
+                                          className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border inline-flex items-center gap-1 flex-shrink-0 ${
                                             darkMode
                                               ? 'bg-green-900/40 border-green-700 text-green-300'
                                               : 'bg-green-50 border-green-200 text-green-700'
@@ -1288,9 +1300,11 @@ export default function AdminDashboard() {
                                 </div>
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap">
-                                <div className={`flex items-center text-xs ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                                  <FaEnvelope className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-                                  {user.email}
+                                <div className={`flex items-center text-xs ${darkMode ? 'text-gray-200' : 'text-gray-900'} overflow-hidden`}>
+                                  <FaEnvelope className={`mr-2 flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                                  <span className="truncate max-w-[150px] block" title={user.email}>
+                                    {user.email}
+                                  </span>
                                 </div>
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap">
@@ -1457,7 +1471,7 @@ export default function AdminDashboard() {
                                       }}
                                       className={`${darkMode ? 'text-[#f3f4f6] hover:text-white' : 'text-[#800000] hover:text-[#660000]'} text-xs font-medium flex items-center`}
                                     >
-                                      View Registration Details
+                                      Registration Details
                                       <FaChevronRight className="ml-1 text-xs" />
                                     </button>
                                   </div>
@@ -1631,17 +1645,17 @@ export default function AdminDashboard() {
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-4 py-3 whitespace-nowrap">
-                                <div className={`flex items-center text-xs ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                                  <FaCalendarAlt className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-                                  {formatDate(user.created_at)}
+                              <td className="px-2 py-3 whitespace-nowrap">
+                                <div className={`flex items-center justify-center text-[10px] ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                                  <FaCalendarAlt className={`mr-1 text-[9px] ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                                  {formatCompactDate(user.created_at)}
                                 </div>
                               </td>
-                              <td className="px-4 py-3 whitespace-nowrap">
-                                <div className={`flex items-center text-xs ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                                  <FaCalendarAlt className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                              <td className="px-2 py-3 whitespace-nowrap">
+                                <div className={`flex items-center justify-center text-[10px] ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                                  <FaCalendarAlt className={`mr-1 text-[9px] ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
                                   {user.last_sign_in 
-                                    ? formatDate(user.last_sign_in)
+                                    ? formatCompactDate(user.last_sign_in)
                                     : 'Never'}
                                 </div>
                               </td>
@@ -1759,8 +1773,8 @@ export default function AdminDashboard() {
                           <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Users</th>
                           <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Email</th>
                           <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Role</th>
-                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Joined</th>
-                          <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Last Sign In</th>
+                          <th className="px-2 py-3 text-center text-[10px] font-bold uppercase text-white">Joined</th>
+                          <th className="px-2 py-3 text-center text-[10px] font-bold uppercase text-white">Last Sign In</th>
                           <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">Actions</th>
                         </tr>
                       </thead>
@@ -1783,12 +1797,15 @@ export default function AdminDashboard() {
                                   </div>
                                   <div className="ml-3">
                                     <div className="flex items-center gap-2">
-                                      <div className={`text-xs font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                      <div 
+                                        className={`text-xs font-medium ${darkMode ? 'text-white' : 'text-gray-900'} truncate max-w-[120px]`}
+                                        title={user.full_name || 'No name'}
+                                      >
                                         {user.full_name || 'No name'}
                                       </div>
                                       {isNewlyRegistered(user.created_at) && (
                                         <span
-                                          className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border inline-flex items-center gap-1 ${
+                                          className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border inline-flex items-center gap-1 flex-shrink-0 ${
                                             darkMode
                                               ? 'bg-green-900/40 border-green-700 text-green-300'
                                               : 'bg-green-50 border-green-200 text-green-700'
@@ -1804,25 +1821,27 @@ export default function AdminDashboard() {
                                 </div>
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap">
-                                <div className={`flex items-center text-xs ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                                  <FaEnvelope className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-                                  {user.email}
+                                <div className={`flex items-center text-xs ${darkMode ? 'text-gray-200' : 'text-gray-900'} overflow-hidden`}>
+                                  <FaEnvelope className={`mr-2 flex-shrink-0 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                                  <span className="truncate max-w-[150px] block" title={user.email}>
+                                    {user.email}
+                                  </span>
                                 </div>
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap">
                                 <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#800000]/10 text-[#800000]">Archived</span>
                               </td>
-                              <td className="px-4 py-3 whitespace-nowrap">
-                                <div className={`flex items-center text-xs ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                                  <FaCalendarAlt className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
-                                  {formatDate(user.created_at)}
+                              <td className="px-2 py-3 whitespace-nowrap">
+                                <div className={`flex items-center justify-center text-[10px] ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                                  <FaCalendarAlt className={`mr-1 text-[9px] ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                                  {formatCompactDate(user.created_at)}
                                 </div>
                               </td>
-                              <td className="px-4 py-3 whitespace-nowrap">
-                                <div className={`flex items-center text-xs ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                                  <FaCalendarAlt className={`mr-2 ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
+                              <td className="px-2 py-3 whitespace-nowrap">
+                                <div className={`flex items-center justify-center text-[10px] ${darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
+                                  <FaCalendarAlt className={`mr-1 text-[9px] ${darkMode ? 'text-gray-400' : 'text-gray-400'}`} />
                                   {user.last_sign_in 
-                                    ? formatDate(user.last_sign_in)
+                                    ? formatCompactDate(user.last_sign_in)
                                     : 'Never'}
                                 </div>
                               </td>
@@ -1831,15 +1850,15 @@ export default function AdminDashboard() {
                                   <button
                                     onClick={async () => {
                                       try {
-                                        await unarchiveUser(user.profile_id);
-                                        setUsers(prev => prev.map(u => u.profile_id === user.profile_id ? { ...u, role: 'student' } : u));
-                                        await Toast.fire({ icon: 'success', iconColor: '#22c55e', title: 'Unarchived', text: 'Student unarchived successfully' });
+                                        const restoredRole = await unarchiveUser(user.profile_id);
+                                        setUsers(prev => prev.map(u => u.profile_id === user.profile_id ? { ...u, role: restoredRole } : u));
+                                        await Toast.fire({ icon: 'success', iconColor: '#22c55e', title: 'Unarchived', text: 'User unarchived successfully' });
                                       } catch (e) {
                                         await Toast.fire({ icon: 'error', iconColor: '#ef4444', title: 'Error', text: e instanceof Error ? e.message : 'Failed to unarchive' });
                                       }
                                     }}
                                     className={`p-2 rounded-full transition-colors ${darkMode ? 'bg-rose-900 hover:bg-gray-600 text-[#f3f4f6]' : 'bg-rose-200 hover:bg-gray-200 text-gray-700'}`}
-                                    aria-label="Unarchive student"
+                                    aria-label="Unarchive user"
                                     title={`Unarchive ${user.full_name || ''}`.trim()}
                                   >
                                     <FaBoxOpen className="text-[#800000]" />
