@@ -2347,16 +2347,16 @@ const Records = ({ darkMode }: RecordsProps) => {
   }
 
   return (
-    <div className={`${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-xl shadow-lg p-6`}>
+    <div className={`${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-xl shadow-lg p-3 sm:p-4 lg:p-6`}>
       
       {/* Header */}
-      <div data-animate-on-scroll className="flex items-center mb-6">
-        <div className={`p-3 rounded-xl ${darkMode ? 'bg-pink-600/20' : 'bg-pink-100'} mr-4`}>
-          <FaFileAlt className={`text-2xl ${darkMode ? 'text-pink-400' : 'text-pink-600'}`} />
+      <div data-animate-on-scroll className="flex items-center mb-4 sm:mb-6">
+        <div className={`p-2 sm:p-3 rounded-xl ${darkMode ? 'bg-pink-600/20' : 'bg-pink-100'} mr-3 sm:mr-4`}>
+          <FaFileAlt className={`text-lg sm:text-xl lg:text-2xl ${darkMode ? 'text-pink-400' : 'text-pink-600'}`} />
         </div>
         <div>
-          <h2 className={`text-xl sm:text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Student Records</h2>
-          <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Comprehensive student data and progress tracking</p>
+          <h2 className={`text-lg sm:text-xl lg:text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Student Records</h2>
+          <p className={`text-xs sm:text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Comprehensive student data and progress tracking</p>
         </div>
       </div>
 
@@ -2374,8 +2374,8 @@ const Records = ({ darkMode }: RecordsProps) => {
       )}
 
       {/* Search Bar and Year Level Filter */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row gap-3">
+      <div className="mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           {/* Search Input */}
           <div className="relative flex-1">
             <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
@@ -2403,7 +2403,7 @@ const Records = ({ darkMode }: RecordsProps) => {
           </div>
           
           {/* Year Level Filter */}
-          <div className="relative sm:w-48">
+          <div className="relative w-full sm:w-48">
             <FaSort className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
             <select
               value={yearLevelFilter}
@@ -2433,116 +2433,116 @@ const Records = ({ darkMode }: RecordsProps) => {
       </div>
 
       {/* Enhanced Summary Stats with Gradients */}
-      <div className="mb-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div data-animate-on-scroll className={`p-4 rounded-xl bg-gradient-to-br ${
+      <div className="mb-4 sm:mb-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
+        <div data-animate-on-scroll className={`p-2 sm:p-3 lg:p-4 rounded-xl bg-gradient-to-br ${
           darkMode 
             ? 'from-blue-900/20 to-blue-800/30 border-blue-600/30' 
             : 'from-blue-50 to-blue-100 border-blue-200'
         } border-2 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 backdrop-blur-sm`}>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1 sm:mb-2">
             <div>
-              <p className={`text-sm font-medium ${darkMode ? 'text-blue-200' : 'text-blue-600'}`}>Total Students</p>
-              <h3 className={`text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-blue-900'}`}>{filteredStudents.length}</h3>
+              <p className={`text-[10px] sm:text-xs lg:text-sm font-medium ${darkMode ? 'text-blue-200' : 'text-blue-600'}`}>Total Students</p>
+              <h3 className={`text-base sm:text-lg lg:text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-blue-900'}`}>{filteredStudents.length}</h3>
             </div>
-            <div className={`p-2 bg-blue-500 rounded-lg`}>
-              <FaUsers className="text-white text-lg" />
+            <div className={`p-1 sm:p-1.5 lg:p-2 bg-blue-500 rounded-lg`}>
+              <FaUsers className="text-white text-sm sm:text-base lg:text-lg" />
             </div>
           </div>
         </div>
         
-        <div data-animate-on-scroll className={`p-4 rounded-xl bg-gradient-to-br ${
+        <div data-animate-on-scroll className={`p-2 sm:p-3 lg:p-4 rounded-xl bg-gradient-to-br ${
           darkMode 
             ? 'from-emerald-900/20 to-emerald-800/30 border-emerald-600/30' 
             : 'from-emerald-50 to-green-100 border-emerald-200'
         } border-2 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 backdrop-blur-sm`}>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1 sm:mb-2">
             <div>
-              <p className={`text-sm font-medium ${darkMode ? 'text-emerald-200' : 'text-emerald-600'}`}>Total Appointments</p>
-              <h3 className={`text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-emerald-900'}`}>
+              <p className={`text-[10px] sm:text-xs lg:text-sm font-medium ${darkMode ? 'text-emerald-200' : 'text-emerald-600'}`}>Total Appointments</p>
+              <h3 className={`text-base sm:text-lg lg:text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-emerald-900'}`}>
                 {filteredStudents.reduce((total, student) => total + student.appointments.length, 0)}
               </h3>
             </div>
-            <div className={`p-2 bg-emerald-500 rounded-lg`}>
-              <FaCalendarAlt className="text-white text-lg" />
+            <div className={`p-1 sm:p-1.5 lg:p-2 bg-emerald-500 rounded-lg`}>
+              <FaCalendarAlt className="text-white text-sm sm:text-base lg:text-lg" />
             </div>
           </div>
         </div>
         
-        <div data-animate-on-scroll className={`p-4 rounded-xl bg-gradient-to-br ${
+        <div data-animate-on-scroll className={`p-2 sm:p-3 lg:p-4 rounded-xl bg-gradient-to-br ${
           darkMode 
             ? 'from-purple-900/20 to-purple-800/30 border-purple-600/30' 
             : 'from-purple-50 to-purple-100 border-purple-200'
         } border-2 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 backdrop-blur-sm`}>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1 sm:mb-2">
             <div>
-              <p className={`text-sm font-medium ${darkMode ? 'text-purple-200' : 'text-purple-600'}`}>Total CBT Modules</p>
-              <h3 className={`text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-purple-900'}`}>
+              <p className={`text-[10px] sm:text-xs lg:text-sm font-medium ${darkMode ? 'text-purple-200' : 'text-purple-600'}`}>Total CBT Modules</p>
+              <h3 className={`text-base sm:text-lg lg:text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-purple-900'}`}>
                 {filteredStudents.reduce((total, student) => total + student.cbtModules.length, 0)}
               </h3>
             </div>
-            <div className={`p-2 bg-purple-500 rounded-lg`}>
-              <FaBrain className="text-white text-lg" />
+            <div className={`p-1 sm:p-1.5 lg:p-2 bg-purple-500 rounded-lg`}>
+              <FaBrain className="text-white text-sm sm:text-base lg:text-lg" />
             </div>
           </div>
         </div>
         
-        <div data-animate-on-scroll className={`p-4 rounded-xl bg-gradient-to-br ${
+        <div data-animate-on-scroll className={`p-2 sm:p-3 lg:p-4 rounded-xl bg-gradient-to-br ${
           darkMode 
             ? 'from-orange-900/20 to-orange-800/30 border-orange-600/30' 
             : 'from-orange-50 to-orange-100 border-orange-200'
         } border-2 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 backdrop-blur-sm`}>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1 sm:mb-2">
             <div>
-              <p className={`text-sm font-medium ${darkMode ? 'text-orange-200' : 'text-orange-600'}`}>Total Tasks</p>
-              <h3 className={`text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-orange-900'}`}>
+              <p className={`text-[10px] sm:text-xs lg:text-sm font-medium ${darkMode ? 'text-orange-200' : 'text-orange-600'}`}>Total Tasks</p>
+              <h3 className={`text-base sm:text-lg lg:text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-orange-900'}`}>
                 {filteredStudents.reduce((total, student) => total + student.todoItems.length, 0)}
               </h3>
             </div>
-            <div className={`p-2 bg-orange-500 rounded-lg`}>
-              <FaTasks className="text-white text-lg" />
+            <div className={`p-1 sm:p-1.5 lg:p-2 bg-orange-500 rounded-lg`}>
+              <FaTasks className="text-white text-sm sm:text-base lg:text-lg" />
             </div>
           </div>
         </div>
         
-        <div data-animate-on-scroll className={`p-4 rounded-xl bg-gradient-to-br ${
+        <div data-animate-on-scroll className={`p-2 sm:p-3 lg:p-4 rounded-xl bg-gradient-to-br ${
           darkMode 
             ? 'from-cyan-700 to-teal-900 border-cyan-600/30' 
             : 'from-cyan-50 to-teal-100 border-teal-200'
         } border-2 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 backdrop-blur-sm`}>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1 sm:mb-2">
             <div>
-              <p className={`text-sm font-medium ${darkMode ? 'text-cyan-200' : 'text-teal-600'}`}>Total Videos</p>
-              <h3 className={`text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-teal-900'}`}>
+              <p className={`text-[10px] sm:text-xs lg:text-sm font-medium ${darkMode ? 'text-cyan-200' : 'text-teal-600'}`}>Total Videos</p>
+              <h3 className={`text-base sm:text-lg lg:text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-teal-900'}`}>
                 {filteredStudents.reduce((total, student) => total + student.anxietyVideos.length, 0)}
               </h3>
             </div>
-            <div className={`p-2 bg-teal-500 rounded-lg`}>
-              <FaVideo className="text-white text-lg" />
+            <div className={`p-1 sm:p-1.5 lg:p-2 bg-teal-500 rounded-lg`}>
+              <FaVideo className="text-white text-sm sm:text-base lg:text-lg" />
             </div>
           </div>
         </div>
         
-        <div data-animate-on-scroll className={`p-4 rounded-xl bg-gradient-to-br ${
+        <div data-animate-on-scroll className={`p-2 sm:p-3 lg:p-4 rounded-xl bg-gradient-to-br ${
           darkMode 
             ? 'from-pink-700 to-pink-900 border-pink-600/30' 
             : 'from-pink-50 to-pink-100 border-pink-200'
         } border-2 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 backdrop-blur-sm`}>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1 sm:mb-2">
             <div>
-              <p className={`text-sm font-medium ${darkMode ? 'text-pink-200' : 'text-pink-600'}`}>Total Assessments</p>
-              <h3 className={`text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-pink-900'}`}>
+              <p className={`text-[10px] sm:text-xs lg:text-sm font-medium ${darkMode ? 'text-pink-200' : 'text-pink-600'}`}>Total Assessments</p>
+              <h3 className={`text-base sm:text-lg lg:text-2xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-pink-900'}`}>
                 {filteredStudents.reduce((total, student) => total + student.anxietyAssessments.length, 0)}
               </h3>
             </div>
-            <div className={`p-2 bg-pink-500 rounded-lg`}>
-              <FaClipboardList className="text-white text-lg" />
+            <div className={`p-1 sm:p-1.5 lg:p-2 bg-pink-500 rounded-lg`}>
+              <FaClipboardList className="text-white text-sm sm:text-base lg:text-lg" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Enhanced Students Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
         {filteredStudents.map((student) => (
           <div
             key={student.profile.id}
@@ -2675,7 +2675,7 @@ const Records = ({ darkMode }: RecordsProps) => {
       {/* Enhanced Student Detail Modal */}
       {showStudentModal && selectedStudent && (
         <div 
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50"
           onClick={closeStudentModal}
         >
           <div 
@@ -2683,7 +2683,7 @@ const Records = ({ darkMode }: RecordsProps) => {
               darkMode 
                 ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-gray-600/30' 
                 : 'bg-gradient-to-br from-white to-gray-50 border-gray-200'
-            } rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 backdrop-blur-sm`}
+            } rounded-xl sm:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto border-2 backdrop-blur-sm`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Enhanced Modal Header */}
@@ -2691,102 +2691,102 @@ const Records = ({ darkMode }: RecordsProps) => {
               darkMode 
                 ? 'bg-gradient-to-r from-gray-700/50 to-gray-800/50 border-gray-600/30' 
                 : 'bg-gradient-to-r from-gray-50/50 to-gray-100/50 border-gray-200'
-            } px-6 py-5 border-b flex justify-between items-center backdrop-blur-sm`}>
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-xl shadow-lg ${
+            } px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-5 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 backdrop-blur-sm`}>
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className={`p-2 sm:p-3 rounded-xl shadow-lg ${
                   selectedStudent.profile.gender?.toLowerCase() === 'male' 
                     ? 'bg-gradient-to-br from-blue-500 to-blue-600'
                     : selectedStudent.profile.gender?.toLowerCase() === 'female'
                     ? 'bg-gradient-to-br from-pink-500 to-pink-600'
                     : 'bg-gradient-to-br from-yellow-500 to-yellow-600'
                 }`}>
-                  <FaUser className="text-white text-xl" />
+                  <FaUser className="text-white text-base sm:text-lg lg:text-xl" />
                 </div>
                 <div>
-                  <h3 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  <h3 className={`text-lg sm:text-xl lg:text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                     {selectedStudent.profile.full_name}
                   </h3>
-                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <p className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     Complete Student Record & Progress
                   </p>
                 </div>
               </div>
               
               {/* Export Buttons */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                <div className="flex items-center gap-1 sm:gap-2 flex-1 sm:flex-initial">
                   <button
                     onClick={() => exportToCSV(selectedStudent)}
-                    className={`flex items-center gap-0.5 px-1.5 py-1 rounded-md transition-all duration-200 hover:scale-105 ${
+                    className={`flex items-center gap-0.5 px-1 sm:px-1.5 py-1 rounded-md transition-all duration-200 hover:scale-105 active:scale-95 ${
                       darkMode 
                         ? 'bg-green-600/20 hover:bg-green-600/30 text-green-300 border border-green-500/30' 
                         : 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
                     }`}
                     title="Export to CSV"
                   >
-                    <FaFileCsv className="text-xs" />
-                    <span className="text-xs">CSV</span>
+                    <FaFileCsv className="text-[10px] sm:text-xs" />
+                    <span className="text-[10px] sm:text-xs hidden sm:inline">CSV</span>
                   </button>
                   
                   <button
                     onClick={() => exportToExcel(selectedStudent)}
-                    className={`flex items-center gap-0.5 px-1.5 py-1 rounded-md transition-all duration-200 hover:scale-105 ${
+                    className={`flex items-center gap-0.5 px-1 sm:px-1.5 py-1 rounded-md transition-all duration-200 hover:scale-105 active:scale-95 ${
                       darkMode 
                         ? 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30' 
                         : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
                     }`}
                     title="Export to Excel"
                   >
-                    <FaFileExcel className="text-xs" />
-                    <span className="text-xs">Excel</span>
+                    <FaFileExcel className="text-[10px] sm:text-xs" />
+                    <span className="text-[10px] sm:text-xs hidden sm:inline">Excel</span>
                   </button>
                   
                   <button
                     onClick={() => exportToWord(selectedStudent)}
-                    className={`flex items-center gap-0.5 px-1.5 py-1 rounded-md transition-all duration-200 hover:scale-105 ${
+                    className={`flex items-center gap-0.5 px-1 sm:px-1.5 py-1 rounded-md transition-all duration-200 hover:scale-105 active:scale-95 ${
                       darkMode 
                         ? 'bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30' 
                         : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200'
                     }`}
                     title="Export to Word"
                   >
-                    <FaFileWord className="text-xs" />
-                    <span className="text-xs">Word</span>
+                    <FaFileWord className="text-[10px] sm:text-xs" />
+                    <span className="text-[10px] sm:text-xs hidden sm:inline">Word</span>
                   </button>
                   
                   <button
                     onClick={() => exportToPDF(selectedStudent)}
-                    className={`flex items-center gap-0.5 px-1.5 py-1 rounded-md transition-all duration-200 hover:scale-105 ${
+                    className={`flex items-center gap-0.5 px-1 sm:px-1.5 py-1 rounded-md transition-all duration-200 hover:scale-105 active:scale-95 ${
                       darkMode 
                         ? 'bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30' 
                         : 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
                     }`}
                     title="Export to PDF"
                   >
-                    <FaFilePdf className="text-xs" />
-                    <span className="text-xs">PDF</span>
+                    <FaFilePdf className="text-[10px] sm:text-xs" />
+                    <span className="text-[10px] sm:text-xs hidden sm:inline">PDF</span>
                   </button>
                 </div>
                 
                 <button
                   onClick={closeStudentModal}
-                  className={`p-2.5 rounded-xl transition-all duration-200 hover:scale-105 ${
+                  className={`p-2 sm:p-2.5 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
                     darkMode 
                       ? 'hover:bg-gray-600/50 text-gray-300 hover:text-white' 
                       : 'hover:bg-gray-200/50 text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  <FaTimes className="text-lg" />
+                  <FaTimes className="text-base sm:text-lg" />
                 </button>
               </div>
             </div>
 
             {/* Enhanced Modal Content */}
-            <div className="p-6 space-y-6">
+            <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
               {/* Enhanced Student Information */}
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className={`text-xl font-bold bg-gradient-to-r ${
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2 sm:gap-0">
+                  <h4 className={`text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r ${
                     darkMode 
                       ? 'from-blue-400 to-purple-400' 
                       : 'from-blue-600 to-purple-600'
@@ -2848,11 +2848,11 @@ const Records = ({ darkMode }: RecordsProps) => {
                   darkMode 
                     ? 'bg-gradient-to-br from-gray-700/50 to-gray-800/50 border-gray-600/30' 
                     : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200'
-                } rounded-xl p-6 border-2 shadow-lg backdrop-blur-sm`}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                } rounded-xl p-3 sm:p-4 lg:p-6 border-2 shadow-lg backdrop-blur-sm`}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Full Name</p>
-                      <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      <p className={`text-xs sm:text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Full Name</p>
+                      <p className={`font-medium text-sm sm:text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                         {selectedStudent.profile.full_name}
                       </p>
                     </div>
@@ -2904,16 +2904,16 @@ const Records = ({ darkMode }: RecordsProps) => {
 
               {/* Appointments */}
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className={`text-xl font-bold bg-gradient-to-r ${
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2 sm:gap-0">
+                  <h4 className={`text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r ${
                     darkMode 
                       ? 'from-green-400 to-emerald-400' 
                       : 'from-green-600 to-emerald-600'
                   } bg-clip-text text-transparent`}>
-                    <FaCalendarAlt className="inline mr-2 text-green-500" />
+                    <FaCalendarAlt className="inline mr-2 text-green-500 text-sm sm:text-base" />
                     Appointments & Schedule{selectedStudent.appointments.length > 1 ? ` (${selectedStudent.appointments.length})` : ''}
                   </h4>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <button
                       onClick={() => exportAppointmentsToCSV(selectedStudent)}
                       className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
@@ -2965,16 +2965,16 @@ const Records = ({ darkMode }: RecordsProps) => {
                   </div>
                 </div>
                 {selectedStudent.appointments.length > 0 ? (
-                  <div className="grid gap-4">
+                  <div className="grid gap-3 sm:gap-4">
                     {selectedStudent.appointments.map((apt) => (
-                      <div key={apt.id} className={`p-4 rounded-xl border ${
+                      <div key={apt.id} className={`p-3 sm:p-4 rounded-xl border ${
                         darkMode 
                           ? 'bg-gradient-to-r from-green-900/20 to-emerald-900/20 border-green-700/50' 
                           : 'bg-gradient-to-r from-green-50/80 to-emerald-50/80 border-green-200/50'
                       } backdrop-blur-sm`}>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 sm:mb-3 gap-2 sm:gap-0">
+                          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                            <div className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${
                               apt.status === 'Completed' 
                                 ? 'bg-green-100 text-green-800 border border-green-200'
                                 : apt.status === 'Scheduled'
@@ -2985,14 +2985,14 @@ const Records = ({ darkMode }: RecordsProps) => {
                             }`}>
                               {apt.status || 'Unknown'}
                             </div>
-                            <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            <span className={`text-xs sm:text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                               {apt.appointment_date ? new Date(apt.appointment_date).toLocaleDateString() : 'Date not set'}
                               {apt.appointment_time ? ` at ${apt.appointment_time}` : ''}
                             </span>
                           </div>
                         </div>
                         {(apt.notes || apt.meeting_notes) && (
-                          <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                          <div className={`text-xs sm:text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                             <strong>Notes:</strong> {apt.notes || apt.meeting_notes}
                           </div>
                         )}
@@ -3008,16 +3008,16 @@ const Records = ({ darkMode }: RecordsProps) => {
 
               {/* CBT Modules */}
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className={`text-xl font-bold bg-gradient-to-r ${
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2 sm:gap-0">
+                  <h4 className={`text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r ${
                     darkMode 
                       ? 'from-purple-400 to-violet-400' 
                       : 'from-purple-600 to-violet-600'
                   } bg-clip-text text-transparent`}>
-                    <FaBrain className="inline mr-2 text-purple-500" />
+                    <FaBrain className="inline mr-2 text-purple-500 text-sm sm:text-base" />
                     CBT Modules Assigned ({selectedStudent.cbtModules.length})
                   </h4>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                     <button
                       onClick={() => exportCBTModulesToCSV(selectedStudent)}
                       className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
@@ -3069,16 +3069,16 @@ const Records = ({ darkMode }: RecordsProps) => {
                   </div>
                 </div>
                 {selectedStudent.cbtModules.length > 0 ? (
-                  <div className="grid gap-4">
+                  <div className="grid gap-3 sm:gap-4">
                     {selectedStudent.cbtModules.map((module) => (
-                      <div key={module.id} className={`p-4 rounded-xl border ${
+                      <div key={module.id} className={`p-3 sm:p-4 rounded-xl border ${
                         darkMode 
                           ? 'bg-gradient-to-r from-purple-900/20 to-violet-900/20 border-purple-700/50' 
                           : 'bg-gradient-to-r from-purple-50/80 to-violet-50/80 border-purple-200/50'
                       } backdrop-blur-sm`}>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 sm:mb-3 gap-2 sm:gap-0">
+                          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                            <div className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${
                               module.module_status === 'completed' 
                                 ? 'bg-green-100 text-green-800 border border-green-200'
                                 : module.module_status === 'in_progress'
@@ -3089,7 +3089,7 @@ const Records = ({ darkMode }: RecordsProps) => {
                             }`}>
                               {module.module_status.replace('_', ' ')}
                             </div>
-                            <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            <span className={`text-xs sm:text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                               {module.module_title}
                             </span>
                           </div>
@@ -3117,16 +3117,16 @@ const Records = ({ darkMode }: RecordsProps) => {
 
               {/* Anxiety Videos */}
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className={`text-xl font-bold bg-gradient-to-r ${
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2 sm:gap-0">
+                  <h4 className={`text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r ${
                     darkMode 
                       ? 'from-cyan-400 to-teal-400' 
                       : 'from-cyan-600 to-teal-600'
                   } bg-clip-text text-transparent`}>
-                    <FaVideo className="inline mr-2 text-teal-500" />
+                    <FaVideo className="inline mr-2 text-teal-500 text-sm sm:text-base" />
                     Anxiety Videos Assigned ({selectedStudent.anxietyVideos.length})
                   </h4>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                     <button
                       onClick={() => exportAnxietyVideosToCSV(selectedStudent)}
                       className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
@@ -3178,16 +3178,16 @@ const Records = ({ darkMode }: RecordsProps) => {
                   </div>
                 </div>
                 {selectedStudent.anxietyVideos.length > 0 ? (
-                  <div className="grid gap-4">
+                  <div className="grid gap-3 sm:gap-4">
                     {selectedStudent.anxietyVideos.map((video) => (
-                      <div key={video.id} className={`p-4 rounded-xl border ${
+                      <div key={video.id} className={`p-3 sm:p-4 rounded-xl border ${
                         darkMode 
                           ? 'bg-gradient-to-r from-cyan-900/20 to-teal-900/20 border-cyan-700/50' 
                           : 'bg-gradient-to-r from-cyan-50/80 to-teal-50/80 border-teal-200/50'
                       } backdrop-blur-sm`}>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 sm:mb-3 gap-2 sm:gap-0">
+                          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                            <div className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${
                               video.video_status === 'completed' 
                                 ? 'bg-green-100 text-green-800 border border-green-200'
                                 : video.video_status === 'in_progress'
@@ -3198,7 +3198,7 @@ const Records = ({ darkMode }: RecordsProps) => {
                             }`}>
                               {video.video_status.replace('_', ' ')}
                             </div>
-                            <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            <span className={`text-xs sm:text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                               {video.video_title}
                             </span>
                           </div>
@@ -3206,16 +3206,16 @@ const Records = ({ darkMode }: RecordsProps) => {
                             {getStatusIcon(video.video_status)}
                           </div>
                         </div>
-                        <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-2`}>
+                        <div className={`text-xs sm:text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-2`}>
                           <strong>Description:</strong> {video.video_description}
                         </div>
                         <a 
                           href={video.video_url} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className={`text-sm font-medium text-blue-500 hover:text-blue-700 transition-colors inline-flex items-center gap-1`}
+                          className={`text-xs sm:text-sm font-medium text-blue-500 hover:text-blue-700 transition-colors inline-flex items-center gap-1`}
                         >
-                          <FaEye className="text-xs" />
+                          <FaEye className="text-[10px] sm:text-xs" />
                           View Video
                         </a>
                       </div>
@@ -3230,16 +3230,16 @@ const Records = ({ darkMode }: RecordsProps) => {
 
               {/* Anxiety Assessments */}
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className={`text-xl font-bold bg-gradient-to-r ${
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2 sm:gap-0">
+                  <h4 className={`text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r ${
                     darkMode 
                       ? 'from-purple-400 to-pink-400' 
                       : 'from-purple-600 to-pink-600'
                   } bg-clip-text text-transparent`}>
-                    <FaClipboardList className="inline mr-2 text-purple-500" />
+                    <FaClipboardList className="inline mr-2 text-purple-500 text-sm sm:text-base" />
                     Anxiety Assessments ({selectedStudent.anxietyAssessments.length})
                   </h4>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                     <button
                       onClick={() => exportAnxietyAssessmentsToCSV(selectedStudent)}
                       className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
@@ -3291,16 +3291,16 @@ const Records = ({ darkMode }: RecordsProps) => {
                   </div>
                 </div>
                 {selectedStudent.anxietyAssessments.length > 0 ? (
-                  <div className="grid gap-4">
+                  <div className="grid gap-3 sm:gap-4">
                     {selectedStudent.anxietyAssessments.map((assessment) => (
-                      <div key={assessment.id} className={`p-4 rounded-xl border ${
+                      <div key={assessment.id} className={`p-3 sm:p-4 rounded-xl border ${
                         darkMode 
                           ? 'bg-gradient-to-r from-purple-900/20 to-pink-900/20 border-purple-700/50' 
                           : 'bg-gradient-to-r from-purple-50/80 to-pink-50/80 border-purple-200/50'
                       } backdrop-blur-sm`}>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 sm:mb-3 gap-2 sm:gap-0">
+                          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                            <div className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${
                               assessment.anxiety_level === 'Minimal' 
                                 ? 'bg-green-100 text-green-800 border border-green-200'
                                 : assessment.anxiety_level === 'Mild'
@@ -3311,15 +3311,15 @@ const Records = ({ darkMode }: RecordsProps) => {
                             }`}>
                               {assessment.anxiety_level}
                             </div>
-                            <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            <span className={`text-xs sm:text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                               Score: {assessment.total_score}/21 ({assessment.percentage}%)
                             </span>
                           </div>
-                          <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <span className={`text-[10px] sm:text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                             {new Date(assessment.created_at).toLocaleDateString()}
                           </span>
                         </div>
-                        <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <div className={`text-xs sm:text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                           <strong>Assessment Date:</strong> {new Date(assessment.created_at).toLocaleDateString()} at {new Date(assessment.created_at).toLocaleTimeString()}
                         </div>
                       </div>
@@ -3334,16 +3334,16 @@ const Records = ({ darkMode }: RecordsProps) => {
 
               {/* Todo Items */}
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className={`text-xl font-bold bg-gradient-to-r ${
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2 sm:gap-0">
+                  <h4 className={`text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r ${
                     darkMode 
                       ? 'from-orange-400 to-red-400' 
                       : 'from-orange-600 to-red-600'
                   } bg-clip-text text-transparent`}>
-                    <FaTasks className="inline mr-2 text-orange-500" />
+                    <FaTasks className="inline mr-2 text-orange-500 text-sm sm:text-base" />
                     Todo Items ({selectedStudent.todoItems.length})
                   </h4>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                     <button
                       onClick={() => exportTodoItemsToCSV(selectedStudent)}
                       className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all duration-200 hover:scale-105 ${
@@ -3395,16 +3395,16 @@ const Records = ({ darkMode }: RecordsProps) => {
                   </div>
                 </div>
                 {selectedStudent.todoItems.length > 0 ? (
-                  <div className="grid gap-4">
+                  <div className="grid gap-3 sm:gap-4">
                     {selectedStudent.todoItems.map((todo) => (
-                      <div key={todo.id} className={`p-4 rounded-xl border ${
+                      <div key={todo.id} className={`p-3 sm:p-4 rounded-xl border ${
                         darkMode 
                           ? 'bg-gradient-to-r from-indigo-900/20 to-purple-900/20 border-indigo-700/50' 
                           : 'bg-gradient-to-r from-indigo-50/80 to-purple-50/80 border-indigo-200/50'
                       } backdrop-blur-sm`}>
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-2 sm:mb-3 gap-2 sm:gap-0">
+                          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                            <div className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${
                               todo.status === 'completed' 
                                 ? 'bg-green-100 text-green-800 border border-green-200'
                                 : todo.status === 'in_progress'
@@ -3413,20 +3413,20 @@ const Records = ({ darkMode }: RecordsProps) => {
                             }`}>
                               {todo.status.replace('_', ' ')}
                             </div>
-                            <div className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(todo.priority)} border`}>
+                            <div className={`px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold ${getPriorityColor(todo.priority)} border`}>
                               {getPriorityText(todo.priority)}
                             </div>
-                            <span className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            <span className={`text-xs sm:text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                               {todo.title}
                             </span>
                           </div>
                         </div>
                         {todo.description && (
-                          <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-2`}>
+                          <div className={`text-xs sm:text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-2`}>
                             <strong>Description:</strong> {todo.description}
                           </div>
                         )}
-                        <div className="flex items-center gap-4 text-sm">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm">
                           {todo.category && (
                             <div className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                               <strong>Category:</strong> {todo.category}

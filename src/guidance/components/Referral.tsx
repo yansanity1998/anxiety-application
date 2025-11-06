@@ -1084,34 +1084,34 @@ const Referral = ({ darkMode }: ReferralProps) => {
   };
 
   return (
-    <div className={`${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-xl shadow-lg p-6`}>
+    <div className={`${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-xl shadow-lg p-3 sm:p-4 lg:p-6`}>
       {/* Header */}
-      <div className={`${darkMode ? 'bg-gradient-to-r from-gray-800 to-gray-900' : 'bg-gradient-to-r from-white to-gray-50'} rounded-2xl shadow-xl p-6 mb-6 backdrop-blur-sm`}>
-        <div className="flex items-center justify-between">
+      <div className={`${darkMode ? 'bg-gradient-to-r from-gray-800 to-gray-900' : 'bg-gradient-to-r from-white to-gray-50'} rounded-2xl shadow-xl p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 backdrop-blur-sm`}>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center">
-            <div className="bg-gradient-to-r from-red-700 to-red-900 p-3 rounded-xl mr-4">
-              <FaHandshake className="text-2xl text-white" />
+            <div className="bg-gradient-to-r from-red-700 to-red-900 p-2 sm:p-3 rounded-xl mr-3 sm:mr-4">
+              <FaHandshake className="text-lg sm:text-xl lg:text-2xl text-white" />
             </div>
             <div>
-              <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              <h1 className={`text-lg sm:text-xl lg:text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                 Psychiatric Referral System
               </h1>
-              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mt-1`}>
+              <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mt-1 text-xs sm:text-sm`}>
                 Refer students to licensed psychiatrists when guidance interventions are insufficient
               </p>
             </div>
           </div>
           <button
             onClick={() => setShowCreateForm(true)}
-            className="bg-gradient-to-r from-red-700 to-red-900 text-white px-6 py-3 rounded-xl hover:scale-105 transform transition-all duration-200 shadow-lg flex items-center gap-2"
+            className="bg-gradient-to-r from-red-700 to-red-900 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-xl hover:scale-105 active:scale-95 transform transition-all duration-200 shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-auto"
           >
-            <FaPlus /> New Referral
+            <FaPlus className="text-sm" /> New Referral
           </button>
         </div>
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6">
           <div className="flex-1 relative">
             <FaSearch className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
             <input
@@ -1126,12 +1126,12 @@ const Referral = ({ darkMode }: ReferralProps) => {
               } focus:ring-2 focus:ring-red-800 focus:border-transparent focus:outline-none transition-all duration-200`}
             />
           </div>
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <FaFilter className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className={`pl-10 pr-8 py-2 text-sm border rounded-xl ${darkMode ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:ring-2 focus:ring-red-800 focus:border-transparent focus:outline-none`}
+              className={`w-full pl-10 pr-8 py-2 text-sm border rounded-xl ${darkMode ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:ring-2 focus:ring-red-800 focus:border-transparent focus:outline-none`}
             >
               <option value="all">All Status</option>
               <option value="pending">📋 Pending</option>
@@ -1146,7 +1146,7 @@ const Referral = ({ darkMode }: ReferralProps) => {
 
       {/* Referrals Grid */}
       {initialLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {[...Array(8)].map((_, index) => (
             <div
               key={index}
@@ -1188,12 +1188,12 @@ const Referral = ({ darkMode }: ReferralProps) => {
           <p>Try adjusting your search or filters, or add a new referral.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {filteredReferrals.map((referral) => (
             <div
               key={referral.id}
               onClick={() => handleReferralClick(referral)}
-              className={`group relative p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-1 overflow-hidden cursor-pointer flex flex-col ${
+              className={`group relative p-3 sm:p-4 rounded-xl border transition-all duration-200 hover:shadow-lg hover:-translate-y-1 overflow-hidden cursor-pointer flex flex-col ${
                 darkMode 
                   ? 'bg-gray-700/50 border-gray-600 hover:bg-gray-700' 
                   : 'bg-white border-gray-200 hover:shadow-xl'
@@ -1334,31 +1334,31 @@ const Referral = ({ darkMode }: ReferralProps) => {
 
       {/* Create Referral Modal */}
       {showCreateForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto`}>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className={`text-2xl font-bold bg-gradient-to-r from-red-700 to-red-900 bg-clip-text text-transparent`}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50">
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl p-3 sm:p-4 lg:p-6 w-full max-w-2xl max-h-[95vh] sm:max-h-[85vh] overflow-y-auto`}>
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h2 className={`text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-red-700 to-red-900 bg-clip-text text-transparent`}>
                 Create New Referral
               </h2>
               <button
                 onClick={() => setShowCreateForm(false)}
-                className={`${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} text-2xl`}
+                className={`${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'} text-xl sm:text-2xl active:scale-95`}
               >
                 ×
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               {/* Student Selection */}
               <div>
-                <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <label className={`block text-xs sm:text-sm font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                   Select Student *
                 </label>
                 <select
                   value={selectedStudent}
                   onChange={(e) => setSelectedStudent(e.target.value)}
                   required
-                  className={`w-full px-4 py-3 rounded-xl border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm rounded-xl border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                 >
                   <option value="">Choose a student...</option>
                   {students.map((student) => (
@@ -1371,10 +1371,10 @@ const Referral = ({ darkMode }: ReferralProps) => {
 
               {/* Referred By Section */}
               <div>
-                <label className={`block text-sm font-semibold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <label className={`block text-xs sm:text-sm font-semibold mb-2 sm:mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                   Referred By: (Check all that apply)
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                   <label className="flex items-center space-x-2">
                     <input
                       type="checkbox"
@@ -1382,7 +1382,7 @@ const Referral = ({ darkMode }: ReferralProps) => {
                       onChange={(e) => setFormData({...formData, referred_by_faculty: e.target.checked})}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className={`text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>Faculty</span>
+                    <span className={`text-xs sm:text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>Faculty</span>
                   </label>
                   <label className="flex items-center space-x-2">
                     <input
@@ -1391,7 +1391,7 @@ const Referral = ({ darkMode }: ReferralProps) => {
                       onChange={(e) => setFormData({...formData, referred_by_staff: e.target.checked})}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className={`text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>Staff</span>
+                    <span className={`text-xs sm:text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>Staff</span>
                   </label>
                   <label className="flex items-center space-x-2">
                     <input
@@ -1400,7 +1400,7 @@ const Referral = ({ darkMode }: ReferralProps) => {
                       onChange={(e) => setFormData({...formData, referred_by_parent_guardian: e.target.checked})}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className={`text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>Parent/Guardian</span>
+                    <span className={`text-xs sm:text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>Parent/Guardian</span>
                   </label>
                   <label className="flex items-center space-x-2">
                     <input
@@ -1409,7 +1409,7 @@ const Referral = ({ darkMode }: ReferralProps) => {
                       onChange={(e) => setFormData({...formData, referred_by_peer: e.target.checked})}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className={`text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>Peer</span>
+                    <span className={`text-xs sm:text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>Peer</span>
                   </label>
                   <label className="flex items-center space-x-2">
                     <input
@@ -1418,7 +1418,7 @@ const Referral = ({ darkMode }: ReferralProps) => {
                       onChange={(e) => setFormData({...formData, referred_by_self: e.target.checked})}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className={`text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>Self</span>
+                    <span className={`text-xs sm:text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>Self</span>
                   </label>
                   <label className="flex items-center space-x-2">
                     <input
@@ -1427,17 +1427,17 @@ const Referral = ({ darkMode }: ReferralProps) => {
                       onChange={(e) => setFormData({...formData, referred_by_others: e.target.checked})}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className={`text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>Others</span>
+                    <span className={`text-xs sm:text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>Others</span>
                   </label>
                 </div>
                 {formData.referred_by_others && (
-                  <div className="mt-3">
+                  <div className="mt-2 sm:mt-3">
                     <input
                       type="text"
                       value={formData.referred_by_others_specify}
                       onChange={(e) => setFormData({...formData, referred_by_others_specify: e.target.value})}
                       placeholder="Please specify..."
-                      className={`w-full px-4 py-2 rounded-xl border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                      className={`w-full px-3 sm:px-4 py-2 text-sm rounded-xl border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                     />
                   </div>
                 )}
@@ -1824,37 +1824,37 @@ const Referral = ({ darkMode }: ReferralProps) => {
       {/* Referral Detail Modal */}
       {showDetailModal && selectedReferral && (
         <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50"
           onClick={closeDetailModal}
         >
           <div 
-            className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-y-auto`}
+            className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[85vh] overflow-y-auto`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200/20">
-              <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-xl ${darkMode ? 'bg-red-600/20' : 'bg-red-100'}`}>
-                  <FaUserMd className={`text-2xl ${darkMode ? 'text-red-400' : 'text-red-600'}`} />
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 lg:p-6 border-b border-gray-200/20 gap-3 sm:gap-0">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className={`p-2 sm:p-3 rounded-xl ${darkMode ? 'bg-red-600/20' : 'bg-red-100'}`}>
+                  <FaUserMd className={`text-lg sm:text-xl lg:text-2xl ${darkMode ? 'text-red-400' : 'text-red-600'}`} />
                 </div>
                 <div>
-                  <h2 className={`text-2xl font-bold bg-gradient-to-r from-red-700 to-red-900 bg-clip-text text-transparent`}>
+                  <h2 className={`text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-red-700 to-red-900 bg-clip-text text-transparent`}>
                     Referral Details
                   </h2>
-                  <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mt-1`}>
+                  <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} mt-1 text-xs sm:text-sm`}>
                     Student: {selectedReferral.student_name}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 {!isEditing ? (
                   <button
                     onClick={() => downloadAsWord(selectedReferral)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:scale-105 transform transition-all duration-200 text-sm font-medium"
+                    className="flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:scale-105 active:scale-95 transform transition-all duration-200 text-xs sm:text-sm font-medium flex-1 sm:flex-initial"
                     title="Download as Word Document"
                   >
-                    <FaFileWord className="text-sm" />
-                    Word
+                    <FaFileWord className="text-xs sm:text-sm" />
+                    <span className="hidden sm:inline">Word</span>
                   </button>
                 ) : (
                   <></>
@@ -1862,18 +1862,18 @@ const Referral = ({ darkMode }: ReferralProps) => {
                 {!isEditing ? (
                   <button
                     onClick={() => downloadAsPDF(selectedReferral)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:scale-105 transform transition-all duration-200 text-sm font-medium"
+                    className="flex items-center justify-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:scale-105 active:scale-95 transform transition-all duration-200 text-xs sm:text-sm font-medium flex-1 sm:flex-initial"
                     title="Download as PDF"
                   >
-                    <FaFilePdf className="text-sm" />
-                    PDF
+                    <FaFilePdf className="text-xs sm:text-sm" />
+                    <span className="hidden sm:inline">PDF</span>
                   </button>
                 ) : (
                   <></>
                 )}
                 <button
                   onClick={closeDetailModal}
-                  className={`group relative p-3 rounded-xl transition-all duration-300 hover:scale-110 shadow-lg ${
+                  className={`group relative p-2 sm:p-3 rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 shadow-lg ${
                     darkMode 
                       ? 'bg-gradient-to-br from-red-500/20 to-red-600/20 hover:from-red-500/30 hover:to-red-600/30 border border-red-400/30 text-red-400 hover:text-red-300' 
                       : 'bg-gradient-to-br from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 border border-red-200/50 text-red-600 hover:text-red-700'
@@ -1886,26 +1886,26 @@ const Referral = ({ darkMode }: ReferralProps) => {
             </div>
 
             {/* Modal Content */}
-            <form onSubmit={(e) => { e.preventDefault(); saveEdit(); }} className="p-6 space-y-4">
+            <form onSubmit={(e) => { e.preventDefault(); saveEdit(); }} className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4">
               {/* Student Information - Read Only */}
               <div>
-                <label className={`block text-sm font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <label className={`block text-xs sm:text-sm font-semibold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                   Student *
                 </label>
-                <div className={`w-full px-4 py-3 rounded-xl border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} cursor-not-allowed`}>
+                <div className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm rounded-xl border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} cursor-not-allowed`}>
                   {selectedReferral.student_name}
                 </div>
-                <p className={`text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <p className={`text-[10px] sm:text-xs mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   Student cannot be changed after referral creation
                 </p>
               </div>
 
               {/* Referred By Section */}
               <div>
-                <label className={`block text-sm font-semibold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <label className={`block text-xs sm:text-sm font-semibold mb-2 sm:mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                   Referred By: (Check all that apply)
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                   <label className="flex items-center space-x-2">
                     <input
                       type="checkbox"
@@ -1913,7 +1913,7 @@ const Referral = ({ darkMode }: ReferralProps) => {
                       onChange={(e) => setEditFormData({...editFormData, referred_by_faculty: e.target.checked})}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className={`text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>Faculty</span>
+                    <span className={`text-xs sm:text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>Faculty</span>
                   </label>
                   <label className="flex items-center space-x-2">
                     <input
@@ -1962,13 +1962,13 @@ const Referral = ({ darkMode }: ReferralProps) => {
                   </label>
                 </div>
                 {editFormData.referred_by_others && (
-                  <div className="mt-3">
+                  <div className="mt-2 sm:mt-3">
                     <input
                       type="text"
                       value={editFormData.referred_by_others_specify}
                       onChange={(e) => setEditFormData({...editFormData, referred_by_others_specify: e.target.value})}
                       placeholder="Please specify..."
-                      className={`w-full px-4 py-2 rounded-xl border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                      className={`w-full px-3 sm:px-4 py-2 text-sm rounded-xl border ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                     />
                   </div>
                 )}

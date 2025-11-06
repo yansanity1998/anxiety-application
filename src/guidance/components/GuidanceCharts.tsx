@@ -245,46 +245,47 @@ const AppointmentCalendar = ({ appointments, darkMode }: { appointments?: Appoin
   };
 
   return (
-    <div className={`p-4 rounded-2xl shadow-xl border-0 ${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} backdrop-blur-sm`}>
+    <div className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-xl border-0 ${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} backdrop-blur-sm`}>
       {/* Calendar Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4 gap-2 sm:gap-0">
         <div className="flex items-center space-x-2">
-          <div className={`w-3 h-3 rounded-full ${darkMode ? 'bg-indigo-400' : 'bg-indigo-500'}`}></div>
-          <h3 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-indigo-400 to-purple-400' : 'from-indigo-600 to-purple-600'} bg-clip-text text-transparent`}>
+          <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${darkMode ? 'bg-indigo-400' : 'bg-indigo-500'}`}></div>
+          <h3 className={`text-sm sm:text-base lg:text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-indigo-400 to-purple-400' : 'from-indigo-600 to-purple-600'} bg-clip-text text-transparent`}>
             {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
           </h3>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1.5 sm:space-x-2">
           <button
             onClick={goToPreviousMonth}
-            className={`p-2 rounded-xl transition-all duration-300 transform hover:scale-110 hover:-translate-x-0.5 active:scale-95 ${darkMode ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300 hover:text-white hover:shadow-lg' : 'bg-gray-100/80 hover:bg-gray-200 text-gray-600 hover:text-gray-800 hover:shadow-md'} backdrop-blur-sm hover:backdrop-blur-md`}
+            className={`p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-110 hover:-translate-x-0.5 active:scale-95 ${darkMode ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300 hover:text-white hover:shadow-lg' : 'bg-gray-100/80 hover:bg-gray-200 text-gray-600 hover:text-gray-800 hover:shadow-md'} backdrop-blur-sm hover:backdrop-blur-md`}
           >
-            <FaChevronLeft className="w-3 h-3 transition-transform duration-200 group-hover:-translate-x-0.5" />
+            <FaChevronLeft className="w-2.5 h-2.5 sm:w-3 sm:h-3 transition-transform duration-200 group-hover:-translate-x-0.5" />
           </button>
           <button
             onClick={goToToday}
-            className={`px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 active:scale-95 bg-gradient-to-r ${darkMode ? 'from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500' : 'from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600'} text-white shadow-lg hover:shadow-2xl hover:shadow-indigo-500/25`}
+            className={`px-2.5 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-xs font-semibold rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 active:scale-95 bg-gradient-to-r ${darkMode ? 'from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500' : 'from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600'} text-white shadow-lg hover:shadow-2xl hover:shadow-indigo-500/25`}
           >
             Today
           </button>
           <button
             onClick={goToNextMonth}
-            className={`p-2 rounded-xl transition-all duration-300 transform hover:scale-110 hover:translate-x-0.5 active:scale-95 ${darkMode ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300 hover:text-white hover:shadow-lg' : 'bg-gray-100/80 hover:bg-gray-200 text-gray-600 hover:text-gray-800 hover:shadow-md'} backdrop-blur-sm hover:backdrop-blur-md`}
+            className={`p-1.5 sm:p-2 rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-110 hover:translate-x-0.5 active:scale-95 ${darkMode ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300 hover:text-white hover:shadow-lg' : 'bg-gray-100/80 hover:bg-gray-200 text-gray-600 hover:text-gray-800 hover:shadow-md'} backdrop-blur-sm hover:backdrop-blur-md`}
           >
-            <FaChevronRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
+            <FaChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 transition-transform duration-200 group-hover:translate-x-0.5" />
           </button>
         </div>
       </div>
 
       {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2">
         {/* Day Headers */}
         {dayNames.map(day => (
           <div
             key={day}
-            className={`p-2 text-center text-xs font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'} uppercase tracking-wider`}
+            className={`p-1 sm:p-2 text-center text-[10px] sm:text-xs font-bold ${darkMode ? 'text-indigo-400' : 'text-indigo-600'} uppercase tracking-wider`}
           >
-            {day}
+            <span className="hidden sm:inline">{day}</span>
+            <span className="sm:hidden">{day.charAt(0)}</span>
           </div>
         ))}
         
@@ -296,7 +297,7 @@ const AppointmentCalendar = ({ appointments, darkMode }: { appointments?: Appoin
           return (
             <div
               key={index}
-              className={`relative p-2 min-h-[48px] rounded-xl transition-all duration-300 cursor-pointer transform hover:scale-110 hover:-translate-y-1 active:scale-95 ${
+              className={`relative p-1 sm:p-2 min-h-[40px] sm:min-h-[48px] rounded-lg sm:rounded-xl transition-all duration-300 cursor-pointer transform hover:scale-110 hover:-translate-y-1 active:scale-95 ${
                 darkMode 
                   ? 'bg-gray-700/30 hover:bg-gray-600/50 border border-gray-600/30' 
                   : 'bg-white/60 hover:bg-white/80 border border-gray-200/50 shadow-sm hover:shadow-md'
@@ -316,7 +317,7 @@ const AppointmentCalendar = ({ appointments, darkMode }: { appointments?: Appoin
               title={hasAppointments ? `View appointments for ${getLocalDateString(date)}` : undefined}
             >
               {/* Date Number */}
-              <div className={`text-sm font-bold flex items-center justify-center ${
+              <div className={`text-xs sm:text-sm font-bold flex items-center justify-center ${
                 isToday(date) 
                   ? 'text-white bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full w-7 h-7 mx-auto mb-1 shadow-lg'
                   : darkMode ? 'text-gray-200' : 'text-gray-700'
@@ -325,8 +326,8 @@ const AppointmentCalendar = ({ appointments, darkMode }: { appointments?: Appoin
               </div>
               {/* Appointment Count */}
               {hasAppointments && (
-                <div className="absolute -bottom-1 -right-1">
-                  <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shadow-lg border-2 transition-all duration-300 hover:scale-125 ${
+                <div className="absolute -bottom-0.5 sm:-bottom-1 -right-0.5 sm:-right-1">
+                  <div className={`flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full text-[10px] sm:text-xs font-bold shadow-lg border-2 transition-all duration-300 hover:scale-125 ${
                     appointmentCount >= 5 
                       ? 'bg-gradient-to-r from-red-500 to-red-600 text-white border-red-300' 
                       : appointmentCount >= 3 
@@ -447,18 +448,18 @@ const AppointmentCalendar = ({ appointments, darkMode }: { appointments?: Appoin
           </div>
         </div>
       )}
-      <div className="flex items-center justify-center mt-4 space-x-4 text-xs">
-        <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 transition-all duration-300 hover:scale-105 hover:shadow-md">
-          <FaCircle className={`w-3 h-3 ${darkMode ? 'text-green-400' : 'text-green-500'} shadow-sm transition-transform duration-200 hover:scale-110`} />
-          <span className={`font-medium ${darkMode ? 'text-green-300' : 'text-green-700'}`}>1-2 appointments</span>
+      <div className="flex flex-row items-center justify-center mt-3 sm:mt-4 space-x-2 sm:space-x-4 text-[10px] sm:text-xs">
+        <div className="flex items-center space-x-1 sm:space-x-1.5 px-1.5 sm:px-2 py-1 rounded-full bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 transition-all duration-300 hover:scale-105 hover:shadow-md">
+          <FaCircle className={`w-2 h-2 sm:w-3 sm:h-3 ${darkMode ? 'text-green-400' : 'text-green-500'} shadow-sm transition-transform duration-200 hover:scale-110`} />
+          <span className={`font-medium ${darkMode ? 'text-green-300' : 'text-green-700'}`}>1-2</span>
         </div>
-        <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 transition-all duration-300 hover:scale-105 hover:shadow-md">
-          <FaCalendarCheck className={`w-3 h-3 ${darkMode ? 'text-yellow-400' : 'text-yellow-500'} shadow-sm transition-transform duration-200 hover:scale-110`} />
-          <span className={`font-medium ${darkMode ? 'text-yellow-300' : 'text-yellow-700'}`}>3-4 appointments</span>
+        <div className="flex items-center space-x-1 sm:space-x-1.5 px-1.5 sm:px-2 py-1 rounded-full bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 transition-all duration-300 hover:scale-105 hover:shadow-md">
+          <FaCalendarCheck className={`w-2 h-2 sm:w-3 sm:h-3 ${darkMode ? 'text-yellow-400' : 'text-yellow-500'} shadow-sm transition-transform duration-200 hover:scale-110`} />
+          <span className={`font-medium ${darkMode ? 'text-yellow-300' : 'text-yellow-700'}`}>3-4</span>
         </div>
-        <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/30 transition-all duration-300 hover:scale-105 hover:shadow-md">
-          <FaExclamationTriangle className={`w-3 h-3 ${darkMode ? 'text-red-400' : 'text-red-500'} shadow-sm transition-transform duration-200 hover:scale-110`} />
-          <span className={`font-medium ${darkMode ? 'text-red-300' : 'text-red-700'}`}>5+ appointments</span>
+        <div className="flex items-center space-x-1 sm:space-x-1.5 px-1.5 sm:px-2 py-1 rounded-full bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/30 transition-all duration-300 hover:scale-105 hover:shadow-md">
+          <FaExclamationTriangle className={`w-2 h-2 sm:w-3 sm:h-3 ${darkMode ? 'text-red-400' : 'text-red-500'} shadow-sm transition-transform duration-200 hover:scale-110`} />
+          <span className={`font-medium ${darkMode ? 'text-red-300' : 'text-red-700'}`}>5+</span>
         </div>
       </div>
     </div>
@@ -718,13 +719,13 @@ useEffect(() => {
 }, [totalPages, timeRange]);
 
 return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 w-full px-0 md:px-0`}>
+    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6 w-full`}>
       {/* Appointment Calendar */}
       <AnimatedChartContainer delay={100} animationType="slideInUp">
-        <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-4 rounded-xl shadow-lg border-0 min-w-0 w-full backdrop-blur-sm`}>
-          <div className="flex items-center space-x-3 mb-4">
-            <FaCalendarAlt className={`w-4 h-4 ${darkMode ? 'text-indigo-400' : 'text-indigo-500'}`} />
-            <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-indigo-400 to-purple-400' : 'from-indigo-600 to-purple-600'} bg-clip-text text-transparent`}>Appointment Calendar</h2>
+        <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-3 sm:p-4 rounded-xl shadow-lg border-0 min-w-0 w-full backdrop-blur-sm`}>
+          <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">
+            <FaCalendarAlt className={`w-3 h-3 sm:w-4 sm:h-4 ${darkMode ? 'text-indigo-400' : 'text-indigo-500'}`} />
+            <h2 className={`text-sm sm:text-base lg:text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-indigo-400 to-purple-400' : 'from-indigo-600 to-purple-600'} bg-clip-text text-transparent`}>Appointment Calendar</h2>
           </div>
           <AppointmentCalendar appointments={appointments} darkMode={darkMode} />
         </div>
@@ -732,14 +733,14 @@ return (
 
       {/* Gender Distribution Chart */}
       <AnimatedChartContainer delay={200} animationType="fadeInLeft">
-        <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-4 rounded-xl shadow-lg border-0 min-w-0 w-full relative backdrop-blur-sm`}>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <FaUsers className={`w-4 h-4 ${darkMode ? 'text-pink-400' : 'text-pink-500'}`} />
-              <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-pink-400 to-blue-400' : 'from-pink-600 to-blue-600'} bg-clip-text text-transparent`}>Gender Distribution</h2>
+        <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-3 sm:p-4 rounded-xl shadow-lg border-0 min-w-0 w-full relative backdrop-blur-sm`}>
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <FaUsers className={`w-3 h-3 sm:w-4 sm:h-4 ${darkMode ? 'text-pink-400' : 'text-pink-500'}`} />
+              <h2 className={`text-sm sm:text-base lg:text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-pink-400 to-blue-400' : 'from-pink-600 to-blue-600'} bg-clip-text text-transparent`}>Gender Distribution</h2>
             </div>
             <div className="flex items-center gap-2">
-              <div className="group relative">
+              <div className="group relative hidden sm:block">
                 <FaInfoCircle className={`w-3 h-3 cursor-help ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'}`} />
                 <div className={`absolute right-0 top-6 w-48 p-2 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-95 group-hover:scale-100 z-10 ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-200'} border`}>
                   Distribution of students by gender in the system
@@ -747,7 +748,7 @@ return (
               </div>
             </div>
           </div>
-          <div className={`h-64 w-full min-w-0`}>
+          <div className={`h-48 sm:h-56 lg:h-64 w-full min-w-0`}>
             <Pie data={genderDistributionData} options={{
             responsive: true,
             maintainAspectRatio: false,
@@ -791,31 +792,31 @@ return (
           </div>
           
           {/* Statistics summary below chart */}
-          <div className={`mt-4 p-4 rounded-xl ${darkMode ? 'bg-gradient-to-r from-gray-700/50 to-gray-800/50' : 'bg-gradient-to-r from-blue-50/80 to-indigo-50/80'} border ${darkMode ? 'border-gray-600/50' : 'border-blue-200/50'} backdrop-blur-sm`}>
-            <h3 className={`text-sm font-semibold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Gender Distribution Summary</h3>
-            <div className="grid grid-cols-2 gap-3">
+          <div className={`mt-3 sm:mt-4 p-3 sm:p-4 rounded-xl ${darkMode ? 'bg-gradient-to-r from-gray-700/50 to-gray-800/50' : 'bg-gradient-to-r from-blue-50/80 to-indigo-50/80'} border ${darkMode ? 'border-gray-600/50' : 'border-blue-200/50'} backdrop-blur-sm`}>
+            <h3 className={`text-xs sm:text-sm font-semibold mb-2 sm:mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Gender Distribution Summary</h3>
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {genderDistributionData.labels.map((label, index) => (
-                <div key={label} className={`flex flex-col p-3 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md ${darkMode ? 'bg-gray-800/60 hover:bg-gray-800/80' : 'bg-white/70 hover:bg-white/90'} border ${darkMode ? 'border-gray-600/30' : 'border-gray-200/50'}`}>
+                <div key={label} className={`flex flex-col p-2 sm:p-3 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md ${darkMode ? 'bg-gray-800/60 hover:bg-gray-800/80' : 'bg-white/70 hover:bg-white/90'} border ${darkMode ? 'border-gray-600/30' : 'border-gray-200/50'}`}>
                   <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
                       <div 
-                        className="w-3 h-3 rounded-full" 
+                        className="w-2 h-2 sm:w-3 sm:h-3 rounded-full" 
                         style={{ backgroundColor: genderDistributionData.datasets[0].backgroundColor[index] }}
                       ></div>
-                      <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>{label}</span>
+                      <span className={`text-xs sm:text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>{label}</span>
                     </div>
-                    <span className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                    <span className={`text-xs sm:text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                       {genderDistributionData.datasets[0].data[index]}
                     </span>
                   </div>
-                  <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Student gender data</span>
+                  <span className={`text-[10px] sm:text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Student gender data</span>
                 </div>
               ))}
             </div>
-            <div className={`mt-3 pt-3 border-t ${darkMode ? 'border-gray-600/50' : 'border-gray-300/50'}`}>
+            <div className={`mt-2 sm:mt-3 pt-2 sm:pt-3 border-t ${darkMode ? 'border-gray-600/50' : 'border-gray-300/50'}`}>
               <div className={`flex items-center justify-between p-1.5 rounded-lg ${darkMode ? 'bg-gradient-to-r from-indigo-900/40 to-purple-900/40' : 'bg-gradient-to-r from-indigo-100/80 to-purple-100/80'} border ${darkMode ? 'border-indigo-700/50' : 'border-indigo-300/50'}`}>
-                <span className={`text-xs font-semibold ${darkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>Total Students:</span>
-                <span className={`text-xs font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                <span className={`text-[10px] sm:text-xs font-semibold ${darkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>Total Students:</span>
+                <span className={`text-[10px] sm:text-xs font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                   {genderDistributionData.datasets[0].data.reduce((a, b) => a + b, 0)}
                 </span>
               </div>
@@ -826,14 +827,14 @@ return (
 
       {/* Anxiety Level Distribution Chart */}
       <AnimatedChartContainer delay={300} animationType="fadeInRight">
-        <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-4 rounded-xl shadow-lg border-0 min-w-0 w-full relative backdrop-blur-sm`}>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <FaHeart className={`w-4 h-4 ${darkMode ? 'text-red-400' : 'text-red-500'}`} />
-              <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-green-400 to-red-400' : 'from-green-600 to-red-600'} bg-clip-text text-transparent`}>Anxiety Level Distribution</h2>
+        <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-3 sm:p-4 rounded-xl shadow-lg border-0 min-w-0 w-full relative backdrop-blur-sm`}>
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <FaHeart className={`w-3 h-3 sm:w-4 sm:h-4 ${darkMode ? 'text-red-400' : 'text-red-500'}`} />
+              <h2 className={`text-sm sm:text-base lg:text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-green-400 to-red-400' : 'from-green-600 to-red-600'} bg-clip-text text-transparent`}>Anxiety Level Distribution</h2>
             </div>
             <div className="flex items-center gap-2">
-              <div className="group relative">
+              <div className="group relative hidden sm:block">
                 <FaInfoCircle className={`w-3 h-3 cursor-help ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'}`} />
                 <div className={`absolute right-0 top-6 w-56 p-2 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-95 group-hover:scale-100 z-10 ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-200'} border`}>
                   Current anxiety levels based on latest assessments. Hover over chart segments for detailed information.
@@ -841,7 +842,7 @@ return (
               </div>
             </div>
           </div>
-          <div className={`h-64 w-full min-w-0`}>
+          <div className={`h-48 sm:h-56 lg:h-64 w-full min-w-0`}>
             <Pie data={anxietyLevelDistributionData} options={{
             responsive: true,
             maintainAspectRatio: false,
@@ -893,9 +894,9 @@ return (
           </div>
           
           {/* Statistics summary below chart */}
-          <div className={`mt-4 p-4 rounded-xl ${darkMode ? 'bg-gradient-to-r from-gray-700/50 to-gray-800/50' : 'bg-gradient-to-r from-green-50/80 to-red-50/80'} border ${darkMode ? 'border-gray-600/50' : 'border-green-200/50'} backdrop-blur-sm`}>
-            <h3 className={`text-sm font-semibold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Anxiety Level Summary</h3>
-            <div className="grid grid-cols-2 gap-3">
+          <div className={`mt-3 sm:mt-4 p-3 sm:p-4 rounded-xl ${darkMode ? 'bg-gradient-to-r from-gray-700/50 to-gray-800/50' : 'bg-gradient-to-r from-green-50/80 to-red-50/80'} border ${darkMode ? 'border-gray-600/50' : 'border-green-200/50'} backdrop-blur-sm`}>
+            <h3 className={`text-xs sm:text-sm font-semibold mb-2 sm:mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>Anxiety Level Summary</h3>
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               {anxietyLevelDistributionData.labels.map((label, index) => {
                 const level = label.toLowerCase();
                 let description = '';
@@ -906,28 +907,28 @@ return (
                   case 'severe': description = 'High anxiety'; break;
                 }
                 return (
-                  <div key={label} className={`flex flex-col p-3 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md ${darkMode ? 'bg-gray-800/60 hover:bg-gray-800/80' : 'bg-white/70 hover:bg-white/90'} border ${darkMode ? 'border-gray-600/30' : 'border-gray-200/50'}`}>
+                  <div key={label} className={`flex flex-col p-2 sm:p-3 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-md ${darkMode ? 'bg-gray-800/60 hover:bg-gray-800/80' : 'bg-white/70 hover:bg-white/90'} border ${darkMode ? 'border-gray-600/30' : 'border-gray-200/50'}`}>
                     <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
                         <div 
-                          className="w-3 h-3 rounded-full" 
+                          className="w-2 h-2 sm:w-3 sm:h-3 rounded-full" 
                           style={{ backgroundColor: anxietyLevelDistributionData.datasets[0].backgroundColor[index] }}
                         ></div>
-                        <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>{label}</span>
+                        <span className={`text-xs sm:text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>{label}</span>
                       </div>
-                      <span className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                      <span className={`text-xs sm:text-sm font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                         {anxietyLevelDistributionData.datasets[0].data[index]}
                       </span>
                     </div>
-                    <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{description}</span>
+                    <span className={`text-[10px] sm:text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{description}</span>
                   </div>
                 );
               })}
             </div>
-            <div className={`mt-3 pt-3 border-t ${darkMode ? 'border-gray-600/50' : 'border-gray-300/50'}`}>
+            <div className={`mt-2 sm:mt-3 pt-2 sm:pt-3 border-t ${darkMode ? 'border-gray-600/50' : 'border-gray-300/50'}`}>
               <div className={`flex items-center justify-between p-1.5 rounded-lg ${darkMode ? 'bg-gradient-to-r from-indigo-900/40 to-purple-900/40' : 'bg-gradient-to-r from-indigo-100/80 to-purple-100/80'} border ${darkMode ? 'border-indigo-700/50' : 'border-indigo-300/50'}`}>
-                <span className={`text-xs font-semibold ${darkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>Total Assessments:</span>
-                <span className={`text-xs font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                <span className={`text-[10px] sm:text-xs font-semibold ${darkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>Total Assessments:</span>
+                <span className={`text-[10px] sm:text-xs font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                   {anxietyLevelDistributionData.datasets[0].data.reduce((a, b) => a + b, 0)}
                 </span>
               </div>
@@ -938,23 +939,23 @@ return (
 
       {/* Anxiety History Bar Chart */}
       <AnimatedChartContainer delay={400} animationType="zoomIn" className="lg:col-span-3">
-        <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-6 rounded-2xl shadow-xl border-0 min-w-0 w-full backdrop-blur-sm`}>
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-3">
-              <FaChartLine className={`w-4 h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-500'}`} />
-              <h2 className={`text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-indigo-400 to-emerald-400' : 'from-indigo-600 to-emerald-600'} bg-clip-text text-transparent`}>Anxiety Level History</h2>
-              <div className="group relative">
+        <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-50'} p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl shadow-xl border-0 min-w-0 w-full backdrop-blur-sm`}>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 sm:mb-4 gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <FaChartLine className={`w-3 h-3 sm:w-4 sm:h-4 ${darkMode ? 'text-emerald-400' : 'text-emerald-500'}`} />
+              <h2 className={`text-sm sm:text-base lg:text-lg font-bold bg-gradient-to-r ${darkMode ? 'from-indigo-400 to-emerald-400' : 'from-indigo-600 to-emerald-600'} bg-clip-text text-transparent`}>Anxiety Level History</h2>
+              <div className="group relative hidden sm:block">
                 <FaInfoCircle className={`w-3 h-3 cursor-help ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-600'}`} />
                 <div className={`absolute left-0 top-6 w-64 p-2 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 ${darkMode ? 'bg-gray-700 text-white border-gray-600' : 'bg-white text-gray-800 border-gray-200'} border`}>
                   Track anxiety level trends over time. Use time range buttons to switch between daily, weekly, and monthly views. Navigate through pages using arrow buttons.
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="flex">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
+              <div className="flex w-full sm:w-auto">
                 <button
                   onClick={() => handleTimeRangeChange('daily')}
-                  className={`px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 active:scale-95 ${
+                  className={`flex-1 sm:flex-none px-2.5 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-xs font-semibold rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 active:scale-95 ${
                     timeRange === 'daily' 
                       ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg' 
                       : darkMode ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300' : 'bg-gray-200/80 hover:bg-gray-300 text-gray-600'

@@ -1,7 +1,12 @@
 /* Global Background Styles */
 body, html, #root {
-  background: linear-gradient(135deg, #f8f4f4 0%, #e8d8d8 50%, #f0e6e6 100%);
+  background: #f9fafb;
   min-height: 100vh;
+}
+
+/* Dark mode support */
+body.dark-mode, body.dark-mode #root {
+  background: #111827;
 }
 
 /* Prevent layout shifts from scrollbar appearance/disappearance */

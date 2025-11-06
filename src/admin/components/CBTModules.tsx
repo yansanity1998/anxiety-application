@@ -408,41 +408,41 @@ const CBTModules = ({ darkMode }: CBTModulesProps) => {
   }
 
   return (
-    <div className={`${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-xl shadow-lg p-6`}>
+    <div className={`${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-xl shadow-lg p-3 sm:p-4 lg:p-6`}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-4">
         <div className="flex items-center">
-          <div className={`p-3 rounded-xl ${darkMode ? 'bg-green-600/20' : 'bg-green-100'} mr-4`}>
-            <FaBrain className={`text-2xl ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
+          <div className={`p-2 sm:p-3 rounded-xl ${darkMode ? 'bg-green-600/20' : 'bg-green-100'} mr-3 sm:mr-4`}>
+            <FaBrain className={`text-lg sm:text-xl lg:text-2xl ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
           </div>
           <div>
-            <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            <h2 className={`text-lg sm:text-xl lg:text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               CBT Modules
             </h2>
-            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <p className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               Manage cognitive behavioral therapy modules for students
             </p>
           </div>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center px-4 py-2.5 bg-[#800000] hover:bg-[#b56576] text-white rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+          className="flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2.5 bg-[#800000] hover:bg-[#b56576] text-white rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 text-sm sm:text-base w-full sm:w-auto"
         >
-          <FaPlus className="mr-2" />
+          <FaPlus className="mr-2 text-sm" />
           Add Module
         </button>
       </div>
 
       {/* Status Overview Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-        <div className={`p-3 rounded-xl bg-gradient-to-br ${darkMode ? 'from-gray-700 to-gray-900' : 'from-gray-50 to-gray-100'} border border-blue-200 transition-all duration-300 hover:shadow-xl hover:scale-105 shadow-lg backdrop-blur-sm`}>
-          <div className="flex items-center justify-between mb-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <div className={`p-2 sm:p-3 rounded-xl bg-gradient-to-br ${darkMode ? 'from-gray-700 to-gray-900' : 'from-gray-50 to-gray-100'} border border-blue-200 transition-all duration-300 hover:shadow-xl hover:scale-105 shadow-lg backdrop-blur-sm`}>
+          <div className="flex items-center justify-between mb-1 sm:mb-2">
             <div>
-              <p className={`text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Total</p>
-              <h3 className={`text-xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.total}</h3>
+              <p className={`text-[10px] sm:text-xs font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Total</p>
+              <h3 className={`text-lg sm:text-xl font-bold mt-0.5 ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.total}</h3>
             </div>
-            <div className="p-1.5 bg-blue-500 rounded-lg">
-              <FaBookOpen className="text-white text-sm" />
+            <div className="p-1 sm:p-1.5 bg-blue-500 rounded-lg">
+              <FaBookOpen className="text-white text-xs sm:text-sm" />
             </div>
           </div>
           <div className="relative">

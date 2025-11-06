@@ -1040,33 +1040,36 @@ export default function GuidanceDashboard() {
   }
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+    <div className={`min-h-screen w-full overflow-x-hidden ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
       {/* Header */}
       <div className={`${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b shadow-sm`}>
-        <div className="max-w-10xl mx-auto px-6 sm:px-12 lg:px-16">
-          <div className="flex justify-between items-center py-6">
-                          <div className="flex items-center space-x-3">
+        <div className="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
+          <div className="flex items-center justify-between py-3 sm:py-4 lg:py-6 gap-2 sm:gap-3">
+            {/* Left Section: Logo and Title */}
+            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
               <button 
                 onClick={() => setActiveView('dashboard')}
-                className={`rounded-full transition-all duration-200 hover:scale-105 p-1 ${
+                className={`rounded-full transition-all duration-200 hover:scale-105 p-1 flex-shrink-0 ${
                   darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                 }`}
                 title="Go to Dashboard"
               >
-                <img src="/spc-guidance.png" alt="Guidance Service Center" className="h-15 w-15 object-contain cursor-pointer" />
+                <img src="/spc-guidance.png" alt="Guidance Service Center" className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 object-contain cursor-pointer" />
               </button>
-              <div>
-                <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-red-900'}`}>
+              <div className="min-w-0 flex-1">
+                <h1 className={`text-sm sm:text-lg lg:text-2xl xl:text-3xl font-bold truncate ${darkMode ? 'text-white' : 'text-red-900'}`}>
                   {currentUser?.full_name ? `${currentUser.full_name.split(' ')[0]} Dashboard` : 'Guidance Dashboard'}
                 </h1>
-                <p className={`text-sm ${darkMode ? 'text-gray-300' : 'text-red-900'}`}>
+                <p className={`text-[10px] sm:text-xs lg:text-sm truncate ${darkMode ? 'text-gray-300' : 'text-red-900'}`}>
                   Student Counseling & Support Management
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              {/* Real-time Clock */}
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md ${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
+            
+            {/* Right Section: Actions */}
+            <div className="flex items-center gap-1 sm:gap-1.5 lg:gap-2 flex-shrink-0">
+              {/* Real-time Clock - Hidden on mobile */}
+              <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-md ${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'}`}>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <circle cx="12" cy="12" r="10"></circle>
                   <polyline points="12,6 12,12 16,14"></polyline>
@@ -1082,20 +1085,20 @@ export default function GuidanceDashboard() {
               </div>
               <button
                 onClick={toggleDarkMode}
-                className={`p-1.5 rounded-full cursor-pointer ${darkMode ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                className={`p-1.5 sm:p-2 rounded-full cursor-pointer transition-all active:scale-95 ${darkMode ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                 aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
               >
-                {darkMode ? <FaSun /> : <FaMoon />}
+                {darkMode ? <FaSun className="text-xs sm:text-sm" /> : <FaMoon className="text-xs sm:text-sm" />}
               </button>
-                              <div className="relative">
-                  <Notifications darkMode={darkMode} />
-                </div>
+              <div className="relative">
+                <Notifications darkMode={darkMode} />
+              </div>
               <button
                 onClick={handleSignOut}
-                className="flex items-center gap-1 px-2 py-1.5 bg-red-900 text-white rounded-md hover:bg-red-700 transition-colors hover:cursor-pointer text-xs"
+                className="flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 bg-red-900 text-white rounded-md hover:bg-red-700 transition-all active:scale-95 hover:cursor-pointer text-[10px] sm:text-xs"
               >
-                <FaSignOutAlt />
-                Sign Out
+                <FaSignOutAlt className="text-xs sm:text-sm" />
+                <span className="hidden sm:inline">Sign Out</span>
               </button>
             </div>
           </div>
@@ -1104,7 +1107,7 @@ export default function GuidanceDashboard() {
       
       <GuidanceNavbar activeView={activeView} setActiveView={setActiveView} darkMode={darkMode} archivedUsersCount={archivedUsers.length} />
 
-      <div className="max-w-10xl mx-auto px-6 sm:px-12 lg:px-16 py-8">
+      <div className="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-4 sm:py-6 lg:py-8">
         {activeView === 'dashboard' && (
           <div className="w-full">
             <GuidanceCharts users={users} assessments={assessments} appointments={appointments} darkMode={darkMode} compact={true} />
@@ -1114,17 +1117,17 @@ export default function GuidanceDashboard() {
         {activeView === 'users' && (
           <>
             {/* Student count summary cards */}
-            <div className="mb-4 flex flex-wrap gap-3">
+            <div className="mb-4 flex flex-wrap gap-2 sm:gap-3">
               {/* Active Students Card */}
-              <div className={`flex items-center ${darkMode ? 'bg-gray-700' : 'bg-[#800000]/5'} rounded-lg px-4 py-3 border ${darkMode ? 'border-gray-600' : 'border-[#800000]/30'} w-fit`}> 
-                <FaUser className={`mr-2 text-xl ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`} />
-                <span className={`font-semibold text-base ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`}>Active Students:</span>
-                <span className={`ml-2 text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{activeUsers.filter(u => u.role === 'student').length}</span>
+              <div className={`flex items-center ${darkMode ? 'bg-gray-700' : 'bg-[#800000]/5'} rounded-lg px-3 sm:px-4 py-2 sm:py-3 border ${darkMode ? 'border-gray-600' : 'border-[#800000]/30'} w-full sm:w-fit`}> 
+                <FaUser className={`mr-2 text-base sm:text-xl ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`} />
+                <span className={`font-semibold text-sm sm:text-base ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`}>Active Students:</span>
+                <span className={`ml-2 text-base sm:text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{activeUsers.filter(u => u.role === 'student').length}</span>
               </div>
               
             </div>
             <div className="mb-3">
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <div className="relative flex-1">
                   <input
                     type="text"
@@ -1162,7 +1165,8 @@ export default function GuidanceDashboard() {
               </div>
             </div>
 
-            <div className={`rounded-md shadow overflow-x-auto ${darkMode ? 'bg-gray-800' : 'bg-white'} w-full`}>
+            {/* Desktop Table View */}
+            <div className={`hidden lg:block rounded-md shadow overflow-x-auto ${darkMode ? 'bg-gray-800' : 'bg-white'} w-full`}>
               <div className="overflow-x-auto w-full">
                 <table className={`min-w-full divide-y ${darkMode ? 'divide-gray-700' : 'divide-gray-200'} w-full text-xs`}>
                   <thead className="bg-[#800000]">
@@ -1737,31 +1741,149 @@ export default function GuidanceDashboard() {
               </div>
             </div>
 
+            {/* Mobile Card View */}
+            <div className="lg:hidden space-y-3">
+              {isLoading ? (
+                <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow text-center`}>
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className={`w-4 h-4 rounded-full border-2 border-t-blue-500 border-r-purple-500 animate-spin`}></div>
+                    <span className={darkMode ? 'text-gray-400' : 'text-gray-500'}>Loading data...</span>
+                  </div>
+                </div>
+              ) : currentUsers.length === 0 ? (
+                <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  No users found
+                </div>
+              ) : (
+                currentUsers.map((user) => {
+                  const latestAssessment = getLatestAssessment(assessments[user.profile_id]);
+                  const colors = latestAssessment ? getAnxietyLevelColor(latestAssessment.anxiety_level) : null;
+                  
+                  return (
+                    <div key={user.id} className={`p-4 rounded-lg shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                      {/* User Header */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                          <div className={`h-12 w-12 rounded-full flex items-center justify-center flex-shrink-0 ${
+                            user.role === 'admin' ? 'bg-red-200' :
+                            user.gender?.toLowerCase() === 'male' ? 'bg-blue-100' :
+                            user.gender?.toLowerCase() === 'female' ? 'bg-pink-100' : 'bg-orange-100'
+                          }`}>
+                            <FaUser className={`text-lg ${
+                              user.role === 'admin' ? 'text-red-700' :
+                              user.gender?.toLowerCase() === 'male' ? 'text-blue-500' :
+                              user.gender?.toLowerCase() === 'female' ? 'text-pink-500' : 'text-orange-500'
+                            }`} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className={`text-sm font-semibold truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                {user.full_name || 'No name'}
+                              </h3>
+                              {isNewlyRegistered(user.created_at) && (
+                                <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border inline-flex items-center gap-1 ${
+                                  darkMode ? 'bg-green-900/40 border-green-700 text-green-300' : 'bg-green-50 border-green-200 text-green-700'
+                                }`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${darkMode ? 'bg-green-400' : 'bg-green-500'} animate-pulse`}></span>
+                                  NEW
+                                </span>
+                              )}
+                            </div>
+                            <p className={`text-xs truncate ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                              {user.email}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* User Info Grid */}
+                      <div className="space-y-2 mb-3">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Role:</span>
+                          <span className={`px-2 py-1 rounded-full font-medium ${
+                            user.role === 'admin' ? 'bg-red-100 text-red-700' :
+                            user.role === 'guidance' ? 'bg-purple-100 text-purple-700' :
+                            'bg-blue-100 text-blue-700'
+                          }`}>
+                            {user.role}
+                          </span>
+                        </div>
+                        
+                        {latestAssessment && (
+                          <div className="flex items-center justify-between text-xs">
+                            <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Anxiety Level:</span>
+                            <span className={`px-2 py-1 rounded-full font-medium ${colors?.bg} ${colors?.text}`}>
+                              {latestAssessment.anxiety_level} ({latestAssessment.percentage}%)
+                            </span>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center justify-between text-xs">
+                          <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Joined:</span>
+                          <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{formatCompactDate(user.created_at)}</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between text-xs">
+                          <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Last Sign In:</span>
+                          <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
+                            {user.last_sign_in ? formatCompactDate(user.last_sign_in) : 'Never'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2 pt-3 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}">
+                        <button
+                          onClick={() => handleSchedule(user)}
+                          className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                            darkMode ? 'bg-blue-900 hover:bg-blue-800 text-blue-200' : 'bg-blue-50 hover:bg-blue-100 text-blue-700'
+                          }`}
+                        >
+                          Schedule
+                        </button>
+                        {user.role === 'student' && (
+                          <button
+                            onClick={() => handleArchiveUser(user)}
+                            className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                              darkMode ? 'bg-red-900 hover:bg-red-800 text-red-200' : 'bg-red-50 hover:bg-red-100 text-red-700'
+                            }`}
+                          >
+                            Archive
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className={`mt-4 flex items-center justify-between ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                <div className="text-xs">
+              <div className={`mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                <div className="text-xs order-2 sm:order-1">
                   Showing {startIndex + 1} to {Math.min(endIndex, sortedUsers.length)} of {sortedUsers.length} users
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 order-1 sm:order-2">
                   <button
                     onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
+                    className={`px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
                       currentPage === 1
                         ? `${darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
                         : `${darkMode ? 'bg-[#800000] hover:bg-[#660000] text-white' : 'bg-[#800000] hover:bg-[#660000] text-white'}`
                     }`}
                   >
-                    Previous
+                    <span className="hidden sm:inline">Previous</span>
+                    <span className="sm:hidden">Prev</span>
                   </button>
-                  <span className="text-xs px-2">
-                    Page {currentPage} of {totalPages}
+                  <span className="text-xs px-2 font-medium">
+                    {currentPage} / {totalPages}
                   </span>
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
+                    className={`px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
                       currentPage === totalPages
                         ? `${darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-400'} cursor-not-allowed`
                         : `${darkMode ? 'bg-[#800000] hover:bg-[#660000] text-white' : 'bg-[#800000] hover:bg-[#660000] text-white'}`
@@ -1777,12 +1899,14 @@ export default function GuidanceDashboard() {
 
         {activeView === 'archived' && (
           <>
-            <div className={`mb-4 flex items-center ${darkMode ? 'bg-gray-700' : 'bg-[#800000]/5'} rounded-lg px-4 py-3 border ${darkMode ? 'border-gray-600' : 'border-[#800000]/30'} w-fit`}>
-              <FaArchive className={`mr-2 text-xl ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`} />
-              <span className={`font-semibold text-base ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`}>Archived Users:</span>
-              <span className={`ml-2 text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{archivedUsers.length}</span>
+            <div className={`mb-4 flex items-center ${darkMode ? 'bg-gray-700' : 'bg-[#800000]/5'} rounded-lg px-3 sm:px-4 py-2 sm:py-3 border ${darkMode ? 'border-gray-600' : 'border-[#800000]/30'} w-full sm:w-fit`}>
+              <FaArchive className={`mr-2 text-base sm:text-xl ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`} />
+              <span className={`font-semibold text-sm sm:text-base ${darkMode ? 'text-[#f3f4f6]' : 'text-[#800000]'}`}>Archived Users:</span>
+              <span className={`ml-2 text-base sm:text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{archivedUsers.length}</span>
             </div>
-            <div className={`rounded-md shadow overflow-x-auto ${darkMode ? 'bg-gray-800' : 'bg-white'} w-full`}>
+            
+            {/* Desktop Table View */}
+            <div className={`hidden lg:block rounded-md shadow overflow-x-auto ${darkMode ? 'bg-gray-800' : 'bg-white'} w-full`}>
               <div className="overflow-x-auto w-full">
                 <table className={`min-w-full divide-y ${darkMode ? 'divide-gray-700' : 'divide-gray-200'} w-full text-xs`}>
                   <thead className="bg-[#800000]">
@@ -1885,6 +2009,89 @@ export default function GuidanceDashboard() {
                   </tbody>
                 </table>
               </div>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="lg:hidden space-y-3">
+              {archivedUsers.length === 0 ? (
+                <div className={`p-6 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  No archived users
+                </div>
+              ) : (
+                archivedUsers.map((user) => (
+                  <div key={user.id} className={`p-4 rounded-lg shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                    {/* User Header */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                        <div className="h-12 w-12 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-200">
+                          <FaUser className="text-lg text-gray-500" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className={`text-sm font-semibold truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                              {user.full_name || 'No name'}
+                            </h3>
+                            {isNewlyRegistered(user.created_at) && (
+                              <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border inline-flex items-center gap-1 ${
+                                darkMode ? 'bg-green-900/40 border-green-700 text-green-300' : 'bg-green-50 border-green-200 text-green-700'
+                              }`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${darkMode ? 'bg-green-400' : 'bg-green-500'} animate-pulse`}></span>
+                                NEW
+                              </span>
+                            )}
+                          </div>
+                          <p className={`text-xs truncate ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* User Info Grid */}
+                    <div className="space-y-2 mb-3">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Status:</span>
+                        <span className="px-2 py-1 rounded-full font-medium bg-[#800000]/10 text-[#800000]">
+                          Archived
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-xs">
+                        <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Joined:</span>
+                        <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>{formatDate(user.created_at)}</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-xs">
+                        <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Last Sign In:</span>
+                        <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
+                          {user.last_sign_in ? formatDate(user.last_sign_in) : 'Never'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action Button */}
+                    <div className="pt-3 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}">
+                      <button
+                        onClick={async () => {
+                          try {
+                            const restoredRole = await unarchiveUser(user.profile_id);
+                            setUsers(prev => prev.map(u => u.profile_id === user.profile_id ? { ...u, role: restoredRole } : u));
+                            await Toast.fire({ icon: 'success', iconColor: '#22c55e', title: 'Unarchived', text: 'User unarchived successfully' });
+                          } catch (e) {
+                            await Toast.fire({ icon: 'error', iconColor: '#ef4444', title: 'Error', text: e instanceof Error ? e.message : 'Failed to unarchive' });
+                          }
+                        }}
+                        className={`w-full px-3 py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-2 ${
+                          darkMode ? 'bg-green-900 hover:bg-green-800 text-green-200' : 'bg-green-50 hover:bg-green-100 text-green-700'
+                        }`}
+                      >
+                        <FaBoxOpen />
+                        Unarchive User
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </>
         )}

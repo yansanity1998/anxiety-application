@@ -547,18 +547,18 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
           : 'bg-gradient-to-br from-white/90 to-gray-50/90 border-gray-200/50'
       }`}>
         {/* Modern Header with Gradient */}
-        <div className={`p-6 border-b backdrop-blur-sm ${
+        <div className={`p-3 sm:p-4 lg:p-6 border-b backdrop-blur-sm ${
           darkMode 
             ? 'border-gray-700/50 bg-gradient-to-r from-purple-900/20 to-indigo-900/20' 
             : 'border-gray-200/50 bg-gradient-to-r from-purple-50/50 to-indigo-50/50'
         }`}>
-          <div className="flex items-center gap-4 mb-6">
-            <div className={`p-4 rounded-2xl shadow-lg transition-all duration-300 hover:scale-110 ${
+          <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className={`p-2 sm:p-3 lg:p-4 rounded-2xl shadow-lg transition-all duration-300 hover:scale-110 ${
               darkMode 
                 ? 'bg-gradient-to-br from-purple-600/30 to-indigo-600/30 shadow-purple-900/20' 
                 : 'bg-gradient-to-br from-purple-100 to-indigo-100 shadow-purple-200/50'
             }`}>
-              <FaUsers className={`text-3xl ${darkMode ? 'text-purple-300' : 'text-purple-600'}`} />
+              <FaUsers className={`text-xl sm:text-2xl lg:text-3xl ${darkMode ? 'text-purple-300' : 'text-purple-600'}`} />
             </div>
             <div className="flex-1">
               <h3 className={`text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent ${
@@ -575,7 +575,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
           </div>
 
           {/* Modern Search Bar and Year Level Filter */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             {/* Search Input */}
             <div className="relative flex-1">
               <div className={`relative rounded-2xl overflow-hidden shadow-lg backdrop-blur-sm ${
@@ -588,20 +588,20 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
                   placeholder="Search students by name or email..."
                   value={studentSearchTerm}
                   onChange={(e) => setStudentSearchTerm(e.target.value)}
-                  className={`w-full pl-12 pr-4 py-4 text-sm bg-transparent transition-all duration-300 ${
+                  className={`w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 text-xs sm:text-sm bg-transparent transition-all duration-300 ${
                     darkMode 
                       ? 'text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500/30' 
                       : 'text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-500/30'
                   } focus:outline-none`}
                 />
-                <FaSearch className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-sm transition-colors ${
+                <FaSearch className={`absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-xs sm:text-sm transition-colors ${
                   darkMode ? 'text-purple-400' : 'text-purple-500'
                 }`} />
               </div>
             </div>
             
             {/* Year Level Filter */}
-            <div className="relative sm:w-48">
+            <div className="relative w-full sm:w-48">
               <div className={`relative rounded-2xl overflow-hidden shadow-lg backdrop-blur-sm ${
                 darkMode 
                   ? 'bg-gradient-to-r from-gray-800/50 to-gray-700/50 border border-gray-600/30' 
@@ -610,7 +610,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
                 <select
                   value={yearLevelFilter}
                   onChange={(e) => setYearLevelFilter(e.target.value)}
-                  className={`w-full pl-12 pr-4 py-4 text-sm transition-all duration-300 appearance-none cursor-pointer ${
+                  className={`w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 text-xs sm:text-sm transition-all duration-300 appearance-none cursor-pointer ${
                     darkMode 
                       ? 'bg-gray-800 text-white focus:ring-2 focus:ring-purple-500/30' 
                       : 'bg-white text-gray-900 focus:ring-2 focus:ring-purple-500/30'
@@ -622,7 +622,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
                   <option value="3" className={darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>3rd Year</option>
                   <option value="4" className={darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>4th Year</option>
                 </select>
-                <FaSort className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-sm transition-colors ${
+                <FaSort className={`absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-xs sm:text-sm transition-colors ${
                   darkMode ? 'text-purple-400' : 'text-purple-500'
                 }`} />
               </div>
@@ -631,7 +631,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
         </div>
 
         {/* Modern Students Grid */}
-        <div className="p-6">
+        <div className="p-3 sm:p-4 lg:p-6">
           {studentsLoading ? (
             <div className="text-center py-8">
               <div className={`inline-block animate-spin rounded-full h-8 w-8 border-b-2 ${
@@ -711,19 +711,19 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
         : 'bg-gradient-to-br from-white/90 to-gray-50/90 border-gray-200/50'
     }`}>
       {/* Modern Header with Gradient */}
-      <div className={`p-6 border-b backdrop-blur-sm ${
+      <div className={`p-3 sm:p-4 lg:p-6 border-b backdrop-blur-sm ${
         darkMode 
           ? 'border-gray-700/50 bg-gradient-to-r from-purple-900/20 to-indigo-900/20' 
           : 'border-gray-200/50 bg-gradient-to-r from-purple-50/50 to-indigo-50/50'
       }`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className={`p-4 rounded-2xl shadow-lg transition-all duration-300 hover:scale-110 ${
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className={`p-2 sm:p-3 lg:p-4 rounded-2xl shadow-lg transition-all duration-300 hover:scale-110 ${
               darkMode 
                 ? 'bg-gradient-to-br from-purple-600/30 to-indigo-600/30 shadow-purple-900/20' 
                 : 'bg-gradient-to-br from-purple-100 to-indigo-100 shadow-purple-200/50'
             }`}>
-              <FaHistory className={`text-3xl ${darkMode ? 'text-purple-300' : 'text-purple-600'}`} />
+              <FaHistory className={`text-xl sm:text-2xl lg:text-3xl ${darkMode ? 'text-purple-300' : 'text-purple-600'}`} />
             </div>
             <div className="flex-1">
               <h3 className={`text-2xl font-bold bg-gradient-to-r bg-clip-text text-transparent ${
@@ -742,7 +742,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
                   setCurrentSelectedName('');
                   setAppointments([]);
                 }}
-                className={`mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-105 shadow-lg ${
+                className={`mt-2 sm:mt-3 inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg ${
                   darkMode 
                     ? 'bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-200 hover:text-white shadow-gray-900/20' 
                     : 'bg-gradient-to-r from-gray-200 to-gray-100 hover:from-gray-300 hover:to-gray-200 text-gray-700 hover:text-gray-900 shadow-gray-300/30'
@@ -756,46 +756,46 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
         </div>
 
         {/* Modern Statistics Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mt-6">
-          <div data-animate-on-scroll className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 lg:gap-4 mt-4 sm:mt-6">
+          <div data-animate-on-scroll className={`p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
             darkMode 
               ? 'bg-gradient-to-br from-blue-900/30 to-indigo-900/30 border-blue-600/30 hover:border-blue-500/50' 
               : 'bg-gradient-to-br from-blue-50/80 to-indigo-50/80 border-blue-200/50 hover:border-blue-300/50'
           }`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className={`p-2 rounded-lg ${
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
+              <div className={`p-1.5 sm:p-2 rounded-lg ${
                 darkMode ? 'bg-blue-600/20' : 'bg-blue-100'
               }`}>
-                <FaCalendarAlt className={`text-sm ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                <FaCalendarAlt className={`text-xs sm:text-sm ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
               </div>
-              <span className={`text-xs font-medium ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>Total</span>
+              <span className={`text-[10px] sm:text-xs font-medium ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>Total</span>
             </div>
-            <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.total}</p>
+            <p className={`text-lg sm:text-xl lg:text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.total}</p>
           </div>
           
-          <div data-animate-on-scroll className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+          <div data-animate-on-scroll className={`p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
             darkMode 
               ? 'bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border-blue-600/30 hover:border-blue-500/50' 
               : 'bg-gradient-to-br from-blue-50/80 to-cyan-50/80 border-blue-200/50 hover:border-blue-300/50'
           }`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className={`p-2 rounded-lg ${
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
+              <div className={`p-1.5 sm:p-2 rounded-lg ${
                 darkMode ? 'bg-blue-600/20' : 'bg-blue-100'
               }`}>
-                <FaCalendarAlt className={`text-sm ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
+                <FaCalendarAlt className={`text-xs sm:text-sm ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
               </div>
               <span className={`text-xs font-medium ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>Scheduled</span>
             </div>
             <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.scheduled}</p>
           </div>
           
-          <div data-animate-on-scroll className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+          <div data-animate-on-scroll className={`p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
             darkMode 
               ? 'bg-gradient-to-br from-amber-900/30 to-yellow-900/30 border-amber-600/30 hover:border-amber-500/50' 
               : 'bg-gradient-to-br from-amber-50/80 to-yellow-50/80 border-amber-200/50 hover:border-amber-300/50'
           }`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className={`p-2 rounded-lg ${
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
+              <div className={`p-1.5 sm:p-2 rounded-lg ${
                 darkMode ? 'bg-amber-600/20' : 'bg-amber-100'
               }`}>
                 <FaHourglassHalf className={`text-sm ${darkMode ? 'text-amber-400' : 'text-amber-600'}`} />
@@ -805,13 +805,13 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
             <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.inProgress}</p>
           </div>
           
-          <div data-animate-on-scroll className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+          <div data-animate-on-scroll className={`p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
             darkMode 
               ? 'bg-gradient-to-br from-emerald-900/30 to-green-900/30 border-emerald-600/30 hover:border-emerald-500/50' 
               : 'bg-gradient-to-br from-emerald-50/80 to-green-50/80 border-emerald-200/50 hover:border-emerald-300/50'
           }`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className={`p-2 rounded-lg ${
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
+              <div className={`p-1.5 sm:p-2 rounded-lg ${
                 darkMode ? 'bg-emerald-600/20' : 'bg-emerald-100'
               }`}>
                 <FaCheckCircle className={`text-sm ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
@@ -821,13 +821,13 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
             <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.completed}</p>
           </div>
           
-          <div data-animate-on-scroll className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+          <div data-animate-on-scroll className={`p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
             darkMode 
               ? 'bg-gradient-to-br from-red-900/30 to-pink-900/30 border-red-600/30 hover:border-red-500/50' 
               : 'bg-gradient-to-br from-red-50/80 to-pink-50/80 border-red-200/50 hover:border-red-300/50'
           }`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className={`p-2 rounded-lg ${
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
+              <div className={`p-1.5 sm:p-2 rounded-lg ${
                 darkMode ? 'bg-red-600/20' : 'bg-red-100'
               }`}>
                 <FaCalendarTimes className={`text-sm ${darkMode ? 'text-red-400' : 'text-red-600'}`} />
@@ -837,13 +837,13 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
             <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stats.canceled}</p>
           </div>
           
-          <div data-animate-on-scroll className={`p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+          <div data-animate-on-scroll className={`p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-sm border transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
             darkMode 
               ? 'bg-gradient-to-br from-gray-800/30 to-slate-800/30 border-gray-600/30 hover:border-gray-500/50' 
               : 'bg-gradient-to-br from-gray-50/80 to-slate-50/80 border-gray-200/50 hover:border-gray-300/50'
           }`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className={`p-2 rounded-lg ${
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
+              <div className={`p-1.5 sm:p-2 rounded-lg ${
                 darkMode ? 'bg-gray-600/20' : 'bg-gray-100'
               }`}>
                 <FaUserTimes className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
@@ -856,9 +856,9 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
       </div>
 
       {/* History Content */}
-      <div className="p-6">
+      <div className="p-3 sm:p-4 lg:p-6">
           {/* Modern Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 lg:mb-8">
             <div className="relative flex-1">
               <div className={`relative rounded-2xl overflow-hidden shadow-lg backdrop-blur-sm ${
                 darkMode 
@@ -870,13 +870,13 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
                   placeholder="Search by notes or date..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`w-full pl-12 pr-4 py-3 text-sm bg-transparent transition-all duration-300 ${
+                  className={`w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 text-xs sm:text-sm bg-transparent transition-all duration-300 ${
                     darkMode 
                       ? 'text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500/30' 
                       : 'text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-500/30'
                   } focus:outline-none`}
                 />
-                <FaSearch className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-sm ${
+                <FaSearch className={`absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-xs sm:text-sm ${
                   darkMode ? 'text-purple-400' : 'text-purple-500'
                 }`} />
               </div>
@@ -891,7 +891,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className={`w-full pl-12 pr-10 py-3 text-sm transition-all duration-300 appearance-none ${
+                  className={`w-full pl-10 sm:pl-12 pr-10 py-2.5 sm:py-3 text-xs sm:text-sm transition-all duration-300 appearance-none ${
                     darkMode 
                       ? 'bg-gray-800 text-white focus:ring-2 focus:ring-purple-500/30' 
                       : 'bg-white text-gray-900 focus:ring-2 focus:ring-purple-500/30'
@@ -904,10 +904,10 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
                   <option value="Canceled" className={darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>Canceled</option>
                   <option value="No Show" className={darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>No Show</option>
                 </select>
-                <FaFilter className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-sm ${
+                <FaFilter className={`absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-xs sm:text-sm ${
                   darkMode ? 'text-purple-400' : 'text-purple-500'
                 }`} />
-                <FaChevronDown className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-sm ${
+                <FaChevronDown className={`absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-xs sm:text-sm ${
                   darkMode ? 'text-purple-400' : 'text-purple-500'
                 } pointer-events-none`} />
               </div>
@@ -955,31 +955,31 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
                   <div
                     key={appointment.id}
                     data-animate-on-scroll
-                    className={`group p-6 rounded-2xl border transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] backdrop-blur-sm ${
+                    className={`group p-3 sm:p-4 lg:p-6 rounded-2xl border transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] backdrop-blur-sm ${
                       darkMode 
                         ? 'bg-gradient-to-br from-gray-800/60 to-gray-900/60 border-gray-700/50 hover:border-purple-500/30 hover:shadow-purple-900/20' 
                         : 'bg-gradient-to-br from-white/80 to-gray-50/80 border-gray-200/50 hover:border-purple-300/30 hover:shadow-purple-200/20'
                     }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-0">
+                      <div className="flex-1 w-full">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                           <div className="flex items-center gap-2">
-                            <FaCalendarAlt className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
-                            <span className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            <FaCalendarAlt className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                            <span className={`text-xs sm:text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                               {formatDate(appointment.appointment_date)}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <FaClock className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
-                            <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            <FaClock className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                            <span className={`text-xs sm:text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                               {appointment.appointment_time}
                             </span>
                           </div>
                           {/* Walk-in indicator */}
                           {appointment.notes && appointment.notes.toLowerCase().includes('walk-in') && (
                             <div 
-                              className="flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-[#800000] to-[#660000] text-white"
+                              className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-[#800000] to-[#660000] text-white"
                               title="Walk-in Appointment"
                             >
                               <FaWalking className="text-xs" />
@@ -989,18 +989,18 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
                         </div>
                         
                         {appointment.notes && (
-                          <p className={`text-sm mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                          <p className={`text-xs sm:text-sm mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                             {appointment.notes}
                           </p>
                         )}
                         
-                        <div className="flex items-center justify-between">
-                          <div className="relative">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+                          <div className="relative w-full sm:w-auto">
                             <button
                               onClick={() => {
                                 setExpandedAppointment(expandedAppointment === appointment.id ? null : appointment.id);
                               }}
-                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-colors hover:opacity-80 ${
+                              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium border transition-colors hover:opacity-80 ${
                                 darkMode ? statusColorsDark[appointment.status] : statusColors[appointment.status]
                               }`}
                             >
@@ -1042,13 +1042,13 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ darkMode, selectedStu
                             )}
                           </div>
                           
-                          <div className="flex items-center gap-2">
-                            <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                            <span className={`text-[10px] sm:text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                               {getRelativeTime(appointment.appointment_date)}
                             </span>
                             
                             {/* Action buttons */}
-                            <div className="flex gap-1">
+                            <div className="flex gap-0.5 sm:gap-1">
                               <button
                                 onClick={() => handleEditAppointment(appointment)}
                                 className={`p-1.5 rounded-lg transition-colors hover:scale-110 ${

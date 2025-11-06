@@ -453,35 +453,39 @@ export default function Notifications({ darkMode }: NotificationsProps) {
       </button>
 
       {isOpen && (
-        <div className={`absolute right-0 mt-2 w-80 rounded-lg shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} border ${darkMode ? 'border-gray-700' : 'border-gray-200'} z-[9999]`}>
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <h3 className={`text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-              Notifications
-            </h3>
-            {notifications.length > 0 && (
-              <button
-                onClick={handleClearAll}
-                className={`text-xs cursor-pointer ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
-              >
-                Clear all
-              </button>
-            )}
-          </div>
-          <div className="max-h-96 overflow-y-auto">
+        <>
+          {/* Mobile overlay */}
+          <div className="sm:hidden fixed inset-0 bg-black/20 z-[9998]" onClick={() => setIsOpen(false)} />
+          
+          <div className={`fixed sm:absolute left-0 right-0 sm:left-auto sm:right-0 bottom-0 sm:bottom-auto top-auto sm:top-auto mt-0 sm:mt-2 w-full sm:w-80 rounded-t-2xl sm:rounded-lg shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} border-t sm:border ${darkMode ? 'border-gray-700' : 'border-gray-200'} z-[9999]`}>
+            <div className="p-3 sm:p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h3 className={`text-sm sm:text-sm font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                Notifications
+              </h3>
+              {notifications.length > 0 && (
+                <button
+                  onClick={handleClearAll}
+                  className={`text-xs sm:text-xs cursor-pointer ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+            <div className="max-h-[50vh] sm:max-h-96 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className={`p-4 text-center ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              <div className={`p-3 sm:p-4 text-center text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 No notifications
               </div>
             ) : (
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-3 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} hover:${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'} transition-colors ${
+                  className={`p-2 sm:p-3 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} hover:${darkMode ? 'bg-gray-700/50' : 'bg-gray-50'} transition-colors ${
                     !notification.read ? (darkMode ? 'bg-gray-700/50' : 'bg-blue-50/50') : ''
                   }`}
                 >
                   <div className="flex items-start">
-                    <div className={`p-2 rounded-full mr-3 ${
+                    <div className={`p-1.5 sm:p-2 rounded-full mr-2 sm:mr-3 flex-shrink-0 ${
                       notification.type === 'registration' 
                         ? (darkMode ? 'bg-green-900' : 'bg-green-100')
                         : notification.type === 'login'
@@ -497,23 +501,23 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                                   : (darkMode ? 'bg-orange-900' : 'bg-orange-100')
                     }`}>
                       {notification.type === 'registration' ? (
-                        <FaUserPlus className={darkMode ? 'text-green-300' : 'text-green-600'} />
+                        <FaUserPlus className={`text-xs sm:text-sm ${darkMode ? 'text-green-300' : 'text-green-600'}`} />
                       ) : notification.type === 'login' ? (
-                        <FaSignInAlt className={darkMode ? 'text-blue-300' : 'text-blue-600'} />
+                        <FaSignInAlt className={`text-xs sm:text-sm ${darkMode ? 'text-blue-300' : 'text-blue-600'}`} />
                       ) : notification.type === 'archive' ? (
-                        <FaArchive className={darkMode ? 'text-red-300' : 'text-red-600'} />
+                        <FaArchive className={`text-xs sm:text-sm ${darkMode ? 'text-red-300' : 'text-red-600'}`} />
                       ) : notification.type === 'unarchive' ? (
-                        <FaUndo className={darkMode ? 'text-emerald-300' : 'text-emerald-600'} />
+                        <FaUndo className={`text-xs sm:text-sm ${darkMode ? 'text-emerald-300' : 'text-emerald-600'}`} />
                       ) : notification.type === 'schedule' ? (
-                        <FaCalendarPlus className={darkMode ? 'text-purple-300' : 'text-purple-600'} />
+                        <FaCalendarPlus className={`text-xs sm:text-sm ${darkMode ? 'text-purple-300' : 'text-purple-600'}`} />
                       ) : notification.type === 'verified' ? (
-                        <FaCheckCircle className={darkMode ? 'text-cyan-300' : 'text-cyan-600'} />
+                        <FaCheckCircle className={`text-xs sm:text-sm ${darkMode ? 'text-cyan-300' : 'text-cyan-600'}`} />
                       ) : (
-                        <FaExclamationTriangle className={darkMode ? 'text-orange-300' : 'text-orange-600'} />
+                        <FaExclamationTriangle className={`text-xs sm:text-sm ${darkMode ? 'text-orange-300' : 'text-orange-600'}`} />
                       )}
                     </div>
-                    <div className="flex-1">
-                      <p className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-xs sm:text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                         {notification.type === 'registration' 
                           ? 'New Registration' 
                           : notification.type === 'login' 
@@ -528,26 +532,27 @@ export default function Notifications({ darkMode }: NotificationsProps) {
                                     ? 'Student Verified'
                                     : 'Student Unverified'}
                       </p>
-                      <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <p className={`text-[10px] sm:text-xs truncate ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                         {notification.user.full_name} ({notification.user.email})
                       </p>
-                      <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'} mt-1`}>
+                      <p className={`text-[10px] sm:text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'} mt-0.5 sm:mt-1`}>
                         {new Date(notification.timestamp).toLocaleString()}
                       </p>
                     </div>
                     <button
                       onClick={() => handleRemoveNotification(notification.id)}
-                      className={`ml-2 p-1 rounded-full ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+                      className={`ml-1 sm:ml-2 p-1 rounded-full flex-shrink-0 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
                       aria-label="Remove notification"
                     >
-                      <FaTimes className={`w-3 h-3 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                      <FaTimes className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
                     </button>
                   </div>
                 </div>
               ))
             )}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

@@ -166,26 +166,26 @@ const WalkInModal: React.FC<WalkInModalProps> = ({ isOpen, onClose, darkMode, on
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className={`w-full max-w-md h-[600px] flex flex-col rounded-2xl shadow-2xl border overflow-hidden ${
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className={`w-full max-w-md h-[90vh] sm:h-[600px] flex flex-col rounded-2xl shadow-2xl border overflow-hidden ${
         darkMode 
           ? 'bg-gray-800 border-gray-700' 
           : 'bg-white border-gray-200'
       }`}>
         {/* Header */}
-        <div className={`px-4 py-3 border-b ${
+        <div className={`px-3 sm:px-4 py-2.5 sm:py-3 border-b ${
           darkMode ? 'border-gray-700 bg-gray-900/50' : 'border-gray-200 bg-gray-50/50'
         }`}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-[#800000]/10 to-[#800000]/20">
-                <FaWalking className="text-xl text-[#800000]" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-[#800000]/10 to-[#800000]/20">
+                <FaWalking className="text-lg sm:text-xl text-[#800000]" />
               </div>
               <div>
-                <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <h2 className={`text-base sm:text-lg lg:text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                   Walk-in Appointment
                 </h2>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <p className={`text-xs sm:text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   Schedule an immediate appointment for a student
                 </p>
               </div>
@@ -198,17 +198,17 @@ const WalkInModal: React.FC<WalkInModalProps> = ({ isOpen, onClose, darkMode, on
                   : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'
               }`}
             >
-              <FaTimes className="text-lg" />
+              <FaTimes className="text-base sm:text-lg" />
             </button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
-          <form onSubmit={handleSubmit} className="space-y-4 h-full">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4">
+          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4 h-full">
             {/* Student Search */}
             <div>
-              <label className={`flex items-center gap-2 mb-2 text-sm font-medium ${
+              <label className={`flex items-center gap-2 mb-1.5 sm:mb-2 text-xs sm:text-sm font-medium ${
                 darkMode ? 'text-gray-200' : 'text-gray-700'
               }`}>
                 <FaSearch className="text-[#800000]" />
@@ -220,13 +220,13 @@ const WalkInModal: React.FC<WalkInModalProps> = ({ isOpen, onClose, darkMode, on
                   placeholder="Search by name, email, or student ID..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`w-full px-4 py-3 rounded-lg border transition-all ${
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-3 text-sm rounded-lg border transition-all ${
                     darkMode 
                       ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#800000] focus:ring-2 focus:ring-[#800000]/20' 
                       : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[#800000] focus:ring-2 focus:ring-[#800000]/20'
                   } focus:outline-none`}
                 />
-                <FaSearch className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
+                <FaSearch className={`absolute right-2.5 sm:right-3 top-1/2 transform -translate-y-1/2 text-sm ${
                   darkMode ? 'text-gray-400' : 'text-gray-400'
                 }`} />
               </div>
@@ -234,7 +234,7 @@ const WalkInModal: React.FC<WalkInModalProps> = ({ isOpen, onClose, darkMode, on
 
             {/* Student Results */}
             {searchTerm && (
-              <div className={`h-32 overflow-y-auto rounded-lg border ${
+              <div className={`h-28 sm:h-32 overflow-y-auto rounded-lg border ${
                 darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-gray-50'
               }`}>
                 {isLoading ? (
@@ -254,23 +254,23 @@ const WalkInModal: React.FC<WalkInModalProps> = ({ isOpen, onClose, darkMode, on
                           setSelectedStudent(student);
                           setSearchTerm(student.full_name);
                         }}
-                        className={`w-full p-3 text-left hover:bg-gray-100 transition-colors ${
+                        className={`w-full p-2 sm:p-3 text-left hover:bg-gray-100 transition-colors ${
                           selectedStudent?.id === student.id 
                             ? 'bg-[#800000]/10 border-l-4 border-[#800000]' 
                             : ''
                         } ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'}`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-[#800000]/10">
-                            <FaUser className="text-[#800000] text-sm" />
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="p-1.5 sm:p-2 rounded-lg bg-[#800000]/10">
+                            <FaUser className="text-[#800000] text-xs sm:text-sm" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className={`font-medium truncate ${
+                            <p className={`text-sm sm:text-base font-medium truncate ${
                               darkMode ? 'text-white' : 'text-gray-900'
                             }`}>
                               {student.full_name}
                             </p>
-                            <p className={`text-sm truncate ${
+                            <p className={`text-xs sm:text-sm truncate ${
                               darkMode ? 'text-gray-400' : 'text-gray-600'
                             }`}>
                               {student.email} • ID: {student.student_id}
@@ -292,17 +292,17 @@ const WalkInModal: React.FC<WalkInModalProps> = ({ isOpen, onClose, darkMode, on
 
             {/* Selected Student */}
             {selectedStudent && (
-              <div className={`p-4 rounded-lg border-2 border-[#800000]/20 bg-gradient-to-r ${
+              <div className={`p-3 sm:p-4 rounded-lg border-2 border-[#800000]/20 bg-gradient-to-r ${
                 darkMode 
                   ? 'from-[#800000]/5 to-[#800000]/10' 
                   : 'from-[#800000]/5 to-[#800000]/10'
               }`}>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-[#800000]/20">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 rounded-lg bg-[#800000]/20">
                     <FaUser className="text-[#800000]" />
                   </div>
                   <div>
-                    <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    <p className={`text-sm sm:text-base font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       {selectedStudent.full_name}
                     </p>
                     <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -314,9 +314,9 @@ const WalkInModal: React.FC<WalkInModalProps> = ({ isOpen, onClose, darkMode, on
             )}
 
             {/* Appointment Details */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-3 sm:gap-4">
               <div>
-                <label className={`flex items-center gap-2 mb-2 text-sm font-medium ${
+                <label className={`flex items-center gap-2 mb-1.5 sm:mb-2 text-xs sm:text-sm font-medium ${
                   darkMode ? 'text-gray-200' : 'text-gray-700'
                 }`}>
                   <FaCalendarAlt className="text-[#800000]" />
@@ -326,13 +326,13 @@ const WalkInModal: React.FC<WalkInModalProps> = ({ isOpen, onClose, darkMode, on
                   type="text"
                   value={getCurrentDate()}
                   disabled
-                  className={`w-full px-3 py-2 rounded-lg border ${
+                  className={`w-full px-3 py-2 text-sm rounded-lg border ${
                     darkMode 
                       ? 'bg-gray-600 border-gray-500 text-gray-300' 
                       : 'bg-gray-100 border-gray-300 text-gray-600'
                   } cursor-not-allowed`}
                 />
-                <p className={`mt-1 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <p className={`mt-1 text-[10px] sm:text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   Today's date (walk-in appointments are for today only)
                 </p>
               </div>
@@ -349,7 +349,7 @@ const WalkInModal: React.FC<WalkInModalProps> = ({ isOpen, onClose, darkMode, on
                   value={appointmentTime}
                   onChange={(e) => setAppointmentTime(e.target.value)}
                   required
-                  className={`w-full px-3 py-2 rounded-lg border transition-all ${
+                  className={`w-full px-3 py-2 text-sm rounded-lg border transition-all ${
                     darkMode 
                       ? 'bg-gray-700 border-gray-600 text-white focus:border-[#800000] focus:ring-2 focus:ring-[#800000]/20' 
                       : 'bg-white border-gray-300 text-gray-900 focus:border-[#800000] focus:ring-2 focus:ring-[#800000]/20'
@@ -360,7 +360,7 @@ const WalkInModal: React.FC<WalkInModalProps> = ({ isOpen, onClose, darkMode, on
 
             {/* Notes */}
             <div>
-              <label className={`flex items-center gap-2 mb-2 text-sm font-medium ${
+              <label className={`flex items-center gap-2 mb-1.5 sm:mb-2 text-xs sm:text-sm font-medium ${
                 darkMode ? 'text-gray-200' : 'text-gray-700'
               }`}>
                 <svg className="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -373,7 +373,7 @@ const WalkInModal: React.FC<WalkInModalProps> = ({ isOpen, onClose, darkMode, on
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
                 placeholder="Add any notes about this walk-in appointment..."
-                className={`w-full px-3 py-2 rounded-lg border transition-all resize-y ${
+                className={`w-full px-3 py-2 text-sm rounded-lg border transition-all resize-y ${
                   darkMode 
                     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-[#800000] focus:ring-2 focus:ring-[#800000]/20' 
                     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[#800000] focus:ring-2 focus:ring-[#800000]/20'
@@ -382,11 +382,11 @@ const WalkInModal: React.FC<WalkInModalProps> = ({ isOpen, onClose, darkMode, on
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3 pt-4">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-3 sm:pt-4">
               <button
                 type="button"
                 onClick={handleClose}
-                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
+                className={`flex-1 px-4 py-2.5 sm:py-3 rounded-lg font-medium text-sm transition-colors ${
                   darkMode 
                     ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -397,7 +397,7 @@ const WalkInModal: React.FC<WalkInModalProps> = ({ isOpen, onClose, darkMode, on
               <button
                 type="submit"
                 disabled={!selectedStudent || !appointmentTime || isSubmitting}
-                className={`flex-1 px-4 py-3 rounded-lg font-medium text-white transition-all ${
+                className={`flex-1 px-4 py-2.5 sm:py-3 rounded-lg font-medium text-sm text-white transition-all ${
                   !selectedStudent || !appointmentTime || isSubmitting
                     ? 'bg-gray-400 cursor-not-allowed'
                     : 'bg-[#800000] hover:bg-[#660000] hover:shadow-lg transform hover:scale-105'

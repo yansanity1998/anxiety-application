@@ -298,19 +298,19 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
     document.body.style.overflow = 'hidden';
     
     const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4';
+    modal.className = 'fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4';
     modal.innerHTML = `
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-gray-200">
-        <div class="p-5">
-          <div class="flex items-center gap-4 mb-5">
-            <div class="p-3 rounded-lg bg-gradient-to-br from-[#800000]/10 to-[#800000]/20">
-              <svg class="w-6 h-6 text-[#800000]" fill="currentColor" viewBox="0 0 20 20">
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-y-auto border border-gray-200">
+        <div class="p-3 sm:p-4 lg:p-5">
+          <div class="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
+            <div class="p-2 sm:p-3 rounded-lg bg-gradient-to-br from-[#800000]/10 to-[#800000]/20">
+              <svg class="w-5 h-5 sm:w-6 sm:h-6 text-[#800000]" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
               </svg>
             </div>
             <div class="flex-1 min-w-0">
-              <h3 class="text-lg font-semibold text-gray-900 truncate">${appointment.student_name}</h3>
-              <p class="text-sm text-gray-500">${appointment.student_email}</p>
+              <h3 class="text-base sm:text-lg font-semibold text-gray-900 truncate">${appointment.student_name}</h3>
+              <p class="text-xs sm:text-sm text-gray-500 truncate">${appointment.student_email}</p>
             </div>
             <button 
               onclick="this.closest('.fixed').remove()"
@@ -322,55 +322,55 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
             </button>
           </div>
 
-          <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-3">
-              <div class="p-3 rounded-lg bg-gray-50 border border-gray-100">
-                <div class="flex items-center gap-2 mb-1.5">
-                  <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="space-y-3 sm:space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+              <div class="p-2 sm:p-3 rounded-lg bg-gray-50 border border-gray-100">
+                <div class="flex items-center gap-2 mb-1 sm:mb-1.5">
+                  <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <span class="text-xs font-medium text-gray-600">Date</span>
+                  <span class="text-[10px] sm:text-xs font-medium text-gray-600">Date</span>
                 </div>
-                <p class="text-sm font-semibold text-gray-900">${formatDate(appointment.appointment_date)}</p>
+                <p class="text-xs sm:text-sm font-semibold text-gray-900">${formatDate(appointment.appointment_date)}</p>
               </div>
 
-              <div class="p-3 rounded-lg bg-gray-50 border border-gray-100">
-                <div class="flex items-center gap-2 mb-1.5">
-                  <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="p-2 sm:p-3 rounded-lg bg-gray-50 border border-gray-100">
+                <div class="flex items-center gap-2 mb-1 sm:mb-1.5">
+                  <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span class="text-xs font-medium text-gray-600">Time</span>
+                  <span class="text-[10px] sm:text-xs font-medium text-gray-600">Time</span>
                 </div>
-                <p class="text-sm font-semibold text-gray-900">${appointment.appointment_time}</p>
+                <p class="text-xs sm:text-sm font-semibold text-gray-900">${appointment.appointment_time}</p>
               </div>
             </div>
 
-            <div class="p-3 rounded-lg bg-gray-50 border border-gray-100">
-              <div class="flex items-center gap-2 mb-1.5">
-                <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-2 sm:p-3 rounded-lg bg-gray-50 border border-gray-100">
+              <div class="flex items-center gap-2 mb-1 sm:mb-1.5">
+                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span class="text-xs font-medium text-gray-600">Status</span>
+                <span class="text-[10px] sm:text-xs font-medium text-gray-600">Status</span>
               </div>
-              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[appointment.status]}">
+              <span class="inline-flex items-center px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${statusColors[appointment.status]}">
                 <span>${appointment.status}</span>
               </span>
             </div>
 
             ${appointment.notes ? `
-              <div class="p-3 rounded-lg bg-gray-50 border border-gray-100">
-                <div class="flex items-center gap-2 mb-1.5">
-                  <svg class="w-4 h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="p-2 sm:p-3 rounded-lg bg-gray-50 border border-gray-100">
+                <div class="flex items-center gap-2 mb-1 sm:mb-1.5">
+                  <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
-                  <span class="text-xs font-medium text-gray-600">Notes</span>
+                  <span class="text-[10px] sm:text-xs font-medium text-gray-600">Notes</span>
                 </div>
-                <p class="text-sm text-gray-700 leading-relaxed">${appointment.notes}</p>
+                <p class="text-xs sm:text-sm text-gray-700 leading-relaxed">${appointment.notes}</p>
               </div>
             ` : ''}
           </div>
 
-          <div class="flex gap-2 mt-5">
+          <div class="flex flex-col sm:flex-row gap-2 mt-4 sm:mt-5">
             <button 
               onclick="window.print()"
               class="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors"
@@ -415,26 +415,26 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
       document.body.style.overflow = 'hidden';
       
       const modal = document.createElement('div');
-      modal.className = 'fixed inset-0 bg-white/20 backdrop-blur-md flex items-center justify-center z-50 p-4';
+      modal.className = 'fixed inset-0 bg-white/20 backdrop-blur-md flex items-center justify-center z-50 p-2 sm:p-4';
       modal.innerHTML = `
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 border border-red-200">
-          <div class="p-6">
-            <div class="text-center space-y-4">
-              <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-3">
-                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-2 sm:mx-4 border border-red-200">
+          <div class="p-4 sm:p-6">
+            <div class="text-center space-y-3 sm:space-y-4">
+              <div class="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full mb-2 sm:mb-3">
+                <svg class="w-6 h-6 sm:w-8 sm:h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </div>
-              <h3 class="text-lg font-bold text-gray-900">Delete Appointment?</h3>
-              <p class="text-gray-600">Are you sure you want to delete this appointment?</p>
-              <div class="bg-red-50 p-4 rounded-xl border border-red-200">
-                <p class="font-semibold text-red-800 text-lg">${appointment.student_name}</p>
-                <p class="text-sm text-red-600">${formatDate(appointment.appointment_date)} at ${appointment.appointment_time}</p>
+              <h3 class="text-base sm:text-lg font-bold text-gray-900">Delete Appointment?</h3>
+              <p class="text-sm sm:text-base text-gray-600">Are you sure you want to delete this appointment?</p>
+              <div class="bg-red-50 p-3 sm:p-4 rounded-xl border border-red-200">
+                <p class="font-semibold text-red-800 text-base sm:text-lg">${appointment.student_name}</p>
+                <p class="text-xs sm:text-sm text-red-600">${formatDate(appointment.appointment_date)} at ${appointment.appointment_time}</p>
               </div>
-              <p class="text-sm text-gray-500">This action cannot be undone.</p>
-              <div class="flex space-x-3 mt-6">
-                <button id="cancelBtn" class="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-medium hover:bg-gray-200 transition-colors">Cancel</button>
-                <button id="confirmBtn" class="flex-1 bg-red-500 text-white px-4 py-2 rounded-xl font-medium hover:bg-red-600 transition-colors">Yes, delete it!</button>
+              <p class="text-xs sm:text-sm text-gray-500">This action cannot be undone.</p>
+              <div class="flex flex-col sm:flex-row gap-2 sm:space-x-3 mt-4 sm:mt-6">
+                <button id="cancelBtn" class="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-medium hover:bg-gray-200 active:scale-95 transition-all text-sm sm:text-base">Cancel</button>
+                <button id="confirmBtn" class="flex-1 bg-red-500 text-white px-4 py-2 rounded-xl font-medium hover:bg-red-600 active:scale-95 transition-all text-sm sm:text-base">Yes, delete it!</button>
               </div>
             </div>
           </div>
@@ -482,11 +482,11 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
         document.body.style.overflow = 'hidden';
         
         const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4';
+        modal.className = 'fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4';
         modal.innerHTML = `
-          <div class="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto border border-gray-200">
-            <div class="p-5">
-              <div class="flex items-center gap-4 mb-5">
+          <div class="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[95vh] sm:max-h-[90vh] overflow-y-auto border border-gray-200">
+            <div class="p-3 sm:p-4 lg:p-5">
+              <div class="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
                 <div class="p-3 rounded-lg bg-gradient-to-br from-[#800000]/10 to-[#800000]/20">
                   <svg class="w-6 h-6 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -791,7 +791,7 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
 
       {/* Search Bar with Walk-in Button */}
       <div className="mb-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-0 sm:justify-between">
           <div className="relative flex-1 max-w-2xl">
             <input
               type="text"
@@ -820,7 +820,7 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
           </div>
           
           {/* View History and Walk-in Buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* View History Button */}
             <button
               onClick={() => {
@@ -832,20 +832,20 @@ const Schedule = ({ darkMode }: ScheduleProps) => {
                   });
                 }
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              className="flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 text-sm"
               title="View Schedule History"
             >
               <FaHistory className="text-sm" />
-              <span className="hidden sm:inline">History</span>
+              <span>History</span>
             </button>
             
             {/* Walk-in Button */}
             <button
               onClick={() => setIsWalkInModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#800000] to-[#660000] hover:from-[#660000] hover:to-[#4d0000] text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              className="flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-[#800000] to-[#660000] hover:from-[#660000] hover:to-[#4d0000] text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 text-sm"
             >
               <FaWalking className="text-sm" />
-              <span className="hidden sm:inline">Walk-in</span>
+              <span>Walk-in</span>
             </button>
           </div>
         </div>

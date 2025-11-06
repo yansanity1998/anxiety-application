@@ -42,7 +42,7 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
 
   // Desktop link styles
   const navLinkClasses = (view: string) =>
-    `group flex items-center gap-2 px-3 py-2 rounded-md text-sm md:text-base whitespace-nowrap font-medium transition-colors cursor-pointer ${
+    `group flex items-center gap-2 px-3 lg:px-4 py-2 rounded-md text-sm lg:text-base whitespace-nowrap font-medium transition-colors cursor-pointer ${
       activeView === view
         ? 'bg-[#800000] text-white' // Active = Maroon
         : darkMode
@@ -52,7 +52,7 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
 
   // Mobile link styles
   const mobileNavLinkClasses = (view: string) =>
-    `group flex items-center gap-2 w-full text-left px-3 py-2 rounded-md text-sm whitespace-nowrap font-medium transition-colors cursor-pointer ${
+    `group flex items-center gap-2 w-full text-left px-3 py-2.5 rounded-md text-sm whitespace-nowrap font-medium transition-colors cursor-pointer active:scale-95 ${
       activeView === view
         ? 'bg-[#800000] text-white'
         : darkMode
@@ -70,11 +70,12 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
         ? 'bg-gray-800 border-gray-700'
         : 'bg-white border-gray-200'
     } border-b`}>
-      <div className="max-w-10xl mx-auto px-6 sm:px-12 lg:px-16">
-        <div className="flex items-center justify-between h-16">
+      <div className="w-full">
+        <div className="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
+          <div className="flex items-center justify-between h-10 sm:h-12 lg:h-14">
           <div className="flex items-center">
             <div className="hidden md:block">
-              <div className="flex items-baseline space-x-4">
+              <div className="flex items-baseline space-x-2">
                 {navItems.map((item) => (
                   <button
                     key={item.id}
@@ -82,16 +83,17 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
                     className={navLinkClasses(item.id)}
                   >
                     <span
-                      className={`mr-1 ${
+                      className={`text-base lg:text-lg ${
                         activeView === item.id ? 'text-white' : item.color
                       }`}
                     >
                       {item.icon}
                     </span>
-                    {item.label}
+                    <span className="hidden lg:inline">{item.label}</span>
+                    <span className="lg:hidden text-xs">{item.label.split(' ')[0]}</span>
                     {item.id === 'archived' && archivedUsersCount > 0 && (
                       <span
-                        className={`ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full ${
+                        className={`ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold rounded-full ${
                           darkMode ? 'bg-red-600 text-white' : 'bg-red-500 text-white'
                         }`}
                       >
@@ -103,11 +105,11 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
               </div>
             </div>
           </div>
-          <div className="-mr-2 flex md:hidden">
+          <div className="flex md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
               type="button"
-              className={`inline-flex items-center justify-center p-2 rounded-md cursor-pointer ${
+              className={`inline-flex items-center justify-center p-2 rounded-lg cursor-pointer transition-all active:scale-95 ${
                 darkMode
                   ? 'text-gray-400 hover:text-white hover:bg-[#b56576]'
                   : 'text-gray-500 hover:text-white hover:bg-[#b56576]'
@@ -120,11 +122,12 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
             </button>
           </div>
         </div>
+        </div>
       </div>
 
       {isOpen && (
         <div className="md:hidden" id="mobile-menu">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+          <div className="px-3 pt-2 pb-3 space-y-1.5">
             {navItems.map((item) => (
               <button
                 key={item.id}
@@ -132,7 +135,7 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
                 className={mobileNavLinkClasses(item.id)}
               >
                 <span
-                  className={`mr-1 ${
+                  className={`text-base ${
                     activeView === item.id ? 'text-white' : item.color
                   }`}
                 >
@@ -141,7 +144,7 @@ const AdminNavbar = ({ activeView, setActiveView, darkMode, archivedUsersCount =
                 {item.label}
                 {item.id === 'archived' && archivedUsersCount > 0 && (
                   <span
-                    className={`ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full ${
+                    className={`ml-auto inline-flex items-center justify-center px-2 py-1 text-xs font-bold rounded-full ${
                       darkMode ? 'bg-red-600 text-white' : 'bg-red-500 text-white'
                     }`}
                   >
