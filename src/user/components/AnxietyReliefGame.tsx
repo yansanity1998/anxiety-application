@@ -540,23 +540,23 @@ const AnxietyReliefGame: React.FC<AnxietyReliefGameProps> = ({}) => {
         </div>
 
         {/* Compact Benefits */}
-        <div className="mt-4 bg-gradient-to-r from-green-50/80 to-emerald-50/80 backdrop-blur-md rounded-xl p-3 border border-green-200/50 shadow-lg">
-          <div className="flex items-center justify-center gap-4 text-xs text-gray-700">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="font-medium text-green-700">Focus</span>
+        <div className="mt-3 bg-gradient-to-r from-green-50/80 to-emerald-50/80 backdrop-blur-md rounded-lg py-1 px-1.5 border border-green-200/50 shadow-md">
+          <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-center gap-1 sm:gap-2 text-[10px] text-gray-700">
+            <div className="flex items-center gap-0.5 justify-center">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0"></div>
+              <span className="font-medium text-green-700 whitespace-nowrap">Focus</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="font-medium text-blue-700">Calm</span>
+            <div className="flex items-center gap-0.5 justify-center">
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0"></div>
+              <span className="font-medium text-blue-700 whitespace-nowrap">Calm</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              <span className="font-medium text-purple-700">Positive</span>
+            <div className="flex items-center gap-0.5 justify-center">
+              <div className="w-1.5 h-1.5 bg-purple-500 rounded-full flex-shrink-0"></div>
+              <span className="font-medium text-purple-700 whitespace-nowrap">Positive</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-              <span className="font-medium text-orange-700">Coordination</span>
+            <div className="flex items-center gap-0.5 justify-center">
+              <div className="w-1.5 h-1.5 bg-orange-500 rounded-full flex-shrink-0"></div>
+              <span className="font-medium text-orange-700 whitespace-nowrap">Coordination</span>
             </div>
           </div>
         </div>

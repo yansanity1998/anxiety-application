@@ -612,23 +612,23 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
         </div>
 
         {/* Compact Benefits */}
-        <div className="mt-4 bg-gradient-to-r from-indigo-50/80 to-purple-50/80 backdrop-blur-md rounded-xl p-3 border border-indigo-200/50 shadow-lg">
-          <div className="flex items-center justify-center gap-4 text-xs text-gray-700">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-              <span className="font-medium text-indigo-700">Memory</span>
+        <div className="mt-3 bg-gradient-to-r from-indigo-50/80 to-purple-50/80 backdrop-blur-md rounded-lg py-1 px-1.5 border border-indigo-200/50 shadow-md">
+          <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-center gap-1 sm:gap-2 text-[10px] text-gray-700">
+            <div className="flex items-center gap-0.5 justify-center">
+              <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full flex-shrink-0"></div>
+              <span className="font-medium text-indigo-700 whitespace-nowrap">Memory</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              <span className="font-medium text-purple-700">Focus</span>
+            <div className="flex items-center gap-0.5 justify-center">
+              <div className="w-1.5 h-1.5 bg-purple-500 rounded-full flex-shrink-0"></div>
+              <span className="font-medium text-purple-700 whitespace-nowrap">Focus</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="font-medium text-blue-700">Pattern</span>
+            <div className="flex items-center gap-0.5 justify-center">
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0"></div>
+              <span className="font-medium text-blue-700 whitespace-nowrap">Pattern</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
-              <span className="font-medium text-cyan-700">Visual</span>
+            <div className="flex items-center gap-0.5 justify-center">
+              <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full flex-shrink-0"></div>
+              <span className="font-medium text-cyan-700 whitespace-nowrap">Visual</span>
             </div>
           </div>
         </div>
