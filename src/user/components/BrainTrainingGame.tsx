@@ -385,7 +385,7 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
         </div>
       </div>
 
-      <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-2xl border border-indigo-200/50 backdrop-blur-sm relative overflow-hidden">
+      <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 rounded-2xl sm:rounded-3xl p-3 sm:p-6 lg:p-8 shadow-2xl border border-indigo-200/50 backdrop-blur-sm relative overflow-hidden">
         {/* Decorative background elements */}
         <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-indigo-200/30 to-transparent rounded-full -translate-x-16 -translate-y-16"></div>
         <div className="absolute bottom-0 right-0 w-40 h-40 bg-gradient-to-tl from-purple-200/30 to-transparent rounded-full translate-x-20 translate-y-20"></div>
@@ -468,7 +468,7 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
         )}
 
         {/* Game Area */}
-        <div className="relative bg-gradient-to-b from-white via-indigo-50 to-purple-50 rounded-2xl sm:rounded-3xl p-3 sm:p-4 lg:p-6 overflow-hidden border-2 border-white/60 mb-4 sm:mb-6 shadow-inner touch-manipulation">
+        <div className="relative bg-gradient-to-b from-white via-indigo-50 to-purple-50 rounded-2xl sm:rounded-3xl p-2 sm:p-4 lg:p-6 overflow-hidden border-2 border-white/60 mb-4 sm:mb-6 shadow-inner touch-manipulation">
           {/* Animated background particles */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-indigo-200/40 rounded-full animate-ping"></div>
@@ -476,23 +476,19 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
             <div className="absolute top-1/2 right-1/4 w-1.5 h-1.5 bg-blue-200/30 rounded-full animate-ping" style={{animationDelay: '1s'}}></div>
           </div>
           {/* Memory Cards Grid */}
-          <div className={`grid gap-2 sm:gap-3 lg:gap-4 justify-center relative z-10 ${
+          <div className={`grid gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 justify-center relative z-10 w-full max-w-full ${
             cards.length <= 10 ? 'grid-cols-5' : 
-            cards.length <= 12 ? 'grid-cols-4' : 
-            'grid-cols-4'
+            cards.length <= 12 ? 'grid-cols-4 sm:grid-cols-4' : 
+            'grid-cols-4 sm:grid-cols-4'
           }`}>
             {cards.map((card) => (
               <button
                 key={card.id}
-                className={`w-14 h-14 sm:w-18 sm:h-18 lg:w-24 lg:h-24 rounded-xl sm:rounded-2xl border-2 transition-all duration-500 flex items-center justify-center text-2xl sm:text-3xl font-bold shadow-2xl hover:scale-110 active:scale-105 hover:rotate-3 transform ${
+                className={`aspect-square w-full max-w-[70px] sm:max-w-[80px] md:max-w-[90px] lg:max-w-[110px] rounded-lg sm:rounded-xl lg:rounded-2xl border-2 transition-all duration-500 flex items-center justify-center text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold shadow-xl sm:shadow-2xl hover:scale-105 active:scale-95 sm:hover:scale-110 sm:hover:rotate-3 transform ${
                   card.isFlipped || card.isMatched
-                    ? `${card.color} border-white/80 shadow-3xl backdrop-blur-sm`
+                    ? `${card.color} border-white/80 shadow-2xl sm:shadow-3xl backdrop-blur-sm`
                     : 'bg-gradient-to-br from-indigo-200 via-purple-200 to-blue-200 border-indigo-400 hover:from-indigo-300 hover:via-purple-300 hover:to-blue-300 hover:border-white'
-                } ${card.isMatched ? 'ring-2 sm:ring-4 ring-green-400 animate-pulse' : ''} ${card.isFlipped && !card.isMatched ? 'animate-bounce' : ''} touch-manipulation`}
-                style={{
-                  minHeight: '56px',
-                  minWidth: '56px'
-                }}
+                } ${card.isMatched ? 'ring-2 sm:ring-4 ring-green-400 animate-pulse' : ''} ${card.isFlipped && !card.isMatched ? 'animate-bounce' : ''} touch-manipulation mx-auto`}
                 onClick={() => flipCard(card.id)}
                 disabled={!gameActive || card.isFlipped || card.isMatched || flippedCards.length >= 2}
               >
@@ -500,13 +496,13 @@ const BrainTrainingGame: React.FC<BrainTrainingGameProps> = ({}) => {
                   <span className="drop-shadow-lg filter brightness-110">{card.value}</span>
                 ) : (
                   <div className="relative">
-                    <FaBrain className="text-indigo-500 text-lg sm:text-xl lg:text-2xl opacity-60" />
+                    <FaBrain className="text-indigo-500 text-base sm:text-lg md:text-xl lg:text-2xl opacity-60" />
                     <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-full"></div>
                   </div>
                 )}
                 {card.isMatched && (
-                  <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-4 h-4 sm:w-6 sm:h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center animate-ping">
-                    <FaStar className="text-white text-xs" />
+                  <div className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 lg:-top-2 lg:-right-2 w-3 h-3 sm:w-4 sm:h-4 lg:w-6 lg:h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center animate-ping">
+                    <FaStar className="text-white text-[8px] sm:text-xs" />
                   </div>
                 )}
               </button>
