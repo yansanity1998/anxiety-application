@@ -477,24 +477,19 @@
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between text-xs sm:text-sm">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => handleRememberMeChange(e.target.checked)}
-                  className="h-4 w-4 text-[#800000] focus:ring-[#800000] border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-gray-600">
-                  Remember me
-                </label>
-              </div>
-              <a href="#" className="font-medium text-[#800000] hover:text-[#660000] transition-colors">
-                Forgot password?
-              </a>
+            {/* Remember Me */}
+            <div className="flex items-center text-xs sm:text-sm">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => handleRememberMeChange(e.target.checked)}
+                className="h-4 w-4 text-[#800000] focus:ring-[#800000] border-gray-300 rounded"
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-gray-600">
+                Remember me
+              </label>
             </div>
 
             {/* Submit Button */}

@@ -906,7 +906,7 @@ export default function LandingPage() {
       {/* Login Modal */}
       {(showLogin || (isClosing && !showRegister)) && (
         <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300 ${isClosing && !showRegister ? 'opacity-0' : 'opacity-100'}`}>
-          <div className={`relative bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto mx-4 transition-all duration-300 ${isClosing && !showRegister ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}>
+          <div className={`relative bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] mx-4 transition-all duration-300 ${isClosing && !showRegister ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`} style={{ overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <button
               onClick={closeLoginModal}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10 transition-colors"
@@ -923,7 +923,7 @@ export default function LandingPage() {
       {/* Register Modal */}
       {(showRegister || (isClosing && !showLogin)) && (
         <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300 ${isClosing && !showLogin ? 'opacity-0' : 'opacity-100'}`}>
-          <div className={`relative bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto mx-4 transition-all duration-300 ${isClosing && !showLogin ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}>
+          <div className={`relative bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] mx-4 transition-all duration-300 ${isClosing && !showLogin ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`} style={{ overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <button
               onClick={closeRegisterModal}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10 transition-colors"

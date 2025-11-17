@@ -72,8 +72,8 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   return isAuthenticated ? <>{children}</> : <Navigate to="/" />;
 };
 
-// Protected Route component for admin and guidance
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+// Admin-only Route component
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -85,25 +85,69 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        // Check if user is admin or guidance by email first
+        // Check if user is admin by email first
         const isAdminByEmail = session.user.email?.toLowerCase() === 'admin@gmail.com';
-        const isGuidanceByEmail = session.user.email?.toLowerCase() === 'guidance@gmail.com';
         
-        if (isAdminByEmail || isGuidanceByEmail) {
+        if (isAdminByEmail) {
           setIsAuthorized(true);
           return;
         }
 
-        // If not admin/guidance by email, check profile role
+        // If not admin by email, check profile role
         const { data: profile } = await supabase
           .from('profiles')
           .select('role')
           .eq('user_id', session.user.id)
           .single();
 
-        setIsAuthorized(profile?.role === 'admin' || profile?.role === 'guidance');
+        setIsAuthorized(profile?.role === 'admin');
       } catch (error) {
-        console.error('Error checking authorization status:', error);
+        console.error('Error checking admin authorization:', error);
+        setIsAuthorized(false);
+      }
+    };
+
+    checkAuthorization();
+  }, []);
+
+  if (isAuthorized === null) {
+    return <div>Loading...</div>;
+  }
+
+  return isAuthorized ? <>{children}</> : <Navigate to="/" />;
+};
+
+// Guidance-only Route component
+const GuidanceRoute = ({ children }: { children: React.ReactNode }) => {
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkAuthorization = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setIsAuthorized(false);
+          return;
+        }
+
+        // Check if user is guidance by email first
+        const isGuidanceByEmail = session.user.email?.toLowerCase() === 'guidance@gmail.com';
+        
+        if (isGuidanceByEmail) {
+          setIsAuthorized(true);
+          return;
+        }
+
+        // If not guidance by email, check profile role
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', session.user.id)
+          .single();
+
+        setIsAuthorized(profile?.role === 'guidance');
+      } catch (error) {
+        console.error('Error checking guidance authorization:', error);
         setIsAuthorized(false);
       }
     };
@@ -218,33 +262,33 @@ function App() {
           <Route 
             path="/admin" 
             element={
-              <ProtectedRoute>
+              <AdminRoute>
                 <AdminDashboard />
-              </ProtectedRoute>
+              </AdminRoute>
             } 
           />
           <Route 
             path="/admin/:view" 
             element={
-              <ProtectedRoute>
+              <AdminRoute>
                 <AdminDashboard />
-              </ProtectedRoute>
+              </AdminRoute>
             } 
           />
           <Route 
             path="/guidance" 
             element={
-              <ProtectedRoute>
+              <GuidanceRoute>
                 <GuidanceDashboard />
-              </ProtectedRoute>
+              </GuidanceRoute>
             } 
           />
           <Route 
             path="/guidance/:view" 
             element={
-              <ProtectedRoute>
+              <GuidanceRoute>
                 <GuidanceDashboard />
-              </ProtectedRoute>
+              </GuidanceRoute>
             } 
           />
           <Route path="*" element={<Navigate to="/" />} />

@@ -824,6 +824,33 @@ export default function GuidanceDashboard() {
             Swal.showValidationMessage('Please select both date and time');
             return false;
           }
+
+          // Check for 30-minute interval conflicts
+          const [hours, minutes] = time.split(':').map(Number);
+          const newAppointmentMinutes = hours * 60 + minutes;
+
+          // Get all appointments on the same date (for all students)
+          const sameDataAppointments = appointments.filter(apt => 
+            apt.appointment_date === date && 
+            apt.status !== 'Canceled' && 
+            apt.status !== 'Completed'
+          );
+
+          // Check if any appointment is within 30 minutes
+          for (const apt of sameDataAppointments) {
+            const [aptHours, aptMinutes] = apt.appointment_time.split(':').map(Number);
+            const aptMinutesTotal = aptHours * 60 + aptMinutes;
+            const timeDifference = Math.abs(newAppointmentMinutes - aptMinutesTotal);
+
+            if (timeDifference < 30) {
+              const studentName = apt.student_name || apt.student_email;
+              Swal.showValidationMessage(
+                `⚠️ Time conflict! An appointment for "${studentName}" is already scheduled at ${apt.appointment_time}. Please choose a time at least 30 minutes apart.`
+              );
+              return false;
+            }
+          }
+
           return { date, time, notes };
         },
         width: '400px',
